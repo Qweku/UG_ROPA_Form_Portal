@@ -1,0 +1,27 @@
+/* File: resources/css/ropa.css - Add to your main CSS file or include separately */
+:root {
+    --ropa-primary: #153d6f;
+    --ropa-accent: #b69964;
+    --ropa-primary-light: #e8eef5;
+    --ropa-accent-light: #f5efe6;
+}
+
+.bg-ropa-primary { background-color: var(--ropa-primary); }
+.text-ropa-primary { color: var(--ropa-primary); }
+.bg-ropa-accent { background-color: var(--ropa-accent); }
+.text-ropa-accent { color: var(--ropa-accent); }
+.btn-ropa-primary { background-color: var(--ropa-primary); color: white; border: none; }
+.btn-ropa-primary:hover { background-color: #0e2d52; color: white; }
+.btn-ropa-accent { background-color: var(--ropa-accent); color: white; border: none; }
+.btn-ropa-accent:hover { background-color: #9e7d4a; color: white; }
+
+.searchable-dropdown {
+    background-image: url("data:image/svg+xml,..."); /* custom dropdown arrow */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .step-label { font-size: 0.5rem; max-width: 50px; }
+    .step { width: 30px; height: 30px; font-size: 0.8rem; }
+    .card-header-custom h3 { font-size: 1.2rem; }
+}
