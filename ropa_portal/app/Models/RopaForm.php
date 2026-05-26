@@ -8,17 +8,57 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class RopaForm extends Model
 {
     protected $fillable = [
-        'user_id', 'personnel_id', 'surname', 'firstname', 'business_function', 'process_names',
-        'purpose', 'role_responsible', 'joint_controllers', 'categories_records', 'data_subjects',
-        'personal_data_categories', 'special_category_documents', 'internal_sharing_categories',
-        'share_internally', 'internal_recipients', 'special_category_recipients', 'sharing_reasons',
-        'data_source', 'data_update_method', 'legal_basis', 'lia_documented', 'lia_location',
-        'sensitive_legal_basis', 'retention_period', 'legally_required_retention', 'special_category_condition',
-        'legitimate_interests', 'lia_link', 'individual_rights', 'security_measures', 'external_recipients',
-        'international_transfers', 'transfer_mechanisms', 'auto_decision_making', 'profiling_description',
-        'consent_link', 'data_location', 'dpia_required', 'dpia_progress', 'dpia_link', 'breach_occurred',
-        'breach_link', 'dpa_conditions', 'gdpr_articles', 'retention_policy_link', 'retained_per_policy',
-        'retention_non_adherence_reason', 'current_step', 'status', 'submitted_at'
+        'user_id',
+        'personnel_id',
+        'surname',
+        'firstname',
+        'business_function',
+        'process_names',
+        'purpose',
+        'role_responsible',
+        'joint_controllers',
+        'categories_records',
+        'data_subjects',
+        'personal_data_categories',
+        'special_category_documents',
+        'internal_sharing_categories',
+        'share_internally',
+        'internal_recipients',
+        'special_category_recipients',
+        'sharing_reasons',
+        'data_source',
+        'data_update_method',
+        'legal_basis',
+        'lia_documented',
+        'lia_location',
+        'sensitive_legal_basis',
+        'retention_period',
+        'legally_required_retention',
+        'special_category_condition',
+        'legitimate_interests',
+        'lia_link',
+        'individual_rights',
+        'security_measures',
+        'external_recipients',
+        'international_transfers',
+        'transfer_mechanisms',
+        'auto_decision_making',
+        'profiling_description',
+        'consent_link',
+        'data_location',
+        'dpia_required',
+        'dpia_progress',
+        'dpia_link',
+        'breach_occurred',
+        'breach_link',
+        'dpa_conditions',
+        'gdpr_articles',
+        'retention_policy_link',
+        'retained_per_policy',
+        'retention_non_adherence_reason',
+        'current_step',
+        'status',
+        'submitted_at'
     ];
 
     protected $casts = [
@@ -48,5 +88,8 @@ class RopaForm extends Model
         'submitted_at' => 'datetime',
     ];
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

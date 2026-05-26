@@ -1,269 +1,255 @@
 @extends('layouts.app')
 
+@section('title', 'RoPA Form - Step ' . $ropaForm->current_step)
+
 @section('content')
-<style>
-    :root {
-        --primary: #153d6f;
-        --accent: #b69964;
-        --primary-light: #e8eef5;
-    }
+<div class="container">
+    <!-- Progress Stepper -->
+    <div class="step-wrapper mb-5" data-aos="fade-down">
+        <div class="progress-stepper">
+            @php
+            $steps = [
+            1 => 'Basic Info',
+            2 => 'Joint Controllers',
+            3 => 'Data Categories',
+            4 => 'Internal Sharing',
+            5 => 'Data Source',
+            6 => 'Legal Basis',
+            7 => 'Security',
+            8 => 'External Sharing',
+            9 => 'Intl. Transfers',
+            10 => 'Auto Decision',
+            11 => 'Consent',
+            12 => 'DPIA',
+            13 => 'Breaches',
+            14 => 'Compliance'
+            ];
+            @endphp
 
-    .step-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-
-    .step-indicator::before {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #dee2e6;
-        z-index: 1;
-    }
-
-    .step {
-        background: white;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        border: 2px solid #dee2e6;
-        z-index: 2;
-        background: white;
-        transition: all 0.3s;
-    }
-
-    .step.active {
-        border-color: var(--primary);
-        background: var(--primary);
-        color: white;
-    }
-
-    .step.completed {
-        border-color: var(--accent);
-        background: var(--accent);
-        color: white;
-    }
-
-    .step-label {
-        font-size: 0.7rem;
-        margin-top: 0.5rem;
-        text-align: center;
-        max-width: 80px;
-    }
-
-    .form-section {
-        animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateX(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    .help-tooltip {
-        color: var(--accent);
-        cursor: help;
-        margin-left: 5px;
-    }
-
-    .card-header-custom {
-        background: var(--primary);
-        color: white;
-        border-radius: 8px 8px 0 0 !important;
-    }
-
-    .btn-next {
-        background: var(--primary);
-        color: white;
-        border: none;
-    }
-
-    .btn-next:hover {
-        background: #0e2d52;
-        color: white;
-    }
-
-    .btn-accent {
-        background: var(--accent);
-        color: white;
-        border: none;
-    }
-
-    .btn-accent:hover {
-        background: #9e7d4a;
-        color: white;
-    }
-
-    .tag-chip {
-        background: var(--primary-light);
-        color: var(--primary);
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        margin: 2px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .tag-chip button {
-        background: none;
-        border: none;
-        color: #999;
-        cursor: pointer;
-    }
-
-    .conditional-section {
-        border-left: 3px solid var(--accent);
-        padding-left: 1rem;
-        margin-top: 1rem;
-    }
-
-    .required-field::after {
-        content: '*';
-        color: red;
-        margin-left: 4px;
-    }
-</style>
-
-<div class="container py-4">
-    {{-- Progress Header --}}
-    <div class="step-indicator mb-5">
-        @foreach(range(1,14) as $i)
-        <div style="text-align: center; flex: 1;">
-            <div class="step {{ $ropaForm->current_step == $i ? 'active' : ($ropaForm->current_step > $i ? 'completed' : '') }}">{{ $i }}</div>
-            <div class="step-label">{{ ['Basic Info','Joint Controllers','Data Categories','Internal Sharing','Data Source','Legal Basis','Security','External Sharing','International Transfers','Auto Decision','Consent & Storage','DPIA','Breaches','DPA Compliance'][$i-1] }}</div>
+            @foreach($steps as $num => $label)
+            <div class="step-item
+                    {{ $ropaForm->current_step > $num ? 'completed' : '' }}
+                    {{ $ropaForm->current_step == $num ? 'active' : '' }}"
+                data-step="{{ $num }}"
+                @if($ropaForm->current_step > $num)
+                onclick="goToStep({{ $num }})"
+                style="cursor:pointer;"
+                @endif>
+                {{ $num }}
+                <div class="step-label">{{ $label }}</div>
+            </div>
+            @endforeach
         </div>
-        @endforeach
     </div>
 
-    {{-- Form --}}
-    <form method="POST" action="{{ route('ropa.update', $ropaForm) }}" id="ropaForm">
-        @csrf
-        @method('PUT')
-        <input type="hidden" name="current_step" value="{{ $ropaForm->current_step }}">
+    <!-- Form -->
+    <div class="row justify-content-center" data-aos="fade-up">
+        <div class="col-lg-10">
+            <form method="POST" action="{{ route('ropa.update', $ropaForm) }}" id="ropaForm" class="needs-validation" novalidate>
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="current_step" value="{{ $ropaForm->current_step }}">
 
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-            <div class="card-header-custom p-4">
-                <h3 class="mb-0 fw-bold">Step {{ $ropaForm->current_step }}:
-                    {{ ['Basic Information','Joint Controllers & Collaboration','Data Categories & Subjects','Data Sharing Within University','Source & Updating of Data','Legal Basis & Compliance','Security & Protection Measures','External Sharing & Recipients','International Transfers','Automated Decision Making','Consent & Storage Information','Data Protection Impact Assessment','Personal Data Breaches','DPA & GDPR Compliance'][$ropaForm->current_step-1] }}
-                </h3>
-            </div>
-            <div class="card-body p-4">
-                @include("ropa.steps.step{$ropaForm->current_step}")
-            </div>
-            <div class="card-footer bg-white p-4 d-flex justify-content-between">
-                <div>
-                    @if($ropaForm->current_step > 1)
-                    <button type="submit" name="action" value="previous" class="btn btn-outline-secondary px-4">← Previous</button>
-                    @endif
-                    <button type="submit" name="action" value="save" class="btn btn-outline-warning ms-2 px-4">Save Draft</button>
-                </div>
-                <div>
-                    @if($ropaForm->current_step < 14)
-                        <button type="submit" name="action" value="next" class="btn btn-next px-5">Next Step →</button>
-                        @else
-                        <button type="submit" name="action" value="submit" class="btn btn-accent px-5" onclick="return confirm('Submit this RoPA form for review?')">Submit Form ✓</button>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-{{
+                                    $ropaForm->current_step == 1 ? 'info-circle' :
+                                    ($ropaForm->current_step == 2 ? 'users' :
+                                    ($ropaForm->current_step == 3 ? 'database' :
+                                    ($ropaForm->current_step == 4 ? 'share-alt' :
+                                    ($ropaForm->current_step == 5 ? 'source' :
+                                    ($ropaForm->current_step == 6 ? 'gavel' :
+                                    ($ropaForm->current_step == 7 ? 'shield-alt' :
+                                    ($ropaForm->current_step == 8 ? 'exchange-alt' :
+                                    ($ropaForm->current_step == 9 ? 'globe' :
+                                    ($ropaForm->current_step == 10 ? 'robot' :
+                                    ($ropaForm->current_step == 11 ? 'file-signature' :
+                                    ($ropaForm->current_step == 12 ? 'chart-line' :
+                                    ($ropaForm->current_step == 13 ? 'exclamation-triangle' : 'check-circle'))))))))))))
+                                }} fa-fw me-2"></i>
+                                <strong>Step {{ $ropaForm->current_step }} of 14</strong>
+                                <span class="ms-3 small">@yield('step-title', $steps[$ropaForm->current_step])</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark px-3 py-2">
+                                    <i class="fas fa-save me-1"></i> Auto-save enabled
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        @if ($errors->any())
+                            <div class="alert alert-danger mb-3 py-2">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Cannot proceed:</strong> {{ $errors->first() }}
+                                @if ($errors->count() > 1)
+                                    <span class="small">({{ $errors->count() - 1 }} more)</span>
+                                @endif
+                            </div>
                         @endif
+                        @include("ropa.steps.step{$ropaForm->current_step}")
+                    </div>
+
+                    <div class="card-footer bg-white p-4">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                @if($ropaForm->current_step > 1)
+                                <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
+                                    <i class="fas fa-arrow-left me-2"></i> Previous
+                                </button>
+                                @endif
+                                <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
+                                    <i class="fas fa-save me-2"></i> Save Draft
+                                </button>
+                            </div>
+                            <div>
+                                @if($ropaForm->current_step < 14)
+                                    <button type="submit" name="action" value="next" class="btn btn-primary px-5">
+                                    Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                    @else
+                                     <button type="submit" name="action" value="submit" class="btn btn-accent px-5">
+                                         <i class="fas fa-check-circle me-2"></i> Submit Form
+                                     </button>
+                                    @endif
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
+@push('scripts')
 <script>
+    // Single DOMContentLoaded event with all functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Conditional show/hide logic for various steps
-        const toggleFields = () => {
-            // Step 4: Internal Sharing conditional
-            const shareInternally = document.querySelector('input[name="share_internally"]:checked');
-            const internalSection = document.getElementById('internal-recipients-section');
-            if (internalSection) internalSection.style.display = shareInternally?.value === '1' ? 'block' : 'none';
 
-            // Step 10: Auto decision conditional
-            const autoDecision = document.querySelector('input[name="auto_decision_making"]:checked');
-            const profilingSection = document.getElementById('profiling-section');
-            if (profilingSection) profilingSection.style.display = autoDecision?.value === '1' ? 'block' : 'none';
+        // ============================================
+        // 1. UPDATE ALL MULTI-SELECT HIDDEN FIELDS
+        // ============================================
+        function updateAllMultiSelects() {
+            document.querySelectorAll('.multi-select-container').forEach(container => {
+                const chipsContainer = container.querySelector('.chips-container');
+                const hiddenField = container.querySelector('input[type="hidden"][name]');
 
-            // Step 14: Retention non-adherence conditional
-            const retainedPerPolicy = document.querySelector('input[name="retained_per_policy"]:checked');
-            const reasonSection = document.getElementById('non-adherence-reason');
-            if (reasonSection) reasonSection.style.display = retainedPerPolicy?.value === '0' ? 'block' : 'none';
-        };
+                if (chipsContainer && hiddenField) {
+                    const values = [];
+                    const chips = chipsContainer.querySelectorAll('.tag-chip');
+                    chips.forEach(chip => {
+                        const textSpan = chip.querySelector('span');
+                        if (textSpan && textSpan.textContent.trim()) {
+                            values.push(textSpan.textContent.trim());
+                        }
+                    });
+                    hiddenField.value = JSON.stringify(values);
+                }
+            });
+        }
 
-        document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(el => {
-            el.addEventListener('change', toggleFields);
-        });
-        toggleFields();
+        // ============================================
+        // 2. FORM SUBMISSION HANDLER
+        // ============================================
+        const form = document.querySelector('#ropaForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"][name="action"]:focus');
+                const actionValue = submitBtn ? submitBtn.value : null;
 
-        // FIXED: Multi-select chip input handlers with specific hidden field selector
-        document.querySelectorAll('.multi-select-container').forEach(container => {
+                // Special handling for final submission (step 14):
+                // - Show confirmation modal WITHOUT showing loading overlay (prevents modal obstruction)
+                // - Only show loading AFTER user confirms in the modal
+                if (actionValue === 'submit' && form.dataset.finalSubmitConfirmed !== 'true') {
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: 'Submit RoPA Form?',
+                        text: "Please review all information before submitting. Once submitted, you cannot make further changes.",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#b69964',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, submit it!',
+                        cancelButtonText: 'Review again'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading only after modal confirmation
+                            document.getElementById('loadingOverlay').style.display = 'flex';
+
+                            // Ensure the 'action=submit' value reaches the server even on programmatic submit
+                            let actionInput = form.querySelector('input[name="action"][type="hidden"]');
+                            if (!actionInput) {
+                                actionInput = document.createElement('input');
+                                actionInput.type = 'hidden';
+                                actionInput.name = 'action';
+                                form.appendChild(actionInput);
+                            }
+                            actionInput.value = 'submit';
+
+                            // Mark for bypass on re-entrant submit and submit the form
+                            form.dataset.finalSubmitConfirmed = 'true';
+                            form.submit();
+                        }
+                        // If cancelled, do nothing (user stays on form)
+                    });
+                    return;
+                }
+
+                // Re-entry after modal confirmation (or normal submissions)
+                if (form.dataset.finalSubmitConfirmed === 'true') {
+                    delete form.dataset.finalSubmitConfirmed;
+                }
+
+                // Update all hidden fields before submission
+                updateAllMultiSelects();
+
+                // Show loading overlay for non-save / non-previous actions (but not final submit path here)
+                if (actionValue && actionValue !== 'save' && actionValue !== 'previous' && actionValue !== 'submit') {
+                    document.getElementById('loadingOverlay').style.display = 'flex';
+                }
+            });
+        }
+
+        // ============================================
+        // 3. MULTI-SELECT CHIP HANDLERS
+        // ============================================
+        function initializeMultiSelect(container) {
             const input = container.querySelector('input[type="text"]');
             const chipsContainer = container.querySelector('.chips-container');
-            // FIXED: More specific selector - look for hidden field with a name attribute
             const hiddenField = container.querySelector('input[type="hidden"][name]');
 
-            // Skip if missing required elements
-            if (!input || !chipsContainer || !hiddenField) {
-                console.warn('Multi-select container missing required elements', container);
-                return;
-            }
+            if (!input || !chipsContainer || !hiddenField) return;
 
-            // FIXED: Initialize existing chips from hidden field value
-            function initializeFromHidden() {
-                try {
-                    const existingValue = hiddenField.value;
-                    if (existingValue && existingValue !== '[]' && existingValue !== '') {
-                        const items = JSON.parse(existingValue);
-                        if (Array.isArray(items)) {
-                            // Clear existing chips
-                            chipsContainer.innerHTML = '';
-                            // Add chips for each item
-                            items.forEach(item => {
-                                if (item && item.trim()) {
-                                    addChipToContainer(item, false); // Don't update hidden again
-                                }
-                            });
-                        }
-                    }
-                } catch(e) {
-                    console.error('Error parsing existing value:', e);
-                }
-            }
+            // Add CSS class for identification
+            input.classList.add('tag-input');
 
+            // Function to add chip
             function addChipToContainer(value, shouldUpdateHidden = true) {
                 const chip = document.createElement('span');
                 chip.className = 'tag-chip';
                 chip.style.cssText = 'background: #e8eef5; color: #153d6f; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; margin: 2px; display: inline-flex; align-items: center; gap: 6px;';
+
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-tag me-1';
 
                 const textSpan = document.createElement('span');
                 textSpan.textContent = value;
 
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
-                removeBtn.textContent = '×';
+                removeBtn.innerHTML = '×';
                 removeBtn.style.cssText = 'background: none; border: none; color: #999; cursor: pointer; font-size: 1.1rem; margin-left: 4px;';
-                removeBtn.onclick = function() {
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
                     chip.remove();
-                    updateHidden();
+                    if (shouldUpdateHidden) updateHidden();
                 };
 
+                chip.appendChild(icon);
                 chip.appendChild(textSpan);
                 chip.appendChild(removeBtn);
                 chipsContainer.appendChild(chip);
@@ -273,11 +259,11 @@
                 }
             }
 
+            // Function to update hidden field
             function updateHidden() {
                 const values = [];
                 const chips = chipsContainer.querySelectorAll('.tag-chip');
                 chips.forEach(chip => {
-                    // FIXED: Get the text content of the span, not including the button text
                     const textSpan = chip.querySelector('span');
                     if (textSpan && textSpan.textContent.trim()) {
                         values.push(textSpan.textContent.trim());
@@ -286,21 +272,172 @@
                 hiddenField.value = JSON.stringify(values);
             }
 
-            // Handle Enter key to add new chip
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && this.value.trim()) {
+            // Initialize from existing hidden field value
+            function initializeFromHidden() {
+                try {
+                    const existingValue = hiddenField.value;
+                    if (existingValue && existingValue !== '[]' && existingValue !== 'null' && existingValue !== '') {
+                        const items = JSON.parse(existingValue);
+                        if (Array.isArray(items) && items.length > 0) {
+                            // Clear existing chips
+                            chipsContainer.innerHTML = '';
+                            items.forEach(item => {
+                                if (item && item.trim()) {
+                                    addChipToContainer(item, false);
+                                }
+                            });
+                            updateHidden();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing existing value:', e);
+                }
+            }
+
+            // Handle Enter key - prevent form submission
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
                     e.preventDefault();
+                    e.stopPropagation();
+
                     const value = this.value.trim();
-                    addChipToContainer(value, true);
-                    this.value = '';
+                    if (value) {
+                        addChipToContainer(value, true);
+                        this.value = '';
+                        // Trigger change event for auto-save
+                        this.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    }
+                    return false;
                 }
             });
 
-            // Initialize from existing hidden value
+            // Initialize
             initializeFromHidden();
+        }
+
+        // Initialize all multi-select containers
+        document.querySelectorAll('.multi-select-container').forEach(initializeMultiSelect);
+
+        // ============================================
+        // 4. AUTO-SAVE FUNCTIONALITY
+        // ============================================
+        let autoSaveTimer;
+        const autoSaveFields = document.querySelectorAll('#ropaForm input:not(.tag-input), #ropaForm select, #ropaForm textarea');
+
+        function performAutoSave() {
+            // Update all multi-select hidden fields before auto-save
+            updateAllMultiSelects();
+
+            const form = document.getElementById('ropaForm');
+            if (!form) return;
+
+            const formData = new FormData(form);
+            formData.append('action', 'save');
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            }).then(response => {
+                if (response.ok) {
+                    showToast('Draft auto-saved!', 'success');
+                }
+            }).catch(error => {
+                console.error('Auto-save failed:', error);
+            });
+        }
+
+        // Attach auto-save to form fields (excluding tag inputs to avoid excessive saves)
+        autoSaveFields.forEach(element => {
+            element.addEventListener('change', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(performAutoSave, 2000);
+            });
+
+            // Also save on input for text fields after typing stops
+            if (element.tagName === 'TEXTAREA' || element.type === 'text') {
+                element.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimer);
+                    autoSaveTimer = setTimeout(performAutoSave, 3000);
+                });
+            }
         });
 
-        // Real-time validation
+        // ============================================
+        // 5. CHECKBOX PERSISTENCE HANDLER
+        // ============================================
+        document.querySelectorAll('input[type="checkbox"][name*="[]"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Ensure unchecked checkboxes are submitted as empty values
+                setTimeout(() => {
+                    if (this.form && !this.checked) {
+                        let hidden = this.parentNode.querySelector('input[type="hidden"][name="' + this.name + '"]');
+                        if (!hidden) {
+                            hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = this.name;
+                            hidden.value = '';
+                            this.parentNode.appendChild(hidden);
+
+                            // Remove after form submission
+                            this.form.addEventListener('submit', function() {
+                                if (hidden.parentNode) hidden.remove();
+                            }, {
+                                once: true
+                            });
+                        }
+                    }
+                }, 10);
+            });
+        });
+
+        // ============================================
+        // 6. CONDITIONAL FIELD HANDLERS
+        // ============================================
+        const toggleFields = () => {
+            // Step 4: Internal Sharing conditional
+            const shareInternally = document.querySelector('input[name="share_internally"]:checked');
+            const internalSection = document.getElementById('internal-recipients-section');
+            if (internalSection) {
+                internalSection.style.display = shareInternally?.value === '1' ? 'block' : 'none';
+            }
+
+            // Step 10: Auto decision conditional
+            const autoDecision = document.querySelector('input[name="auto_decision_making"]:checked');
+            const profilingSection = document.getElementById('profiling-section');
+            if (profilingSection) {
+                if (autoDecision?.value === '1') {
+                    profilingSection.classList.remove('d-none');
+                } else {
+                    profilingSection.classList.add('d-none');
+                }
+            }
+
+            // Step 14: Retention non-adherence conditional
+            const retainedPerPolicy = document.querySelector('input[name="retained_per_policy"]:checked');
+            const reasonSection = document.getElementById('non-adherence-reason');
+            if (reasonSection) {
+                reasonSection.style.display = retainedPerPolicy?.value === '0' ? 'block' : 'none';
+            }
+        };
+
+        // Attach toggle handlers to radio buttons
+        document.querySelectorAll('input[type="radio"]').forEach(el => {
+            el.addEventListener('change', toggleFields);
+        });
+        toggleFields();
+
+        // ============================================
+        // 7. REAL-TIME VALIDATION
+        // ============================================
         const requiredFields = document.querySelectorAll('[required]');
         requiredFields.forEach(field => {
             field.addEventListener('blur', function() {
@@ -315,9 +452,61 @@
                     errorMsg.innerText = 'This field is required.';
                 } else {
                     this.classList.remove('is-invalid');
+                    const errorMsg = this.nextElementSibling;
+                    if (errorMsg?.classList.contains('invalid-feedback')) {
+                        errorMsg.remove();
+                    }
                 }
             });
         });
+
+        // ============================================
+        // 8. ANIMATION
+        // ============================================
+        const cardBody = document.querySelector('.card-body');
+        if (cardBody) {
+            cardBody.classList.add('fade-in-up');
+        }
+
+        console.log('RoPA Form initialized successfully');
     });
+
+    function showToast(message, type = 'success') {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 3000
+        });
+        toast.show();
+
+        // Remove toast element after hiding
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            this.remove();
+        });
+    }
 </script>
+@endpush
 @endsection

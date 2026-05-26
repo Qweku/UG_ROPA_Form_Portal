@@ -1,198 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>RoPA Portal - University of Ghana</title>
+    <title>@yield('title', 'RoPA - University of Ghana')</title>
 
-    {{-- Bootstrap 5 CSS --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    {{-- Font Awesome --}}
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link href="/ropa_portal/resources/css/ropa.css" rel="stylesheet">
 
-    {{-- Custom Styles --}}
     <style>
         :root {
-            --ropa-primary: #153d6f;
-            --ropa-accent: #b69964;
-            --ropa-primary-light: #e8eef5;
+            --primary: #153d6f;
+            --primary-dark: #0e2d52;
+            --primary-light: #e8eef5;
+            --accent: #b69964;
+            --accent-dark: #9e7d4a;
+            --accent-light: #f5efe6;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
+        .bg-ropa-primary {
+            background-color: var(--primary);
         }
 
-        .navbar-ropa {
-            background-color: var(--ropa-primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .text-ropa-primary {
+            color: var(--primary);
         }
 
-        .navbar-ropa .navbar-brand,
-        .navbar-ropa .nav-link {
-            color: white !important;
+        .bg-ropa-accent {
+            background-color: var(--accent);
         }
 
-        .navbar-ropa .nav-link:hover {
-            color: var(--ropa-accent) !important;
+        .text-ropa-accent {
+            color: var(--accent);
         }
 
         .btn-ropa-primary {
-            background-color: var(--ropa-primary);
+            background-color: var(--primary);
             color: white;
             border: none;
         }
 
         .btn-ropa-primary:hover {
-            background-color: #0e2d52;
+            background-color: var(--primary-dark);
             color: white;
         }
 
         .btn-ropa-accent {
-            background-color: var(--ropa-accent);
+            background-color: var(--accent);
             color: white;
             border: none;
         }
 
         .btn-ropa-accent:hover {
-            background-color: #9e7d4a;
+            background-color: var(--accent-dark);
             color: white;
         }
 
-        .footer-ropa {
-            background-color: var(--ropa-primary);
-            color: white;
+        .searchable-dropdown {
+            background-image: url("data:image/svg+xml,...");
+            /* custom dropdown arrow */
+        }
+
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--gray-100) 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 1rem 0;
-            margin-top: 3rem;
         }
 
-        .alert-ropa-info {
-            background-color: var(--ropa-primary-light);
-            border-left: 4px solid var(--ropa-primary);
-            color: var(--ropa-primary);
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .navbar-brand i {
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--accent) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 12px;
+            padding: 0.625rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(21, 61, 111, 0.3);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(182, 153, 100, 0.3);
+            color: white;
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-outline-accent {
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline-accent:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* Enhanced Step 6 Styling */
+        .form-section .card {
+            transition: all 0.3s ease;
+            border-radius: 16px !important;
+        }
+
+        .form-section .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .tag-chip {
+            background: linear-gradient(135deg, #e8eef5 0%, #ffffff 100%);
+            border: 1px solid rgba(21, 61, 111, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .tag-chip:hover {
+            background: #ffffff;
+            transform: scale(1.02);
+        }
+
+        .form-check-input:checked {
+            background-color: #153d6f;
+            border-color: #153d6f;
+        }
+
+        .form-select:focus,
+        .form-control:focus {
+            border-color: #b69964;
+            box-shadow: 0 0 0 0.2rem rgba(182, 153, 100, 0.25);
+        }
+
+        /* Badge animations */
+        .badge {
+            transition: all 0.2s ease;
+        }
+
+        .badge:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Form Controls */
+        .form-control,
+        .form-select {
+            border-radius: 12px;
+            border: 2px solid var(--gray-200);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(21, 61, 111, 0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Progress Stepper */
+        .step-wrapper {
+            background: white;
+            border-radius: 100px;
+            padding: 0.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .progress-stepper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            background: transparent;
+            border-radius: 100px;
+            padding: 0.5rem;
+        }
+
+        .progress-stepper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gray-200);
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 2;
+            background: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--gray-500);
+            border: 3px solid var(--gray-200);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .step-item.completed {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .step-item.active {
+            background: white;
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: scale(1.1);
+            box-shadow: 0 0 0 5px rgba(182, 153, 100, 0.2);
+        }
+
+        .step-item:hover {
+            transform: scale(1.05);
+        }
+
+        .step-label {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            /* white-space: nowrap; */
+            text-align: center;
+        }
+
+        /* Tags/ chips */
+        .tag-chip {
+            background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(21, 61, 111, 0.1);
+        }
+
+        .tag-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tag-chip button {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .tag-chip button:hover {
+            background: rgba(21, 61, 111, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%);
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, var(--accent-light) 0%, #ffffff 100%);
+            color: var(--accent-dark);
+            border-left: 4px solid var(--accent);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Dashboard Cards */
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .stat-icon i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .step-item {
+                width: 35px;
+                height: 35px;
+                font-size: 0.8rem;
+            }
+
+            .step-label {
+                font-size: 0.6rem;
+                top: 45px;
+                white-space: normal;
+                width: 70px;
+                text-align: center;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner-border-custom {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3rem;
+            border-color: var(--primary);
+            border-right-color: transparent;
+        }
+
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .step-label {
+                font-size: 0.5rem;
+                max-width: 50px;
+            }
+
+            .step {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+
+            .card-header-custom h3 {
+                font-size: 1.2rem;
+            }
         }
     </style>
 
     @stack('styles')
 </head>
+
 <body>
-    {{-- Navigation Bar --}}
-    <nav class="navbar navbar-ropa navbar-expand-lg">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-border spinner-border-custom" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ url('/') }}">
-                <i class="fas fa-database me-2"></i>
-                University of Ghana - RoPA Portal
+            <a class="navbar-brand text-white" href="{{ route('ropa.index') }}">
+                <i class="fas fa-database"></i>
+                RoPA Portal
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/ropa') }}">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('ropa.index') }}">
                             <i class="fas fa-list me-1"></i> My Forms
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/ropa/create') }}">
-                            <i class="fas fa-plus me-1"></i> New Form
+                        <a class="nav-link text-white" href="{{ route('ropa.create') }}">
+                            <i class="fas fa-plus-circle me-1"></i> New Form
                         </a>
-                    </li>
+                    </li> -->
                     @auth
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i> {{ Auth::user()->name }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ url('/profile') }}">Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="{{ url('/logout') }}">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    @else
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url('/login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
-                            </a>
-                        </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> {{ Auth::user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i> Analytics</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ url('/logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
                     @endauth
                 </ul>
             </div>
         </div>
     </nav>
 
-    {{-- Main Content --}}
     <main class="py-4">
-        <div class="container">
-            {{-- Flash Messages --}}
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <strong><i class="fas fa-exclamation-triangle me-2"></i> Please fix the following errors:</strong>
-                    <ul class="mb-0 mt-2">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            {{-- Page Content --}}
-            @yield('content')
-        </div>
+        @yield('content')
     </main>
 
-    {{-- Footer --}}
-    <footer class="footer-ropa mt-auto">
+    <footer class="footer">
         <div class="container text-center">
-            <p class="mb-0">
-                <small>
-                    &copy; {{ date('Y') }} University of Ghana - Data Protection and Privacy Framework
-                    <br>
-                    <i class="fas fa-shield-alt me-1"></i> Record of Processing Activities (RoPA)
-                </small>
+            <p class="mb-2">
+                <i class="fas fa-shield-alt me-2"></i>
+                <strong>University of Ghana - Data Protection and Privacy Framework</strong>
+            </p>
+            <p class="mb-0 small">
+                &copy; {{ date('Y') }} Record of Processing Activities (RoPA) |
+                <i class="fas fa-lock me-1"></i> Compliant with Data Protection Act 2018
             </p>
         </div>
     </footer>
 
-    {{-- Scripts --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Auto-dismiss alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                });
-            }, 5000);
+        AOS.init({
+            duration: 800,
+            once: true
         });
+
+        // Show loading overlay on form submit
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                const focusedSubmit = form.querySelector('button[type="submit"][name="action"]:focus');
+                if (form.id === 'ropaForm' && focusedSubmit && focusedSubmit.value === 'submit') {
+                    return; // no loading for final RoPA submission (navigates away)
+                }
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            });
+        });
+
+        // Initialize Select2
+        $(document).ready(function() {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        });
+
+        // Toast notification helper
+        function showToast(message, type = 'success') {
+            const toastHtml = `
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+                    <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('body').append(toastHtml);
+            const toast = new bootstrap.Toast($('.toast').last()[0]);
+            toast.show();
+            setTimeout(() => $('.toast').last().remove(), 3000);
+        }
     </script>
 
     @stack('scripts')
 </body>
+
 </html>
