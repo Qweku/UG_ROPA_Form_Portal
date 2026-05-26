@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,9 +71,12 @@
         }
 
         @keyframes float {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0) rotate(0deg);
             }
+
             50% {
                 transform: translateY(-20px) rotate(5deg);
             }
@@ -121,15 +125,18 @@
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(182,153,100,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(182, 153, 100, 0.1) 0%, transparent 70%);
             animation: pulse 8s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
                 opacity: 0.5;
             }
+
             50% {
                 transform: scale(1.1);
                 opacity: 0.8;
@@ -149,9 +156,12 @@
         }
 
         @keyframes bounce {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0);
             }
+
             50% {
                 transform: translateY(-10px);
             }
@@ -252,7 +262,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: left 0.5s ease;
         }
 
@@ -376,12 +386,16 @@
 
         /* Floating Labels Animation */
         @keyframes shake {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateX(0);
             }
+
             25% {
                 transform: translateX(-5px);
             }
+
             75% {
                 transform: translateX(5px);
             }
@@ -392,6 +406,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Animated Background Shapes -->
     <div class="shape shape-1"></div>
@@ -412,12 +427,12 @@
             <div class="form-container">
                 <!-- Error Messages -->
                 @if($errors->any())
-                    <div class="alert-custom alert-error" id="errorMessage">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        @foreach($errors->all() as $error)
-                            <div>{{ $error }}</div>
-                        @endforeach
-                    </div>
+                <div class="alert-custom alert-error" id="errorMessage">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                    @endforeach
+                </div>
                 @endif
 
                 <!-- Login Form -->
@@ -458,13 +473,19 @@
                     </div>
                 </div>
 
-                <!-- Signup Form -->
+                <!-- Signup Form - Updated with firstname and surname -->
                 <div id="signupForm" class="form-pane" style="display: none;">
                     <form method="POST" action="{{ route('register') }}" id="signupFormElement">
                         @csrf
+
                         <div class="form-group">
                             <i class="fas fa-user form-icon"></i>
-                            <input type="text" name="name" id="signupName" placeholder="Full Name" required>
+                            <input type="text" name="firstname" id="signupFirstname" placeholder="First Name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <i class="fas fa-user form-icon"></i>
+                            <input type="text" name="surname" id="signupSurname" placeholder="Surname" required>
                         </div>
 
                         <div class="form-group">
@@ -618,8 +639,10 @@
             }
         });
 
+        // Updated validation for signup form
         document.getElementById('signupFormElement')?.addEventListener('submit', function(e) {
-            const name = document.getElementById('signupName');
+            const firstname = document.getElementById('signupFirstname');
+            const surname = document.getElementById('signupSurname');
             const email = document.getElementById('signupEmail');
             const password = document.getElementById('signupPassword');
             const confirm = document.getElementById('signupPasswordConfirm');
@@ -627,8 +650,12 @@
 
             let hasError = false;
 
-            if (!name.value.trim()) {
-                shakeElement(name);
+            if (!firstname.value.trim()) {
+                shakeElement(firstname);
+                hasError = true;
+            }
+            if (!surname.value.trim()) {
+                shakeElement(surname);
                 hasError = true;
             }
             if (!email.value.trim()) {
@@ -674,7 +701,9 @@
             element.style.borderColor = '#dc3545';
             element.addEventListener('input', function() {
                 this.style.borderColor = '';
-            }, { once: true });
+            }, {
+                once: true
+            });
         }
 
         function showError(message) {
@@ -718,4 +747,5 @@
         console.log('Demo credentials: admin@ug.edu.gh / password');
     </script>
 </body>
+
 </html>

@@ -11,10 +11,12 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
+        'firstname',
+        'surname',
         'email',
         'password',
         'personnel_id',
+        'is_verified',
     ];
 
     protected $hidden = [
@@ -25,7 +27,22 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_verified' => 'boolean'
     ];
+
+    // Accessor for full name
+    public function getFullNameAttribute()
+    {
+        return trim($this->firstname . ' ' . $this->surname);
+    }
+
+    // Mutator for backwards compatibility if needed
+    public function setNameAttribute($value)
+    {
+        $parts = explode(' ', $value, 2);
+        $this->attributes['firstname'] = $parts[0];
+        $this->attributes['surname'] = $parts[1] ?? '';
+    }
 
     public function ropaForms()
     {

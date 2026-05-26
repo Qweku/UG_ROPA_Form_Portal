@@ -23,7 +23,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ asset('assets/site.webmanifest') }}">
 
-   
+
 
     @stack('styles')
 </head>
@@ -77,7 +77,7 @@
                                 style="width: 32px; height: 32px; background: linear-gradient(135deg, #b69964 0%, #9e7d4a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-user" style="font-size: 0.9rem; color: white;"></i>
                             </div>
-                            <span style="font-weight: 500;">{{ Auth::user()->name }}</span>
+                            <span style="font-weight: 500;">{{ Auth::user()->full_name ?? Auth::user()->firstname . ' ' . Auth::user()->surname }}</span>
                             <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem; transition: transform 0.3s ease;"></i>
                         </a>
 

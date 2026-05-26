@@ -33,7 +33,7 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
                                 <input type="text" name="personnel_id" class="form-control"
-                                       value="{{ old('personnel_id', $ropaForm->personnel_id ?? Auth::user()->employee_id ?? '') }}"
+                                       value="{{ old('personnel_id', $ropaForm->personnel_id ?? Auth::user()->personnel_id ?? '') }}"
                                        placeholder="e.g., 99999">
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Firstname</label>
                             <input type="text" name="firstname" class="form-control"
-                                   value="{{ old('firstname', $ropaForm->firstname ?? Auth::user()->name ?? '') }}"
+                                   value="{{ old('firstname', $ropaForm->firstname ?? Auth::user()->firstname ?? '') }}"
                                    placeholder="First name">
                         </div>
                     </div>
