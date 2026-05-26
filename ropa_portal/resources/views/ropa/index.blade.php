@@ -83,9 +83,9 @@
                         </a>
                     </div>
                     @else
-                    <div class="table-responsive">
+                    <div class="table-responsive p-2">
                         <table class="table table-hover mb-0">
-                            <thead style="background: var(--primary-light);">
+                            <thead class="table-primary">
                                 <tr>
                                     <th class="border-0">ID</th>
                                     <th class="border-0">Process/Project</th>
@@ -165,10 +165,10 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <form action="{{ route('ropa.destroy', $form) }}" method="POST" class="d-inline">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">Delete Forever</button>
-                                        </form>
+                                         <form action="{{ route('ropa.destroy', $form) }}" method="POST" class="d-inline delete-form">
+                                             @csrf @method('DELETE')
+                                             <button type="submit" class="btn btn-danger">Delete Forever</button>
+                                         </form>
                                     </div>
                                 </div>
                             </div>
@@ -193,6 +193,56 @@
     var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     })
+
+    // Ensure loading overlay is hidden on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    });
+
+    // Also hide on beforeunload to ensure clean state during navigation
+    window.addEventListener('beforeunload', function() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    });
+
+    // Fix for delete confirmation modals:
+    // When the user clicks the actual "Delete Forever" button inside the modal,
+    // first dismiss the modal, THEN show the loading overlay.
+    // This prevents the high-z-index overlay from covering the still-visible modal.
+    document.addEventListener('click', function(e) {
+        const deleteConfirmBtn = e.target.closest('.modal .btn-danger');
+        if (!deleteConfirmBtn) return;
+
+        // Find the parent modal
+        const modalEl = deleteConfirmBtn.closest('.modal');
+        if (modalEl) {
+            // Hide the modal immediately using Bootstrap API
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                // Fallback
+                modalEl.classList.remove('show');
+                modalEl.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(b => b.remove());
+            }
+        }
+
+        // Now show the loading overlay (after modal is dismissed)
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+
+        // The form will continue to submit naturally
+    });
 </script>
 @endpush
 @endsection
