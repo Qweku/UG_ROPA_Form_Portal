@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RopaForm;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,9 +51,161 @@ class RopaFormController extends Controller
     /**
      * Update form
      */
-    public function update(Request $request, RopaForm $ropaForm): RedirectResponse
+    public function update(Request $request, RopaForm $ropaForm): RedirectResponse|JsonResponse
     {
         $this->authorizeForm($ropaForm);
+
+        /**
+         * Handle navigation action (step clicking)
+         */
+        if ($request->input('action') === 'navigate') {
+            $targetStep = (int) $request->input('target_step');
+            $currentStep = (int) $request->input('current_step', 1);
+
+            // Validate target step
+            if ($targetStep < 1 || $targetStep > 14) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid step number'
+                    ], 400);
+                }
+                return redirect()->back()->withErrors(['error' => 'Invalid step number']);
+            }
+
+            // Don't allow navigating to future steps
+            if ($targetStep > $currentStep) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot navigate to future steps. Please complete current step first.'
+                    ], 400);
+                }
+                return redirect()->back()->withErrors(['error' => 'Cannot navigate to future steps']);
+            }
+
+            // If trying to go to same step, just redirect back
+            if ($targetStep === $currentStep) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect' => route('ropa.edit', $ropaForm),
+                        'message' => 'Already on step ' . $targetStep
+                    ]);
+                }
+                return redirect()->route('ropa.edit', $ropaForm);
+            }
+
+            // Save current form data before navigating
+            try {
+                // Normalize boolean fields BEFORE validation
+                $request->merge([
+                    'share_internally' => $request->boolean('share_internally'),
+                    'lia_documented' => $request->boolean('lia_documented'),
+                    'legally_required_retention' => $request->boolean('legally_required_retention'),
+                    'auto_decision_making' => $request->boolean('auto_decision_making'),
+                    'dpia_required' => $request->boolean('dpia_required'),
+                    'breach_occurred' => $request->boolean('breach_occurred'),
+                    'retained_per_policy' => $request->boolean('retained_per_policy'),
+                ]);
+
+                // Convert JSON fields BEFORE validation
+                $jsonFields = [
+                    'process_names',
+                    'joint_controllers',
+                    'categories_records',
+                    'data_subjects',
+                    'personal_data_categories',
+                    'internal_recipients',
+                    'special_category_recipients',
+                    'legal_basis',
+                    'sensitive_legal_basis',
+                    'individual_rights',
+                    'external_recipients',
+                    'international_transfers',
+                    'transfer_mechanisms',
+                    'dpa_conditions',
+                    'gdpr_articles',
+                ];
+
+                foreach ($jsonFields as $field) {
+                    if ($request->has($field)) {
+                        $value = $request->input($field);
+
+                        if (is_string($value)) {
+                            // Handle JSON strings
+                            if (str_starts_with(trim($value), '[') || str_starts_with(trim($value), '{')) {
+                                $decoded = json_decode($value, true);
+                                if (json_last_error() === JSON_ERROR_NONE) {
+                                    $request->merge([$field => $decoded]);
+                                } else {
+                                    $request->merge([$field => !empty($value) ? [$value] : []]);
+                                }
+                            } else {
+                                $request->merge([$field => !empty($value) ? [$value] : []]);
+                            }
+                        }
+                    }
+                }
+
+                // Ensure checkbox arrays always exist
+                $checkboxFields = [
+                    'categories_records',
+                    'individual_rights',
+                    'dpa_conditions',
+                    'gdpr_articles',
+                    'legal_basis',
+                    'sensitive_legal_basis',
+                ];
+
+                foreach ($checkboxFields as $field) {
+                    if (!$request->has($field) || $request->input($field) === null) {
+                        $request->merge([$field => []]);
+                    }
+                }
+
+                // Validate current step data
+                $validated = $request->validate($this->getValidationRules($currentStep));
+
+                // Update form with current step data and navigate to target step
+                $updateData = array_merge($validated, [
+                    'current_step' => $targetStep,
+                ]);
+
+                DB::transaction(function () use ($ropaForm, $updateData) {
+                    $ropaForm->update($updateData);
+                });
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect' => route('ropa.edit', $ropaForm),
+                        'message' => 'Navigated to step ' . $targetStep
+                    ]);
+                }
+
+                return redirect()
+                    ->route('ropa.edit', $ropaForm)
+                    ->with('success', 'Navigated to step ' . $targetStep);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Please fix validation errors on current step before navigating',
+                        'errors' => $e->errors()
+                    ], 422);
+                }
+                throw $e;
+            } catch (\Exception $e) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to save current step data: ' . $e->getMessage()
+                    ], 500);
+                }
+                throw $e;
+            }
+        }
 
         /**
          * Normalize boolean fields BEFORE validation
@@ -93,27 +246,16 @@ class RopaFormController extends Controller
                 $value = $request->input($field);
 
                 if (is_string($value)) {
-
                     // Handle JSON strings
-                    if (
-                        str_starts_with(trim($value), '[') ||
-                        str_starts_with(trim($value), '{')
-                    ) {
+                    if (str_starts_with(trim($value), '[') || str_starts_with(trim($value), '{')) {
                         $decoded = json_decode($value, true);
-
                         if (json_last_error() === JSON_ERROR_NONE) {
-                            $request->merge([
-                                $field => $decoded
-                            ]);
+                            $request->merge([$field => $decoded]);
                         } else {
-                            $request->merge([
-                                $field => !empty($value) ? [$value] : []
-                            ]);
+                            $request->merge([$field => !empty($value) ? [$value] : []]);
                         }
                     } else {
-                        $request->merge([
-                            $field => !empty($value) ? [$value] : []
-                        ]);
+                        $request->merge([$field => !empty($value) ? [$value] : []]);
                     }
                 }
             }
@@ -127,19 +269,14 @@ class RopaFormController extends Controller
             'individual_rights',
             'dpa_conditions',
             'gdpr_articles',
+            'legal_basis',
+            'sensitive_legal_basis',
         ];
 
         foreach ($checkboxFields as $field) {
             if (!$request->has($field)) {
-                $request->merge([
-                    $field => []
-                ]);
+                $request->merge([$field => []]);
             }
-        }
-
-        // Handle share_internally specifically (convert to boolean)
-        if ($request->has('share_internally')) {
-            $validated['share_internally'] = (bool) $request->input('share_internally');
         }
 
         /**
@@ -160,11 +297,9 @@ class RopaFormController extends Controller
         $newStep = $step;
 
         switch ($request->input('action')) {
-
             case 'next':
                 $newStep = min($step + 1, 14);
                 break;
-
             case 'previous':
                 $newStep = max($step - 1, 1);
                 break;
@@ -181,7 +316,6 @@ class RopaFormController extends Controller
          * Handle submission
          */
         if ($request->input('action') === 'submit') {
-
             $updateData['status'] = 'submitted';
             $updateData['submitted_at'] = now();
         }
@@ -197,21 +331,14 @@ class RopaFormController extends Controller
          * Redirect after submission
          */
         if ($request->input('action') === 'submit') {
-
             return redirect()
                 ->route('ropa.index')
-                ->with(
-                    'success',
-                    'RoPA form submitted successfully!'
-                );
+                ->with('success', 'RoPA form submitted successfully!');
         }
 
         return redirect()
             ->route('ropa.edit', $ropaForm)
-            ->with(
-                'success',
-                'Step ' . $newStep . ' saved successfully!'
-            );
+            ->with('success', 'Step ' . $newStep . ' saved successfully!');
     }
 
     /**
@@ -258,27 +385,27 @@ class RopaFormController extends Controller
     {
         $baseRules = [
             'current_step' => 'nullable|integer|min:1|max:14',
-            'action' => 'nullable|string|in:next,previous,save,submit',
+            'action' => 'nullable|string|in:next,previous,save,submit,navigate',
         ];
 
         $stepRules = [
 
             1 => [
                 'personnel_id' => 'nullable|string|max:50',
-                'surname' => 'nullable|string|max:100',
-                'firstname' => 'nullable|string|max:100',
-                'business_function' => 'nullable|string|max:255',
+                'surname' => 'required|string|max:100',
+                'firstname' => 'required|string|max:100',
+                'business_function' => 'required|string|max:255',
                 'process_names' => 'nullable|array',
                 'purpose' => 'nullable|string',
                 'role_responsible' => 'nullable|string|max:255',
             ],
 
             2 => [
-                'joint_controllers' => 'nullable|array',
+                'joint_controllers' => 'required|array|min:1',
             ],
 
             3 => [
-                'categories_records' => 'nullable|array',
+                'categories_records' => 'required|array|min:1',
                 'data_subjects' => 'nullable|array',
                 'personal_data_categories' => 'nullable|array',
                 'special_category_documents' => 'nullable|string',
@@ -293,7 +420,7 @@ class RopaFormController extends Controller
             ],
 
             5 => [
-                'data_source' => 'nullable|string|in:individual,third_party',
+                'data_source' => 'required|string|in:individual,third_party',
                 'data_update_method' => 'nullable|string',
             ],
 
@@ -315,7 +442,7 @@ class RopaFormController extends Controller
             ],
 
             8 => [
-                'external_recipients' => 'nullable|array',
+                'external_recipients' => 'required|array|min:1',
             ],
 
             9 => [
@@ -348,10 +475,10 @@ class RopaFormController extends Controller
             ],
 
             14 => [
-                'dpa_conditions' => 'nullable|array',
-                'gdpr_articles' => 'nullable|array',
-                'retention_policy_link' => 'nullable|url|max:500',
-                'retained_per_policy' => 'nullable|boolean',
+                'dpa_conditions' => 'required|array|min:1',
+                'gdpr_articles' => 'required|array|min:1',
+                'retention_policy_link' => 'required|url|max:500',
+                'retained_per_policy' => 'required|boolean',
                 'retention_non_adherence_reason' =>
                 'nullable|string|required_if:retained_per_policy,false',
             ],

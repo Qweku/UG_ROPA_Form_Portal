@@ -5,45 +5,69 @@
 @section('content')
 <div class="container">
     <!-- Progress Stepper -->
-    <div class="step-wrapper mb-5" data-aos="fade-down">
+    <div class="step-wrapper" data-aos="fade-down">
         <div class="progress-stepper">
             @php
-            $steps = [
-            1 => 'Basic Info',
-            2 => 'Joint Controllers',
-            3 => 'Data Categories',
-            4 => 'Internal Sharing',
-            5 => 'Data Source',
-            6 => 'Legal Basis',
-            7 => 'Security',
-            8 => 'External Sharing',
-            9 => 'Intl. Transfers',
-            10 => 'Auto Decision',
-            11 => 'Consent',
-            12 => 'DPIA',
-            13 => 'Breaches',
-            14 => 'Compliance'
-            ];
+                $steps = [
+                    1 => 'Basic Info',
+                    2 => 'Joint Controllers',
+                    3 => 'Data Categories',
+                    4 => 'Internal Sharing',
+                    5 => 'Data Source',
+                    6 => 'Legal Basis',
+                    7 => 'Security',
+                    8 => 'External Sharing',
+                    9 => 'Intl. Transfers',
+                    10 => 'Auto Decision',
+                    11 => 'Consent',
+                    12 => 'DPIA',
+                    13 => 'Breaches',
+                    14 => 'Compliance'
+                ];
+                $stepIcons = [
+                    1 => 'info-circle',
+                    2 => 'users',
+                    3 => 'database',
+                    4 => 'share-alt',
+                    5 => 'source',
+                    6 => 'gavel',
+                    7 => 'shield-alt',
+                    8 => 'exchange-alt',
+                    9 => 'globe',
+                    10 => 'robot',
+                    11 => 'file-signature',
+                    12 => 'chart-line',
+                    13 => 'exclamation-triangle',
+                    14 => 'check-circle'
+                ];
+                $currentIcon = $stepIcons[$ropaForm->current_step] ?? 'check-circle';
             @endphp
 
             @foreach($steps as $num => $label)
-            <div class="step-item
-                    {{ $ropaForm->current_step > $num ? 'completed' : '' }}
-                    {{ $ropaForm->current_step == $num ? 'active' : '' }}"
-                data-step="{{ $num }}"
-                @if($ropaForm->current_step > $num)
-                onclick="goToStep({{ $num }})"
-                style="cursor:pointer;"
-                @endif>
-                {{ $num }}
-                <div class="step-label">{{ $label }}</div>
-            </div>
+                <div class="step-item {{ $ropaForm->current_step > $num ? 'completed' : '' }} {{ $ropaForm->current_step == $num ? 'active' : '' }} {{ $ropaForm->current_step < $num ? 'locked' : '' }}"
+                    data-step="{{ $num }}"
+                    @if($ropaForm->current_step >= $num) onclick="navigateToStep({{ $num }})" @endif
+                    style="cursor: {{ $ropaForm->current_step >= $num ? 'pointer' : 'not-allowed' }};">
+                    <div class="step-number">
+                        @if($ropaForm->current_step > $num)
+                            <i class="fas fa-check"></i>
+                        @else
+                            {{ $num }}
+                        @endif
+                    </div>
+                    <div class="step-label">{{ $label }}</div>
+                    @if($ropaForm->current_step < $num)
+                        <div class="step-lock">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    @endif
+                </div>
             @endforeach
         </div>
     </div>
 
     <!-- Form -->
-    <div class="row justify-content-center" data-aos="fade-up">
+    <div class="row justify-content-center mt-5" data-aos="fade-up">
         <div class="col-lg-10">
             <form method="POST" action="{{ route('ropa.update', $ropaForm) }}" id="ropaForm" class="needs-validation" novalidate>
                 @csrf
@@ -54,21 +78,7 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <i class="fas fa-{{
-                                    $ropaForm->current_step == 1 ? 'info-circle' :
-                                    ($ropaForm->current_step == 2 ? 'users' :
-                                    ($ropaForm->current_step == 3 ? 'database' :
-                                    ($ropaForm->current_step == 4 ? 'share-alt' :
-                                    ($ropaForm->current_step == 5 ? 'source' :
-                                    ($ropaForm->current_step == 6 ? 'gavel' :
-                                    ($ropaForm->current_step == 7 ? 'shield-alt' :
-                                    ($ropaForm->current_step == 8 ? 'exchange-alt' :
-                                    ($ropaForm->current_step == 9 ? 'globe' :
-                                    ($ropaForm->current_step == 10 ? 'robot' :
-                                    ($ropaForm->current_step == 11 ? 'file-signature' :
-                                    ($ropaForm->current_step == 12 ? 'chart-line' :
-                                    ($ropaForm->current_step == 13 ? 'exclamation-triangle' : 'check-circle'))))))))))))
-                                }} fa-fw me-2"></i>
+                                <i class="fas fa-{{ $currentIcon }} fa-fw me-2"></i>
                                 <strong>Step {{ $ropaForm->current_step }} of 14</strong>
                                 <span class="ms-3 small">@yield('step-title', $steps[$ropaForm->current_step])</span>
                             </div>
@@ -97,9 +107,9 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 @if($ropaForm->current_step > 1)
-                                <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
-                                    <i class="fas fa-arrow-left me-2"></i> Previous
-                                </button>
+                                    <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
+                                        <i class="fas fa-arrow-left me-2"></i> Previous
+                                    </button>
                                 @endif
                                 <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
                                     <i class="fas fa-save me-2"></i> Save Draft
@@ -108,13 +118,13 @@
                             <div>
                                 @if($ropaForm->current_step < 14)
                                     <button type="submit" name="action" value="next" class="btn btn-primary px-5">
-                                    Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                        Next Step <i class="fas fa-arrow-right ms-2"></i>
                                     </button>
-                                    @else
-                                     <button type="submit" name="action" value="submit" class="btn btn-accent px-5">
-                                         <i class="fas fa-check-circle me-2"></i> Submit Form
-                                     </button>
-                                    @endif
+                                @else
+                                    <button type="submit" name="action" value="submit" class="btn btn-accent px-5">
+                                        <i class="fas fa-check-circle me-2"></i> Submit Form
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -152,6 +162,133 @@
         }
 
         // ============================================
+        // STEP-SPECIFIC REQUIRED FIELDS CONFIG
+        // ============================================
+        // Format: { step: { fields: [{ name: 'field_name', type: 'text|checkbox|radio|select|array|multiselect' }] } }
+        const requiredFieldsByStep = {
+            1: [
+                { name: 'surname', type: 'text' },
+                { name: 'firstname', type: 'text' },
+                { name: 'business_function', type: 'select' }
+            ],
+            2: [
+                { name: 'joint_controllers', type: 'array' }
+            ],
+            3: [
+                { name: 'categories_records[]', type: 'checkbox' }
+            ],
+            4: null,
+            5: [
+                { name: 'data_source', type: 'radio' }
+            ],
+            6: null,
+            7: null,
+            8: [
+                { name: 'external_recipients', type: 'array' }
+            ],
+            9: null,
+            10: null,
+            11: null,
+            12: null,
+            13: null,
+            14: [
+                { name: 'dpa_conditions', type: 'multiselect' },
+                { name: 'gdpr_articles', type: 'multiselect' },
+                { name: 'retention_policy_link', type: 'text' },
+                { name: 'retained_per_policy', type: 'select' }
+]
+        };
+
+        // ============================================
+        // 2. VALIDATION FUNCTION
+        // ============================================
+        function validateStep(step) {
+            const requiredFields = requiredFieldsByStep[step];
+            if (!requiredFields) return { valid: true };
+
+            const missingFields = [];
+
+            requiredFields.forEach(fieldConfig => {
+                const { name, type } = fieldConfig;
+
+                if (type === 'checkbox') {
+                    const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+                    if (checkboxes.length > 0) {
+                        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+                        if (!anyChecked) {
+                            missingFields.push(name.replace('[]', '').replace(/_/g, ' '));
+                        }
+                    }
+                } else if (type === 'radio') {
+                    const radioName = name.replace('[]', '');
+                    const radios = document.querySelectorAll(`input[name="${radioName}"]:checked`);
+                    if (radios.length === 0) {
+                        const label = document.querySelector(`label[for^="${radioName}"]`)?.textContent?.trim() ||
+                                     document.querySelector(`[name="${radioName}"]`)?.closest('.form-check')?.querySelector('.form-check-label')?.textContent?.trim() ||
+                                     name;
+                        missingFields.push(label);
+                    }
+                } else if (type === 'select') {
+                    const el = document.querySelector(`select[name="${name}"]`);
+                    if (el) {
+                        const value = el.value?.trim();
+                        if (!value) {
+                            const label = el.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
+                                         el.closest('.col-*')?.querySelector('.form-label')?.textContent?.trim() ||
+                                         name;
+                            missingFields.push(label);
+                        }
+                    }
+                } else if (type === 'multiselect') {
+                    const hiddenInput = document.querySelector(`input[type="hidden"][name="${name}"]`);
+                    if (hiddenInput) {
+                        const value = hiddenInput.value?.trim();
+                        let isEmpty = false;
+                        if (!value || value === '[]' || value === 'null' || value === '') {
+                            isEmpty = true;
+                        } else {
+                            try {
+                                const parsed = JSON.parse(value);
+                                isEmpty = Array.isArray(parsed) && parsed.length === 0;
+                            } catch (e) {
+                                isEmpty = true;
+                            }
+                        }
+                        if (isEmpty) {
+                            const label = hiddenInput.closest('.card-body')?.querySelector('.card-title')?.textContent?.trim() ||
+                                         hiddenInput.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
+                                         name;
+                            missingFields.push(label);
+                        }
+                    }
+                } else if (type === 'array') {
+                    const cssName = name.replace(/_/g, '-');
+                    const cards = document.querySelectorAll(`[id="${cssName}-container"] .card`);
+                    if (cards.length === 0) {
+                        const label = name.replace(/_/g, ' ');
+                        missingFields.push(label);
+                    }
+                } else {
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el) {
+                        const value = el.value?.trim();
+                        if (!value) {
+                            const label = el.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
+                                         el.closest('label')?.textContent?.trim() ||
+                                         el.getAttribute('placeholder') || name;
+                            missingFields.push(label);
+                        }
+                    }
+                }
+            });
+
+            return {
+                valid: missingFields.length === 0,
+                missingFields: missingFields
+            };
+        }
+
+        // ============================================
         // 2. FORM SUBMISSION HANDLER
         // ============================================
         const form = document.querySelector('#ropaForm');
@@ -160,11 +297,50 @@
                 const submitBtn = form.querySelector('button[type="submit"][name="action"]:focus');
                 const actionValue = submitBtn ? submitBtn.value : null;
 
+                // Validate required fields when clicking "Next Step"
+                if (actionValue === 'next') {
+                    const currentStep = {{ $ropaForm->current_step }};
+                    const validation = validateStep(currentStep);
+
+                    if (!validation.valid) {
+                        e.preventDefault();
+                        // Ensure loading overlay is hidden before showing error
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        Swal.fire({
+                            title: 'Missing Required Fields',
+                            html: '<p class="mb-2">Please complete the following required fields:</p><ul class="text-start mb-0">' +
+                                  validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
+                                  '</ul>',
+                            icon: 'warning',
+                            confirmButtonColor: '#b69964',
+                            confirmButtonText: 'Fill Required Fields'
+                        });
+                        return;
+                    }
+                }
+
                 // Special handling for final submission (step 14):
                 // - Show confirmation modal WITHOUT showing loading overlay (prevents modal obstruction)
                 // - Only show loading AFTER user confirms in the modal
                 if (actionValue === 'submit' && form.dataset.finalSubmitConfirmed !== 'true') {
                     e.preventDefault();
+
+                    // First validate required fields for step 14
+                    const validation = validateStep(14);
+                    if (!validation.valid) {
+                        // Ensure loading overlay is hidden before showing error
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        Swal.fire({
+                            title: 'Missing Required Fields',
+                            html: '<p class="mb-2">Please complete all required fields before submission:</p><ul class="text-start mb-0">' +
+                                  validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
+                                  '</ul>',
+                            icon: 'warning',
+                            confirmButtonColor: '#b69964',
+                            confirmButtonText: 'Fill Required Fields'
+                        });
+                        return;
+                    }
 
                     Swal.fire({
                         title: 'Submit RoPA Form?',
@@ -507,6 +683,143 @@
             this.remove();
         });
     }
+
+    // Navigation function for steps
+    function navigateToStep(stepNumber) {
+        const currentStep = {{ $ropaForm->current_step }};
+
+        // Don't allow navigating to future steps
+        if (stepNumber > currentStep) {
+            Swal.fire({
+                title: 'Step Locked',
+                text: 'Please complete the current step first before moving forward.',
+                icon: 'info',
+                confirmButtonColor: '#b69964',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        // If trying to go to current step, do nothing
+        if (stepNumber === currentStep) {
+            return;
+        }
+
+        // Show confirmation for going back to previous steps
+        if (stepNumber < currentStep) {
+            Swal.fire({
+                title: 'Navigate to Step ' + stepNumber + '?',
+                text: 'You will lose any unsaved changes on the current step. Make sure to save your progress first.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#b69964',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, navigate',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    performNavigation(stepNumber);
+                }
+            });
+        } else {
+            // Validate before navigating forward
+            const validation = validateStep(currentStep);
+            if (!validation.valid) {
+                // Ensure loading overlay is hidden before showing error
+                document.getElementById('loadingOverlay').style.display = 'none';
+                Swal.fire({
+                    title: 'Missing Required Fields',
+                    html: '<p class="mb-2">Please complete the following required fields before moving to the next step:</p><ul class="text-start mb-0">' +
+                          validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
+                          '</ul>',
+                    icon: 'warning',
+                    confirmButtonColor: '#b69964',
+                    confirmButtonText: 'Fill Required Fields'
+                });
+                return;
+            }
+            performNavigation(stepNumber);
+        }
+    }
+
+    function performNavigation(stepNumber) {
+        // Show loading overlay
+        document.getElementById('loadingOverlay').style.display = 'flex';
+
+        // Create form data
+        const formData = new FormData();
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('_method', 'PUT');
+        formData.append('action', 'navigate');
+        formData.append('target_step', stepNumber);
+        formData.append('current_step', {{ $ropaForm->current_step }});
+
+        // Gather all form data from current form to preserve it
+        const currentForm = document.getElementById('ropaForm');
+        if (currentForm) {
+            const currentFormData = new FormData(currentForm);
+            for (let pair of currentFormData.entries()) {
+                if (pair[0] !== '_token' && pair[0] !== '_method' && pair[0] !== 'action' && pair[0] !== 'target_step') {
+                    formData.append(pair[0], pair[1]);
+                }
+            }
+        }
+
+        // Submit via fetch
+        fetch('{{ route("ropa.update", $ropaForm) }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw err;
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                let errorList = '';
+                if (data.errors && typeof data.errors === 'object') {
+                    errorList = '<ul class="text-start mb-0">' + Object.entries(data.errors)
+                        .map(([field, msgs]) => `<li class="text-danger">${Array.isArray(msgs) ? msgs.join(', ') : msgs}</li>`)
+                        .join('') + '</ul>';
+                }
+                Swal.fire({
+                    title: 'Error',
+                    html: (data.message || 'Failed to navigate.') + errorList,
+                    icon: 'error',
+                    confirmButtonColor: '#b69964'
+                });
+            }
+        })
+        .catch(error => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            Swal.fire({
+                title: 'Error',
+                text: 'An error occurred. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#b69964'
+            });
+        });
+    }
+
+    // Auto-save before navigation when using next/previous buttons
+    document.querySelectorAll('button[name="action"][value="next"], button[name="action"][value="previous"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Let the normal form submission happen
+            // The form will save and then redirect
+        });
+    });
 </script>
 @endpush
 @endsection
