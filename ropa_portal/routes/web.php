@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/create', [RopaFormController::class, 'create'])->name('create');
         Route::get('/{ropaForm}/edit', [RopaFormController::class, 'edit'])->name('edit');
         Route::get('/{ropaForm}', [RopaFormController::class, 'show'])->name('show');
+        Route::get('/{ropaForm}/view-submitted', [RopaFormController::class, 'viewSubmitted'])->name('view-submitted');
         Route::put('/{ropaForm}', [RopaFormController::class, 'update'])->name('update');
         Route::delete('/{ropaForm}', [RopaFormController::class, 'destroy'])->name('destroy');
     });

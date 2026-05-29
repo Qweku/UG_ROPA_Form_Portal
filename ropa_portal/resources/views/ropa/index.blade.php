@@ -140,15 +140,23 @@
                     </td>
                     <td class="align-middle">
                         <div class="btn-group" role="group">
+                            @if($form->status === 'draft')
                             <a href="{{ route('ropa.edit', $form) }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Continue Editing">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{{ route('ropa.show', $form) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                            @endif
+
+                            @if(in_array($form->status, ['submitted', 'approved']))
+                            <a href="{{ route('ropa.show', $form) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="View Submitted Form">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            @endif
+
+                            @if($form->status === 'draft')
                             <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $form->id }}">
                                 <i class="fas fa-trash"></i>
                             </button>
+                            @endif
                         </div>
 
                         <!-- Delete Modal -->
@@ -165,10 +173,10 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                         <form action="{{ route('ropa.destroy', $form) }}" method="POST" class="d-inline delete-form">
-                                             @csrf @method('DELETE')
-                                             <button type="submit" class="btn btn-danger">Delete Forever</button>
-                                         </form>
+                                        <form action="{{ route('ropa.destroy', $form) }}" method="POST" class="d-inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">Delete Forever</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>

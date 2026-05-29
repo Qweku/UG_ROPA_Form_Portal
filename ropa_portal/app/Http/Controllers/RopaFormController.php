@@ -344,11 +344,46 @@ class RopaFormController extends Controller
     /**
      * Show completed form
      */
-    public function show(RopaForm $ropaForm): View
+        public function show(RopaForm $ropaForm)
     {
-        $this->authorizeForm($ropaForm);
+        // Authorize - only the owner can view
+        if ($ropaForm->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to this form.');
+        }
+
+        // If status is draft, redirect to edit
+        if ($ropaForm->status === 'draft') {
+            return redirect()
+                ->route('ropa.edit', $ropaForm)
+                ->with('info', 'This form is still in draft. Please complete and submit it.');
+        }
+
+        // Only allow viewing submitted or approved forms
+        if (!in_array($ropaForm->status, ['submitted', 'approved', 'rejected'])) {
+            abort(403, 'This form is not available for viewing.');
+        }
 
         return view('ropa.show', compact('ropaForm'));
+    }
+
+    /**
+     * Display the submitted form in a printable/viewable format
+     */
+    public function viewSubmitted(RopaForm $ropaForm)
+    {
+        // Authorize - only the owner can view
+        if ($ropaForm->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to this form.');
+        }
+
+        // Only allow viewing submitted or approved forms
+        if ($ropaForm->status !== 'submitted' && $ropaForm->status !== 'approved') {
+            return redirect()
+                ->route('ropa.edit', $ropaForm)
+                ->with('warning', 'This form is not yet submitted. Please complete and submit it first.');
+        }
+
+        return view('ropa.view-submitted', compact('ropaForm'));
     }
 
     /**
