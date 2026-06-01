@@ -123,39 +123,47 @@ class OtpVerificationController extends Controller
             return redirect()->route('login');
         }
 
-        // Check if user is already verified
         if ($user->is_verified) {
-            return redirect()->route('ropa.index');
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+                'redirect' => route('ropa.index')
+            ]);
         }
 
-        // Find valid OTP
         $otpRecord = OtpVerification::where('user_id', $user->id)
             ->where('is_used', false)
             ->where('expires_at', '>', now())
             ->first();
 
         if (!$otpRecord) {
-            return back()->withErrors(['otp' => 'OTP has expired or is invalid. Please request a new one.']);
+            return response()->json([
+                'success' => false,
+                'error' => 'OTP has expired or is invalid. Please request a new one.'
+            ], 422);
         }
 
-        // Verify OTP
         if (!Hash::check($request->otp, $otpRecord->otp)) {
-            return back()->withErrors(['otp' => 'Invalid OTP. Please try again.']);
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid OTP. Please try again.'
+            ], 422);
         }
 
-        // Mark OTP as used
         $otpRecord->update(['is_used' => true]);
 
-        // Mark user as verified
-        $user->is_verified = true;
-        $user->email_verified_at = now();
-        $user->save();
-
-        // Clear pending OTP from session
         session()->forget('pending_otp');
 
-        // Redirect to dashboard with success message
-        return redirect()->route('ropa.index')->with('success', 'Email verified successfully! Welcome to RoPA Portal.');
+        $user->update([
+            'is_verified' => true,
+            'email_verified_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully! Welcome to RoPA Portal.',
+            'redirect' => route('ropa.index')
+        ]);
     }
 
     private function sendOtpEmail($email, $otp, $name)

@@ -404,6 +404,18 @@
         .shake {
             animation: shake 0.3s ease-in-out;
         }
+
+        .checkbox-compact {
+            width: 1rem;
+            height: 1rem;
+            min-width: 1rem;
+            max-width: 1rem;
+            border-radius: 0.25rem;
+            flex-shrink: 0;
+            accent-color: #153d6f;
+            cursor: pointer;
+            border: 1px solid #adb5bd;
+        }
     </style>
 </head>
 
@@ -510,9 +522,9 @@
                             <i class="fas fa-eye password-toggle" onclick="togglePassword('signupPasswordConfirm', this)"></i>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="terms" id="terms" required>
+                        <div class="mb-4">
+                            <div class="form-check d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input checkbox-compact me-3" name="terms" id="terms" required>
                                 <label class="form-check-label" for="terms" style="font-size: 0.875rem;">
                                     I agree to the <a href="#" style="color: #b69964;">Terms of Service</a> and <a href="#" style="color: #b69964;">Privacy Policy</a>
                                 </label>

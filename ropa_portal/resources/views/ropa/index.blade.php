@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard - RoPA Forms')
 
-@section('content')
+@section('content') 
 <div class="container">
     <!-- Welcome Section -->
     <div class="row mb-5" data-aos="fade-up">
