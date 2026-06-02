@@ -31,6 +31,11 @@ class LoginController extends Controller
                 return redirect()->route('verify.otp');
             }
 
+            // Redirect based on role
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
             return redirect()->intended('/ropa');
         }
 

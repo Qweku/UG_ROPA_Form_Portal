@@ -17,6 +17,11 @@ class User extends Authenticatable
         'password',
         'personnel_id',
         'is_verified',
+        'role',
+    ];
+
+    protected $attributes = [
+        'role' => 'user', // Default role
     ];
 
     protected $hidden = [

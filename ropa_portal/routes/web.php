@@ -5,6 +5,18 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RopaFormController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminController;
+
+// Admin routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/submitted-forms', [AdminController::class, 'submittedForms'])->name('submitted-forms');
+    Route::get('/form/{ropaForm}', [AdminController::class, 'viewForm'])->name('view-form');
+    Route::post('/form/{ropaForm}/approve', [AdminController::class, 'approveForm'])->name('approve-form');
+    Route::post('/form/{ropaForm}/reject', [AdminController::class, 'rejectForm'])->name('reject-form');
+    Route::get('/export-forms', [AdminController::class, 'exportForms'])->name('export-forms');
+    Route::post('/bulk-action', [AdminController::class, 'bulkAction'])->name('bulk-action');
+});
 
 // Guest routes
 Route::middleware(['guest'])->group(function () {
