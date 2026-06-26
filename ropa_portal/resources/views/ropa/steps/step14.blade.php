@@ -30,10 +30,10 @@
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $dpaConditions = [];
-                                if ($ropaForm->dpa_conditions) {
-                                    $dpaConditions = is_array($ropaForm->dpa_conditions)
-                                        ? $ropaForm->dpa_conditions
-                                        : (json_decode($ropaForm->dpa_conditions, true) ?? []);
+                                if ($submission->dpa_conditions) {
+                                    $dpaConditions = is_array($submission->dpa_conditions)
+                                        ? $submission->dpa_conditions
+                                        : (json_decode($submission->dpa_conditions, true) ?? []);
                                 }
                             @endphp
                             @foreach($dpaConditions as $cond)
@@ -59,10 +59,10 @@
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $gdprArticles = [];
-                                if ($ropaForm->gdpr_articles) {
-                                    $gdprArticles = is_array($ropaForm->gdpr_articles)
-                                        ? $ropaForm->gdpr_articles
-                                        : (json_decode($ropaForm->gdpr_articles, true) ?? []);
+                                if ($submission->gdpr_articles) {
+                                    $gdprArticles = is_array($submission->gdpr_articles)
+                                        ? $submission->gdpr_articles
+                                        : (json_decode($submission->gdpr_articles, true) ?? []);
                                 }
                             @endphp
                             @foreach($gdprArticles as $art)
@@ -99,28 +99,28 @@
                             <i class="fas fa-link" style="color: #b69964;"></i>
                         </span>
                         <input type="url" name="retention_policy_link" class="form-control"
-                               value="{{ old('retention_policy_link', $ropaForm->retention_policy_link) }}"
+                               value="{{ old('retention_policy_link', $submission->retention_policy_link) }}"
                                placeholder="URL to policy document">
                     </div>
 
                     <label class="form-label fw-bold">Is Data Retained According to Policy?</label>
                     <select name="retained_per_policy" class="form-select" id="retained_per_policy">
                         <option value="">-- Select --</option>
-                        <option value="1" {{ $ropaForm->retained_per_policy === true ? 'selected' : '' }}>
+                        <option value="1" {{ $submission->retained_per_policy === true ? 'selected' : '' }}>
                             ✅ Yes - Data is retained per established schedule
                         </option>
-                        <option value="0" {{ $ropaForm->retained_per_policy === false ? 'selected' : '' }}>
+                        <option value="0" {{ $submission->retained_per_policy === false ? 'selected' : '' }}>
                             ❌ No - Exceptions exist
                         </option>
                     </select>
 
-                    <div id="non-adherence-reason" class="mt-3 {{ (string) $ropaForm->retained_per_policy !== '0' ? 'd-none' : '' }}">
+                    <div id="non-adherence-reason" class="mt-3 {{ (string) $submission->retained_per_policy !== '0' ? 'd-none' : '' }}">
                         <label class="form-label fw-bold">
                             <i class="fas fa-exclamation-triangle me-1" style="color: #dc3545;"></i>
                             Reasons for Non-Adherence
                         </label>
                         <textarea name="retention_non_adherence_reason" class="form-control" rows="4"
-                                  placeholder="Explain why data is not being retained according to the official policy...">{{ old('retention_non_adherence_reason', $ropaForm->retention_non_adherence_reason) }}</textarea>
+                                  placeholder="Explain why data is not being retained according to the official policy...">{{ old('retention_non_adherence_reason', $submission->retention_non_adherence_reason) }}</textarea>
                     </div>
                 </div>
             </div>

@@ -23,10 +23,10 @@
                     </div>
                     @php
                         $categoriesRecords = [];
-                        if ($ropaForm->categories_records) {
-                            $categoriesRecords = is_array($ropaForm->categories_records)
-                                ? $ropaForm->categories_records
-                                : (json_decode($ropaForm->categories_records ?? '[]', true) ?? []);
+                        if ($submission->categories_records) {
+                            $categoriesRecords = is_array($submission->categories_records)
+                                ? $submission->categories_records
+                                : (json_decode($submission->categories_records ?? '[]', true) ?? []);
                         }
                     @endphp
                     <div class="form-check mb-2">
@@ -67,10 +67,10 @@
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $dataSubjects = [];
-                                if ($ropaForm->data_subjects) {
-                                    $dataSubjects = is_array($ropaForm->data_subjects)
-                                        ? $ropaForm->data_subjects
-                                        : (json_decode($ropaForm->data_subjects, true) ?? []);
+                                if ($submission->data_subjects) {
+                                    $dataSubjects = is_array($submission->data_subjects)
+                                        ? $submission->data_subjects
+                                        : (json_decode($submission->data_subjects, true) ?? []);
                                 }
                             @endphp
                             @foreach($dataSubjects as $subject)
@@ -104,10 +104,10 @@
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $personalData = [];
-                                if ($ropaForm->personal_data_categories) {
-                                    $personalData = is_array($ropaForm->personal_data_categories)
-                                        ? $ropaForm->personal_data_categories
-                                        : (json_decode($ropaForm->personal_data_categories, true) ?? []);
+                                if ($submission->personal_data_categories) {
+                                    $personalData = is_array($submission->personal_data_categories)
+                                        ? $submission->personal_data_categories
+                                        : (json_decode($submission->personal_data_categories, true) ?? []);
                                 }
                             @endphp
                             @foreach($personalData as $data)
@@ -140,7 +140,7 @@
                     </div>
                     <label class="form-label fw-bold">Types of Documents Containing Special Category Data</label>
                     <textarea name="special_category_documents" class="form-control" rows="3"
-                              placeholder="e.g., Medical reports, lab results, psychological assessments, biometric data...">{{ old('special_category_documents', $ropaForm->special_category_documents) }}</textarea>
+                              placeholder="e.g., Medical reports, lab results, psychological assessments, biometric data...">{{ old('special_category_documents', $submission->special_category_documents) }}</textarea>
                     <small class="text-muted mt-2 d-block">
                         <i class="fas fa-shield-alt me-1"></i>
                         Special category data includes health information, biometric data, political opinions, religious beliefs, trade union membership, etc.

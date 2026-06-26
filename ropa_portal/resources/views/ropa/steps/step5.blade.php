@@ -23,8 +23,8 @@
                     </div>
 
                     <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;">
-                        <input class="form-check-input" type="radio" name="data_source" value="individual" id="src-individual"
-                               {{ ($ropaForm->data_source ?? '') == 'individual' ? 'checked' : '' }}>
+<input class="form-check-input" type="radio" name="data_source" value="individual" id="src-individual"
+                                {{ ($submission->data_source ?? '') == 'individual' ? 'checked' : '' }}>
                         <label class="form-check-label d-block" for="src-individual">
                             <i class="fas fa-user-circle fa-lg me-2" style="color: #153d6f;"></i>
                             <strong>Individual (Data Subject)</strong>
@@ -35,7 +35,7 @@
 
                     <div class="form-check p-3 border rounded" style="cursor: pointer;">
                         <input class="form-check-input" type="radio" name="data_source" value="third_party" id="src-third"
-                               {{ ($ropaForm->data_source ?? '') == 'third_party' ? 'checked' : '' }}>
+                               {{ ($submission->data_source ?? '') == 'third_party' ? 'checked' : '' }}>
                         <label class="form-check-label d-block" for="src-third">
                             <i class="fas fa-building fa-lg me-2" style="color: #b69964;"></i>
                             <strong>Third-Party</strong>
@@ -59,7 +59,7 @@
 
                     <label class="form-label fw-bold">How is Personal Data Updated?</label>
                     <textarea name="data_update_method" class="form-control" rows="6"
-                              placeholder="Example: Data is updated annually during registration through the self-service portal. Staff must submit change requests within 30 days of any change. Verification is done through official documentation.">{{ old('data_update_method', $ropaForm->data_update_method) }}</textarea>
+                              placeholder="Example: Data is updated annually during registration through the self-service portal. Staff must submit change requests within 30 days of any change. Verification is done through official documentation.">{{ old('data_update_method', $submission->data_update_method) }}</textarea>
 
                     <div class="alert alert-light mt-3">
                         <i class="fas fa-lightbulb me-2" style="color: #b69964;"></i>

@@ -28,11 +28,11 @@
             <div id="joint-controllers-container">
                 @php
                     $controllers = [];
-                    if ($ropaForm->joint_controllers) {
-                        if (is_array($ropaForm->joint_controllers)) {
-                            $controllers = $ropaForm->joint_controllers;
-                        } elseif (is_string($ropaForm->joint_controllers)) {
-                            $controllers = json_decode($ropaForm->joint_controllers, true) ?? [];
+                    if ($submission->joint_controllers) {
+                        if (is_array($submission->joint_controllers)) {
+                            $controllers = $submission->joint_controllers;
+                        } elseif (is_string($submission->joint_controllers)) {
+                            $controllers = json_decode($submission->joint_controllers, true) ?? [];
                         }
                     }
                 @endphp

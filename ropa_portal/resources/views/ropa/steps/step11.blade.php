@@ -28,7 +28,7 @@
                             <i class="fas fa-link" style="color: #b69964;"></i>
                         </span>
                         <input type="url" name="consent_link" class="form-control"
-                               value="{{ old('consent_link', $ropaForm->consent_link) }}"
+                               value="{{ old('consent_link', $submission->consent_link) }}"
                                placeholder="https://...">
                     </div>
                     <small class="text-muted d-block mb-3">
@@ -61,7 +61,7 @@
 
                     <label class="form-label fw-bold">Where is Personal Data Stored?</label>
                     <textarea name="data_location" class="form-control" rows="5"
-                              placeholder="Example: 'Primary storage: University shared drive (G:\HR\Personnel Records). Cloud backup: Microsoft SharePoint with EU data residency. On-premise database: Oracle server in Data Center Room 204.'">{{ old('data_location', $ropaForm->data_location) }}</textarea>
+                              placeholder="Example: 'Primary storage: University shared drive (G:\HR\Personnel Records). Cloud backup: Microsoft SharePoint with EU data residency. On-premise database: Oracle server in Data Center Room 204.'">{{ old('data_location', $submission->data_location) }}</textarea>
 
                     <div class="alert alert-light mt-3">
                         <i class="fas fa-shield-alt me-2" style="color: #b69964;"></i>

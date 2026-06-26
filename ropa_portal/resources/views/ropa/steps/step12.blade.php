@@ -26,7 +26,7 @@
                         <div class="col-md-6">
                             <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('dpia-yes').click()">
                                 <input class="form-check-input" type="radio" name="dpia_required" value="1" id="dpia-yes"
-                                       {{ $ropaForm->dpia_required === true ? 'checked' : '' }}>
+                                       {{ $submission->dpia_required === true ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="dpia-yes">
                                     <i class="fas fa-exclamation-triangle fa-lg me-2" style="color: #ffc107;"></i>
                                     <strong>Yes - DPIA Required</strong>
@@ -38,7 +38,7 @@
                         <div class="col-md-6">
                             <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('dpia-no').click()">
                                 <input class="form-check-input" type="radio" name="dpia_required" value="0" id="dpia-no"
-                                       {{ $ropaForm->dpia_required === false ? 'checked' : '' }}>
+                                       {{ $submission->dpia_required === false ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="dpia-no">
                                     <i class="fas fa-check-circle fa-lg me-2" style="color: #28a745;"></i>
                                     <strong>No - DPIA Not Required</strong>
@@ -49,7 +49,7 @@
                         </div>
                     </div>
 
-                    <div id="dpia-section" class="mt-4 {{ $ropaForm->dpia_required !== true ? 'd-none' : '' }}">
+                    <div id="dpia-section" class="mt-4 {{ $submission->dpia_required !== true ? 'd-none' : '' }}">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
@@ -57,13 +57,13 @@
                                     DPIA Progress
                                 </label>
                                 <select name="dpia_progress" class="form-select" id="dpia_progress">
-                                    <option value="not_started" {{ $ropaForm->dpia_progress == 'not_started' ? 'selected' : '' }}>
+                                    <option value="not_started" {{ $submission->dpia_progress == 'not_started' ? 'selected' : '' }}>
                                         ⚪ Not Started
                                     </option>
-                                    <option value="in_progress" {{ $ropaForm->dpia_progress == 'in_progress' ? 'selected' : '' }}>
+                                    <option value="in_progress" {{ $submission->dpia_progress == 'in_progress' ? 'selected' : '' }}>
                                         🟡 In Progress
                                     </option>
-                                    <option value="completed" {{ $ropaForm->dpia_progress == 'completed' ? 'selected' : '' }}>
+                                    <option value="completed" {{ $submission->dpia_progress == 'completed' ? 'selected' : '' }}>
                                         🟢 Completed
                                     </option>
                                 </select>
@@ -78,7 +78,7 @@
                                         <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
                                     </span>
                                     <input type="url" name="dpia_link" class="form-control"
-                                           value="{{ old('dpia_link', $ropaForm->dpia_link) }}"
+                                           value="{{ old('dpia_link', $submission->dpia_link) }}"
                                            placeholder="URL to DPIA document">
                                 </div>
                             </div>
@@ -94,19 +94,19 @@
                                      @php
                                          $riskLevel = 'Not Assessed';
                                          $riskClass = 'bg-secondary';
-                                         if ($ropaForm->dpia_progress == 'completed') {
+                                         if ($submission->dpia_progress == 'completed') {
                                              $riskLevel = 'Risk Managed';
                                              $riskClass = 'bg-success';
-                                         } elseif ($ropaForm->dpia_progress == 'in_progress') {
+                                         } elseif ($submission->dpia_progress == 'in_progress') {
                                              $riskLevel = 'Mitigation in Progress';
                                              $riskClass = 'bg-warning';
-                                         } elseif ($ropaForm->dpia_required === true) {
+                                         } elseif ($submission->dpia_required === true) {
                                              $riskLevel = 'High - Assessment Required';
                                              $riskClass = 'bg-danger';
                                          }
                                      @endphp
                                      <span class="badge {{ $riskClass }}" style="padding: 8px 16px;">
-                                         <i class="fas fa-{{ $ropaForm->dpia_progress == 'completed' ? 'check' : ($ropaForm->dpia_progress == 'in_progress' ? 'clock' : 'exclamation') }} me-1"></i>
+                                         <i class="fas fa-{{ $submission->dpia_progress == 'completed' ? 'check' : ($submission->dpia_progress == 'in_progress' ? 'clock' : 'exclamation') }} me-1"></i>
                                          {{ $riskLevel }}
                                      </span>
                                 </div>

@@ -2,55 +2,45 @@
 
 @section('title', 'Dashboard - RoPA Forms')
 
-@section('content') 
+@section('content')
 <div class="container">
-    <!-- Welcome Section -->
     <div class="row mb-5" data-aos="fade-up">
         <div class="col-12 text-center">
             <h1 style="color: var(--primary); font-weight: 700;" class="display-5 mb-3">
                 <i class="fas fa-clipboard-list me-3" style="color: var(--accent);"></i>
                 Record of Processing Activities
             </h1>
-            <p class="lead text-muted">Manage and track all your data processing activities in one place</p>
+            <p class="lead text-muted">Manage and track all your data processing activities</p>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row mb-5" data-aos="fade-up" data-aos-delay="100">
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-file-alt"></i>
                 </div>
                 <h3 class="mb-2">{{ $forms->count() }}</h3>
-                <p class="text-muted mb-0">Total Forms</p>
+                <p class="text-muted mb-0">Total Processes</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-pen"></i>
-                </div>
-                <h3 class="mb-2">{{ $forms->where('status', 'draft')->count() }}</h3>
-                <p class="text-muted mb-0">Draft Forms</p>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h3 class="mb-2">{{ $forms->where('status', 'submitted')->count() }}</h3>
-                <p class="text-muted mb-0">Submitted</p>
+                <h3 class="mb-2">{{ $forms->where('all_submissions_completed', true)->count() }}</h3>
+                <p class="text-muted mb-0">Completed</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-spinner"></i>
                 </div>
-                <h3 class="mb-2">{{ $forms->where('status', 'approved')->count() }}</h3>
-                <p class="text-muted mb-0">Approved</p>
+                <h3 class="mb-2">{{ $forms->where('all_submissions_completed', false)->count() }}</h3>
+                <p class="text-muted mb-0">In Progress</p>
             </div>
         </div>
     </div>
@@ -59,140 +49,80 @@
     <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
         <div class="col-12 text-end">
             <a href="{{ route('ropa.create') }}" class="btn btn-accent btn-lg">
-                <i class="fas fa-plus-circle me-2"></i> Create New RoPA Form
+                <i class="fas fa-plus-circle me-2"></i> Create New RoPA Process
             </a>
         </div>
     </div>
 
-    <!-- Forms Table -->
+    <!-- Accordion Cards -->
     <div class="row" data-aos="fade-up" data-aos-delay="300">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-table me-2"></i> Your RoPA Forms
-                    </h4>
+            @if($forms->isEmpty())
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="lead text-muted">No RoPA processes yet</p>
+                    <a href="{{ route('ropa.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Create Your First Process
+                    </a>
                 </div>
-                <div class="card-body p-0">
-                    @if($forms->isEmpty())
-                    <div class="text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <p class="lead text-muted">No RoPA forms yet</p>
-                        <a href="{{ route('ropa.create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i> Create Your First Form
-                        </a>
-                    </div>
-                    @else
-                    <div class="table-responsive p-2">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th class="border-0">ID</th>
-                                    <th class="border-0">Process/Project</th>
-                                    <th class="border-0">Last Updated</th>
-                                    <th class="border-0">Status</th>
-                                    <th class="border-0">Progress</th>
-                                    <th class="border-0">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($forms as $form)
-                                <tr>
-                                    <td class="align-middle">#{{ $form->id }}</td>
-                                    <td class="align-middle">
-                                        <strong>{{ implode(', ', array_slice($form->process_names ?? ['Untitled'], 0, 2)) }}</strong>
-                                        @if(count($form->process_names ?? []) > 2)
-                                        <span class="badge bg-secondary ms-1">+{{ count($form->process_names) - 2 }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="align-middle">
-                                        <i class="far fa-calendar-alt me-1 text-muted"></i>
-                                        {{ $form->updated_at->format('M d, Y') }}
-                                    </td>
-                                    <td class="align-middle">
-                                        @php
-                                        $statusColors = [
-                                        'draft' => 'warning',
-                                        'submitted' => 'info',
-                                        'approved' => 'success',
-                                        'rejected' => 'danger'
-                                        ];
-                                        @endphp
-                                        <span class="badge bg-{{ $statusColors[$form->status] ?? 'secondary' }} px-3 py-2">
-                                            <i class="fas fa-{{ $form->status === 'draft' ? 'pen' : ($form->status === 'submitted' ? 'clock' : 'check') }} me-1"></i>
-                                            {{ ucfirst($form->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="align-middle">
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                                <div class="progress-bar"
-                                                    role="progressbar" aria-valuenow="{{ $form->current_step }}" aria-valuemin="0" aria-valuemax="14"
-                                                    @style([ 'width: ' . (($form->current_step / 14) * 100) . '%',
-                                                    'background: linear-gradient(90deg, var(--primary), var(--accent))',
-                                                    ])>
+            @else
+                @foreach($forms as $form)
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="h5">{{ $form->main_process_name }}</strong>
+                                <span class="ms-3 text-white small">{{ $form->college?->name ?? 'N/A' }} / {{ $form->business_function }}</span>
+                            </div>
+                            <span class="badge {{ $form->all_submissions_completed ? 'bg-success' : 'bg-warning' }}">
+                                {{ $form->all_submissions_completed ? 'Completed' : 'In Progress' }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="accordion" id="accordion{{ $form->id }}">
+                                @foreach($form->submissions->where('status', 'completed') as $index => $sub)
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading{{ $form->id }}_{{ $index }}">
+                                            <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $form->id }}_{{ $index }}" aria-expanded="{{ $index == 0 ? 'true' : 'false' }}" aria-controls="collapse{{ $form->id }}_{{ $index }}">
+                                                <i class="fas fa-file me-2"></i>
+                                                {{ $sub->sub_process_name ?: 'Main Process' }}
+                                                <span class="badge bg-{{ $sub->status == 'completed' ? 'success' : 'warning' }} ms-3">Completed</span>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse{{ $form->id }}_{{ $index }}" class="accordion-collapse collapse {{ $index == 0 ? 'show' : '' }}" data-bs-parent="#accordion{{ $form->id }}">
+                                            <div class="accordion-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><strong>Purpose:</strong> {{ $sub->purpose }}</p>
+                                                        <p><strong>Legal Basis:</strong> {{ implode(', ', $sub->legal_basis ?? []) }}</p>
+                                                        <p><strong>Data Subjects:</strong> {{ implode(', ', $sub->data_subjects ?? []) }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p><strong>Personnel:</strong> {{ $sub->firstname }} {{ $sub->surname }} ({{ $sub->personnel_id }})</p>
+                                                        <p><strong>Role:</strong> {{ $sub->role_responsible }}</p>
+                                                        <p><strong>Completed:</strong> {{ $sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A' }}</p>
+                                                    </div>
                                                 </div>
-
+                                                <a href="{{ route('ropa.view-submission', $sub) }}" class="btn btn-sm btn-info">View Full Details</a>
                                             </div>
                                         </div>
-                                        <small class="text-muted">{{ $form->current_step }}/14</small>
-                    </div>
-                    </td>
-                    <td class="align-middle">
-                        <div class="btn-group" role="group">
-                            @if($form->status === 'draft')
-                            <a href="{{ route('ropa.edit', $form) }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Continue Editing">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            @endif
-
-                            @if(in_array($form->status, ['submitted', 'approved']))
-                            <a href="{{ route('ropa.show', $form) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="View Submitted Form">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            @endif
-
-                            @if($form->status === 'draft')
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $form->id }}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            @endif
-                        </div>
-
-                        <!-- Delete Modal -->
-                        <div class="modal fade" id="deleteModal{{ $form->id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header" style="background: var(--primary); color: white;">
-                                        <h5 class="modal-title">Confirm Delete</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                     </div>
-                                    <div class="modal-body">
-                                        <p>Are you sure you want to delete this RoPA form?</p>
-                                        <p class="text-muted small">This action cannot be undone.</p>
+                                @endforeach
+                                @if($form->submissions->where('status', 'draft')->isNotEmpty())
+                                    <div class="alert alert-warning mt-3">
+                                        <i class="fas fa-clock me-2"></i>
+                                        You have a draft sub-process in progress.
+                                        <a href="{{ route('ropa.edit', ['step' => $form->submissions->where('status', 'draft')->first()->current_step]) }}" class="alert-link">Continue editing</a>
                                     </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <form action="{{ route('ropa.destroy', $form) }}" method="POST" class="d-inline">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">Delete Forever</button>
-                                        </form>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
                         </div>
-                    </td>
-                    </tr>
-                    @endforeach
-                    </tbody>
-                    </table>
-                </div>
-                @endif
-            </div>
+                    </div>
+                @endforeach
+            @endif
         </div>
     </div>
 </div>
-</div>
+
 
 @push('scripts')
 <script>

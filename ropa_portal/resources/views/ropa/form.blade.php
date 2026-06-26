@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'RoPA Form - Step ' . $ropaForm->current_step)
+@section('title', 'RoPA Form - Step ' . $step)
 
 @section('content')
 <div class="container">
@@ -8,130 +8,136 @@
     <div class="step-wrapper" data-aos="fade-down">
         <div class="progress-stepper">
             @php
-                $steps = [
-                    1 => 'Basic Info',
-                    2 => 'Joint Controllers',
-                    3 => 'Data Categories',
-                    4 => 'Internal Sharing',
-                    5 => 'Data Source',
-                    6 => 'Legal Basis',
-                    7 => 'Security',
-                    8 => 'External Sharing',
-                    9 => 'Intl. Transfers',
-                    10 => 'Auto Decision',
-                    11 => 'Consent',
-                    12 => 'DPIA',
-                    13 => 'Breaches',
-                    14 => 'Compliance'
-                ];
-                $stepIcons = [
-                    1 => 'info-circle',
-                    2 => 'users',
-                    3 => 'database',
-                    4 => 'share-alt',
-                    5 => 'source',
-                    6 => 'gavel',
-                    7 => 'shield-alt',
-                    8 => 'exchange-alt',
-                    9 => 'globe',
-                    10 => 'robot',
-                    11 => 'file-signature',
-                    12 => 'chart-line',
-                    13 => 'exclamation-triangle',
-                    14 => 'check-circle'
-                ];
-                $currentIcon = $stepIcons[$ropaForm->current_step] ?? 'check-circle';
+            $steps = [
+            1 => 'Basic Info',
+            2 => 'Joint Controllers',
+            3 => 'Data Categories',
+            4 => 'Internal Sharing',
+            5 => 'Data Source',
+            6 => 'Legal Basis',
+            7 => 'Security',
+            8 => 'External Sharing',
+            9 => 'Intl. Transfers',
+            10 => 'Auto Decision',
+            11 => 'Consent',
+            12 => 'DPIA',
+            13 => 'Breaches',
+            14 => 'Compliance'
+            ];
+            $stepIcons = [
+            1 => 'info-circle',
+            2 => 'users',
+            3 => 'database',
+            4 => 'share-alt',
+            5 => 'source',
+            6 => 'gavel',
+            7 => 'shield-alt',
+            8 => 'exchange-alt',
+            9 => 'globe',
+            10 => 'robot',
+            11 => 'file-signature',
+            12 => 'chart-line',
+            13 => 'exclamation-triangle',
+            14 => 'check-circle'
+            ];
+            $currentIcon = $stepIcons[$step] ?? 'check-circle';
+            $currentStep = $step;
+            $submissionStatus = $submission->status ?? 'draft';
+            $hasSubProcesses = $parentForm->has_sub_processes ?? false;
             @endphp
 
             @foreach($steps as $num => $label)
-                <div class="step-item {{ $ropaForm->current_step > $num ? 'completed' : '' }} {{ $ropaForm->current_step == $num ? 'active' : '' }} {{ $ropaForm->current_step < $num ? 'locked' : '' }}"
-                    data-step="{{ $num }}"
-                    @if($ropaForm->current_step >= $num) onclick="navigateToStep({{ $num }})" @endif
-                    style="cursor: {{ $ropaForm->current_step >= $num ? 'pointer' : 'not-allowed' }};">
-                    <div class="step-number">
-                        @if($ropaForm->current_step > $num)
-                            <i class="fas fa-check"></i>
-                        @else
-                            {{ $num }}
-                        @endif
-                    </div>
-                    <div class="step-label">{{ $label }}</div>
-                    @if($ropaForm->current_step < $num)
-                        <div class="step-lock">
-                            <i class="fas fa-lock"></i>
-                        </div>
+            <div class="step-item {{ $currentStep > $num ? 'completed' : '' }} {{ $currentStep == $num ? 'active' : '' }} {{ $currentStep < $num ? 'locked' : '' }}"
+                data-step="{{ $num }}"
+                @if($currentStep>= $num) onclick="navigateToStep({{ $num }})" @endif
+                style="cursor: {{ $currentStep >= $num ? 'pointer' : 'not-allowed' }};">
+                <div class="step-number">
+                    @if($currentStep > $num)
+                    <i class="fas fa-check"></i>
+                    @else
+                    {{ $num }}
                     @endif
                 </div>
-            @endforeach
+                <div class="step-label">{{ $label }}</div>
+                @if($currentStep < $num)
+                    <div class="step-lock">
+                    <i class="fas fa-lock"></i>
+            </div>
+            @endif
         </div>
+        @endforeach
     </div>
+</div>
 
-    <!-- Form -->
-    <div class="row justify-content-center mt-5" data-aos="fade-up">
-        <div class="col-lg-10">
-            <form method="POST" action="{{ route('ropa.update', $ropaForm) }}" id="ropaForm" class="needs-validation" novalidate>
-                @csrf
-                @method('PUT')
-                <input type="hidden" name="current_step" value="{{ $ropaForm->current_step }}">
+<!-- Form -->
+<div class="row justify-content-center mt-5" data-aos="fade-up">
+    <div class="col-lg-10">
+        <form method="POST" action="{{ route('ropa.update') }}" id="ropaForm" class="needs-validation" novalidate>
+            @csrf
+            <input type="hidden" name="current_step" value="{{ $step }}">
+            <input type="hidden" name="parent_form_id" value="{{ $parentForm->id }}">
+            <input type="hidden" name="submission_id" value="{{ $submission->id }}">
+            <!-- This hidden field will be set by the modal before submission -->
+            <input type="hidden" name="next_action" id="nextActionInput" value="">
 
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-{{ $currentIcon }} fa-fw me-2"></i>
-                                <strong>Step {{ $ropaForm->current_step }} of 14</strong>
-                                <span class="ms-3 small">@yield('step-title', $steps[$ropaForm->current_step])</span>
-                            </div>
-                            <div>
-                                <span class="badge bg-light text-dark px-3 py-2">
-                                    <i class="fas fa-save me-1"></i> Auto-save enabled
-                                </span>
-                            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-{{ $currentIcon }} fa-fw me-2"></i>
+                            <strong>Step {{ $step }} of 14</strong>
+                            <span class="ms-3 small">{{ $steps[$step] }}</span>
                         </div>
-                    </div>
-
-                    <div class="card-body p-4">
-                        @if ($errors->any())
-                            <div class="alert alert-danger mb-3 py-2">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <strong>Cannot proceed:</strong> {{ $errors->first() }}
-                                @if ($errors->count() > 1)
-                                    <span class="small">({{ $errors->count() - 1 }} more)</span>
-                                @endif
-                            </div>
-                        @endif
-                        @include("ropa.steps.step{$ropaForm->current_step}")
-                    </div>
-
-                    <div class="card-footer bg-white p-4">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                @if($ropaForm->current_step > 1)
-                                    <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
-                                        <i class="fas fa-arrow-left me-2"></i> Previous
-                                    </button>
-                                @endif
-                                <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
-                                    <i class="fas fa-save me-2"></i> Save Draft
-                                </button>
-                            </div>
-                            <div>
-                                @if($ropaForm->current_step < 14)
-                                    <button type="submit" name="action" value="next" class="btn btn-primary px-5">
-                                        Next Step <i class="fas fa-arrow-right ms-2"></i>
-                                    </button>
-                                @else
-                                    <button type="submit" name="action" value="submit" class="btn btn-accent px-5">
-                                        <i class="fas fa-check-circle me-2"></i> Submit Form
-                                    </button>
-                                @endif
-                            </div>
+                        <div>
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-save me-1"></i> Auto-save enabled
+                            </span>
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
+
+                <div class="card-body p-4">
+                    @if ($errors->any())
+                    <div class="alert alert-danger mb-3 py-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Cannot proceed:</strong> {{ $errors->first() }}
+                        @if ($errors->count() > 1)
+                        <span class="small">({{ $errors->count() - 1 }} more)</span>
+                        @endif
+                    </div>
+                    @endif
+                    @include("ropa.steps.step{$step}")
+                </div>
+
+                <div class="card-footer bg-white p-4">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            @if($step > 1)
+                            <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Previous
+                            </button>
+                            @endif
+                            <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
+                                <i class="fas fa-save me-2"></i> Save Draft
+                            </button>
+                        </div>
+                        <div>
+                            @if($step < 14)
+                                <button type="submit" name="action" value="next" class="btn btn-primary px-5">
+                                Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                @else
+                                <button type="submit" name="action" value="submit" class="btn btn-accent px-5" id="finalSubmitBtn">
+                                    <i class="fas fa-check-circle me-2"></i> Submit This Sub‑process
+                                </button>
+                                @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
+</div>
 </div>
 
 @push('scripts')
@@ -164,39 +170,61 @@
         // ============================================
         // STEP-SPECIFIC REQUIRED FIELDS CONFIG
         // ============================================
-        // Format: { step: { fields: [{ name: 'field_name', type: 'text|checkbox|radio|select|array|multiselect' }] } }
         const requiredFieldsByStep = {
-            1: [
-                { name: 'surname', type: 'text' },
-                { name: 'firstname', type: 'text' },
-                { name: 'business_function', type: 'select' }
+            1: [{
+                    name: 'surname',
+                    type: 'text'
+                },
+                {
+                    name: 'firstname',
+                    type: 'text'
+                },
+                {
+                    name: 'business_function',
+                    type: 'text'
+                }
             ],
-            2: [
-                { name: 'joint_controllers', type: 'array' }
-            ],
-            3: [
-                { name: 'categories_records[]', type: 'checkbox' }
-            ],
+            2: [{
+                name: 'joint_controllers',
+                type: 'array'
+            }],
+            3: [{
+                name: 'categories_records[]',
+                type: 'checkbox'
+            }],
             4: null,
-            5: [
-                { name: 'data_source', type: 'radio' }
-            ],
+            5: [{
+                name: 'data_source',
+                type: 'radio'
+            }],
             6: null,
             7: null,
-            8: [
-                { name: 'external_recipients', type: 'array' }
-            ],
+            8: [{
+                name: 'external_recipients',
+                type: 'array'
+            }],
             9: null,
             10: null,
             11: null,
             12: null,
             13: null,
-            14: [
-                { name: 'dpa_conditions', type: 'multiselect' },
-                { name: 'gdpr_articles', type: 'multiselect' },
-                { name: 'retention_policy_link', type: 'text' },
-                { name: 'retained_per_policy', type: 'select' }
-]
+            14: [{
+                    name: 'dpa_conditions',
+                    type: 'multiselect'
+                },
+                {
+                    name: 'gdpr_articles',
+                    type: 'multiselect'
+                },
+                {
+                    name: 'retention_policy_link',
+                    type: 'text'
+                },
+                {
+                    name: 'retained_per_policy',
+                    type: 'select'
+                }
+            ]
         };
 
         // ============================================
@@ -204,12 +232,17 @@
         // ============================================
         function validateStep(step) {
             const requiredFields = requiredFieldsByStep[step];
-            if (!requiredFields) return { valid: true };
+            if (!requiredFields) return {
+                valid: true
+            };
 
             const missingFields = [];
 
             requiredFields.forEach(fieldConfig => {
-                const { name, type } = fieldConfig;
+                const {
+                    name,
+                    type
+                } = fieldConfig;
 
                 if (type === 'checkbox') {
                     const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
@@ -224,8 +257,8 @@
                     const radios = document.querySelectorAll(`input[name="${radioName}"]:checked`);
                     if (radios.length === 0) {
                         const label = document.querySelector(`label[for^="${radioName}"]`)?.textContent?.trim() ||
-                                     document.querySelector(`[name="${radioName}"]`)?.closest('.form-check')?.querySelector('.form-check-label')?.textContent?.trim() ||
-                                     name;
+                            document.querySelector(`[name="${radioName}"]`)?.closest('.form-check')?.querySelector('.form-check-label')?.textContent?.trim() ||
+                            name;
                         missingFields.push(label);
                     }
                 } else if (type === 'select') {
@@ -234,8 +267,8 @@
                         const value = el.value?.trim();
                         if (!value) {
                             const label = el.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
-                                         el.closest('.col-*')?.querySelector('.form-label')?.textContent?.trim() ||
-                                         name;
+                                el.closest('.col-*')?.querySelector('.form-label')?.textContent?.trim() ||
+                                name;
                             missingFields.push(label);
                         }
                     }
@@ -256,8 +289,8 @@
                         }
                         if (isEmpty) {
                             const label = hiddenInput.closest('.card-body')?.querySelector('.card-title')?.textContent?.trim() ||
-                                         hiddenInput.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
-                                         name;
+                                hiddenInput.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
+                                name;
                             missingFields.push(label);
                         }
                     }
@@ -274,8 +307,8 @@
                         const value = el.value?.trim();
                         if (!value) {
                             const label = el.closest('.mb-3')?.querySelector('.form-label')?.textContent?.trim() ||
-                                         el.closest('label')?.textContent?.trim() ||
-                                         el.getAttribute('placeholder') || name;
+                                el.closest('label')?.textContent?.trim() ||
+                                el.getAttribute('placeholder') || name;
                             missingFields.push(label);
                         }
                     }
@@ -289,9 +322,11 @@
         }
 
         // ============================================
-        // 2. FORM SUBMISSION HANDLER
+        // 3. FORM SUBMISSION HANDLER
         // ============================================
         const form = document.querySelector('#ropaForm');
+        const hasSubProcesses = @json($hasSubProcesses);
+
         if (form) {
             form.addEventListener('submit', function(e) {
                 const submitBtn = form.querySelector('button[type="submit"][name="action"]:focus');
@@ -299,18 +334,17 @@
 
                 // Validate required fields when clicking "Next Step"
                 if (actionValue === 'next') {
-                    const currentStep = {{ $ropaForm->current_step }};
+                    const currentStep = {{ $step }};
                     const validation = validateStep(currentStep);
 
                     if (!validation.valid) {
                         e.preventDefault();
-                        // Ensure loading overlay is hidden before showing error
                         document.getElementById('loadingOverlay').style.display = 'none';
                         Swal.fire({
                             title: 'Missing Required Fields',
                             html: '<p class="mb-2">Please complete the following required fields:</p><ul class="text-start mb-0">' +
-                                  validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
-                                  '</ul>',
+                                validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
+                                '</ul>',
                             icon: 'warning',
                             confirmButtonColor: '#b69964',
                             confirmButtonText: 'Fill Required Fields'
@@ -319,22 +353,19 @@
                     }
                 }
 
-                // Special handling for final submission (step 14):
-                // - Show confirmation modal WITHOUT showing loading overlay (prevents modal obstruction)
-                // - Only show loading AFTER user confirms in the modal
+                // Step 14 completion modal
                 if (actionValue === 'submit' && form.dataset.finalSubmitConfirmed !== 'true') {
                     e.preventDefault();
 
-                    // First validate required fields for step 14
+                    // Validate required fields for step 14
                     const validation = validateStep(14);
                     if (!validation.valid) {
-                        // Ensure loading overlay is hidden before showing error
                         document.getElementById('loadingOverlay').style.display = 'none';
                         Swal.fire({
                             title: 'Missing Required Fields',
                             html: '<p class="mb-2">Please complete all required fields before submission:</p><ul class="text-start mb-0">' +
-                                  validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
-                                  '</ul>',
+                                validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
+                                '</ul>',
                             icon: 'warning',
                             confirmButtonColor: '#b69964',
                             confirmButtonText: 'Fill Required Fields'
@@ -342,40 +373,55 @@
                         return;
                     }
 
-                    Swal.fire({
-                        title: 'Submit RoPA Form?',
-                        text: "Please review all information before submitting. Once submitted, you cannot make further changes.",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#b69964',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Yes, submit it!',
-                        cancelButtonText: 'Review again'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Show loading only after modal confirmation
-                            document.getElementById('loadingOverlay').style.display = 'flex';
-
-                            // Ensure the 'action=submit' value reaches the server even on programmatic submit
-                            let actionInput = form.querySelector('input[name="action"][type="hidden"]');
-                            if (!actionInput) {
-                                actionInput = document.createElement('input');
-                                actionInput.type = 'hidden';
-                                actionInput.name = 'action';
-                                form.appendChild(actionInput);
+                    // If this parent process has sub-processes, ask the user what to do next
+                    if (hasSubProcesses) {
+                        Swal.fire({
+                            title: 'Sub-process Completed!',
+                            html: `<p>You have completed data for <strong>"${document.querySelector('input[name="sub_process_name"]')?.value || 'this sub-process'}"</strong>.</p>
+                                   <p class="text-muted small">What would you like to do next?</p>`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#b69964',
+                            cancelButtonColor: '#28a745',
+                            confirmButtonText: '➕ Add Another Sub-process',
+                            cancelButtonText: '✅ No, Submit Everything',
+                            showDenyButton: true,
+                            denyButtonText: '👀 Review again',
+                            denyButtonColor: '#6c757d'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Add another sub-process
+                                document.getElementById('nextActionInput').value = 'add_more';
+                                finalizeSubmit();
+                            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                // Finalize everything
+                                document.getElementById('nextActionInput').value = 'finalize';
+                                finalizeSubmit();
                             }
-                            actionInput.value = 'submit';
-
-                            // Mark for bypass on re-entrant submit and submit the form
-                            form.dataset.finalSubmitConfirmed = 'true';
-                            form.submit();
-                        }
-                        // If cancelled, do nothing (user stays on form)
-                    });
+                            // If 'Review again', do nothing (stay on form)
+                        });
+                    } else {
+                        // No sub-processes → just finalize directly
+                        Swal.fire({
+                            title: 'Submit RoPA Form?',
+                            text: "Please review all information before submitting. Once submitted, you cannot make further changes.",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#b69964',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Yes, submit it!',
+                            cancelButtonText: 'Review again'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('nextActionInput').value = 'finalize';
+                                finalizeSubmit();
+                            }
+                        });
+                    }
                     return;
                 }
 
-                // Re-entry after modal confirmation (or normal submissions)
+                // Re-entry after modal confirmation
                 if (form.dataset.finalSubmitConfirmed === 'true') {
                     delete form.dataset.finalSubmitConfirmed;
                 }
@@ -383,15 +429,29 @@
                 // Update all hidden fields before submission
                 updateAllMultiSelects();
 
-                // Show loading overlay for non-save / non-previous actions (but not final submit path here)
+                // Show loading overlay for non-save / non-previous actions
                 if (actionValue && actionValue !== 'save' && actionValue !== 'previous' && actionValue !== 'submit') {
                     document.getElementById('loadingOverlay').style.display = 'flex';
                 }
             });
         }
 
+        function finalizeSubmit() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            let actionInput = form.querySelector('input[name="action"][type="hidden"]');
+            if (!actionInput) {
+                actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                form.appendChild(actionInput);
+            }
+            actionInput.value = 'submit';
+            form.dataset.finalSubmitConfirmed = 'true';
+            form.submit();
+        }
+
         // ============================================
-        // 3. MULTI-SELECT CHIP HANDLERS
+        // 4. MULTI-SELECT CHIP HANDLERS
         // ============================================
         function initializeMultiSelect(container) {
             const input = container.querySelector('input[type="text"]');
@@ -400,10 +460,8 @@
 
             if (!input || !chipsContainer || !hiddenField) return;
 
-            // Add CSS class for identification
             input.classList.add('tag-input');
 
-            // Function to add chip
             function addChipToContainer(value, shouldUpdateHidden = true) {
                 const chip = document.createElement('span');
                 chip.className = 'tag-chip';
@@ -435,7 +493,6 @@
                 }
             }
 
-            // Function to update hidden field
             function updateHidden() {
                 const values = [];
                 const chips = chipsContainer.querySelectorAll('.tag-chip');
@@ -448,14 +505,12 @@
                 hiddenField.value = JSON.stringify(values);
             }
 
-            // Initialize from existing hidden field value
             function initializeFromHidden() {
                 try {
                     const existingValue = hiddenField.value;
                     if (existingValue && existingValue !== '[]' && existingValue !== 'null' && existingValue !== '') {
                         const items = JSON.parse(existingValue);
                         if (Array.isArray(items) && items.length > 0) {
-                            // Clear existing chips
                             chipsContainer.innerHTML = '';
                             items.forEach(item => {
                                 if (item && item.trim()) {
@@ -470,7 +525,6 @@
                 }
             }
 
-            // Handle Enter key - prevent form submission
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -480,7 +534,6 @@
                     if (value) {
                         addChipToContainer(value, true);
                         this.value = '';
-                        // Trigger change event for auto-save
                         this.dispatchEvent(new Event('change', {
                             bubbles: true
                         }));
@@ -489,21 +542,18 @@
                 }
             });
 
-            // Initialize
             initializeFromHidden();
         }
 
-        // Initialize all multi-select containers
         document.querySelectorAll('.multi-select-container').forEach(initializeMultiSelect);
 
         // ============================================
-        // 4. AUTO-SAVE FUNCTIONALITY
+        // 5. AUTO-SAVE FUNCTIONALITY
         // ============================================
         let autoSaveTimer;
         const autoSaveFields = document.querySelectorAll('#ropaForm input:not(.tag-input), #ropaForm select, #ropaForm textarea');
 
         function performAutoSave() {
-            // Update all multi-select hidden fields before auto-save
             updateAllMultiSelects();
 
             const form = document.getElementById('ropaForm');
@@ -512,7 +562,6 @@
             const formData = new FormData(form);
             formData.append('action', 'save');
 
-            // Get CSRF token
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
             fetch(form.action, {
@@ -531,14 +580,12 @@
             });
         }
 
-        // Attach auto-save to form fields (excluding tag inputs to avoid excessive saves)
         autoSaveFields.forEach(element => {
             element.addEventListener('change', function() {
                 clearTimeout(autoSaveTimer);
                 autoSaveTimer = setTimeout(performAutoSave, 2000);
             });
 
-            // Also save on input for text fields after typing stops
             if (element.tagName === 'TEXTAREA' || element.type === 'text') {
                 element.addEventListener('input', function() {
                     clearTimeout(autoSaveTimer);
@@ -548,11 +595,10 @@
         });
 
         // ============================================
-        // 5. CHECKBOX PERSISTENCE HANDLER
+        // 6. CHECKBOX PERSISTENCE HANDLER
         // ============================================
         document.querySelectorAll('input[type="checkbox"][name*="[]"]').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
-                // Ensure unchecked checkboxes are submitted as empty values
                 setTimeout(() => {
                     if (this.form && !this.checked) {
                         let hidden = this.parentNode.querySelector('input[type="hidden"][name="' + this.name + '"]');
@@ -562,8 +608,6 @@
                             hidden.name = this.name;
                             hidden.value = '';
                             this.parentNode.appendChild(hidden);
-
-                            // Remove after form submission
                             this.form.addEventListener('submit', function() {
                                 if (hidden.parentNode) hidden.remove();
                             }, {
@@ -576,17 +620,15 @@
         });
 
         // ============================================
-        // 6. CONDITIONAL FIELD HANDLERS
+        // 7. CONDITIONAL FIELD HANDLERS
         // ============================================
         const toggleFields = () => {
-            // Step 4: Internal Sharing conditional
             const shareInternally = document.querySelector('input[name="share_internally"]:checked');
             const internalSection = document.getElementById('internal-recipients-section');
             if (internalSection) {
                 internalSection.style.display = shareInternally?.value === '1' ? 'block' : 'none';
             }
 
-            // Step 10: Auto decision conditional
             const autoDecision = document.querySelector('input[name="auto_decision_making"]:checked');
             const profilingSection = document.getElementById('profiling-section');
             if (profilingSection) {
@@ -597,7 +639,6 @@
                 }
             }
 
-            // Step 14: Retention non-adherence conditional
             const retainedPerPolicy = document.querySelector('input[name="retained_per_policy"]:checked');
             const reasonSection = document.getElementById('non-adherence-reason');
             if (reasonSection) {
@@ -605,14 +646,13 @@
             }
         };
 
-        // Attach toggle handlers to radio buttons
         document.querySelectorAll('input[type="radio"]').forEach(el => {
             el.addEventListener('change', toggleFields);
         });
         toggleFields();
 
         // ============================================
-        // 7. REAL-TIME VALIDATION
+        // 8. REAL-TIME VALIDATION
         // ============================================
         const requiredFields = document.querySelectorAll('[required]');
         requiredFields.forEach(field => {
@@ -637,7 +677,7 @@
         });
 
         // ============================================
-        // 8. ANIMATION
+        // 9. ANIMATION
         // ============================================
         const cardBody = document.querySelector('.card-body');
         if (cardBody) {
@@ -647,8 +687,10 @@
         console.log('RoPA Form initialized successfully');
     });
 
+    // ============================================
+    // TOAST NOTIFICATION HELPER
+    // ============================================
     function showToast(message, type = 'success') {
-        // Create toast container if it doesn't exist
         let toastContainer = document.querySelector('.toast-container');
         if (!toastContainer) {
             toastContainer = document.createElement('div');
@@ -678,17 +720,17 @@
         });
         toast.show();
 
-        // Remove toast element after hiding
         toastElement.addEventListener('hidden.bs.toast', function() {
             this.remove();
         });
     }
 
-    // Navigation function for steps
+    // ============================================
+    // STEP NAVIGATION
+    // ============================================
     function navigateToStep(stepNumber) {
-        const currentStep = {{ $ropaForm->current_step }};
+        const currentStep = {{ $step }};
 
-        // Don't allow navigating to future steps
         if (stepNumber > currentStep) {
             Swal.fire({
                 title: 'Step Locked',
@@ -700,12 +742,10 @@
             return;
         }
 
-        // If trying to go to current step, do nothing
         if (stepNumber === currentStep) {
             return;
         }
 
-        // Show confirmation for going back to previous steps
         if (stepNumber < currentStep) {
             Swal.fire({
                 title: 'Navigate to Step ' + stepNumber + '?',
@@ -722,16 +762,14 @@
                 }
             });
         } else {
-            // Validate before navigating forward
             const validation = validateStep(currentStep);
             if (!validation.valid) {
-                // Ensure loading overlay is hidden before showing error
                 document.getElementById('loadingOverlay').style.display = 'none';
                 Swal.fire({
                     title: 'Missing Required Fields',
                     html: '<p class="mb-2">Please complete the following required fields before moving to the next step:</p><ul class="text-start mb-0">' +
-                          validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
-                          '</ul>',
+                        validation.missingFields.map(f => `<li class="text-danger">${f}</li>`).join('') +
+                        '</ul>',
                     icon: 'warning',
                     confirmButtonColor: '#b69964',
                     confirmButtonText: 'Fill Required Fields'
@@ -743,18 +781,15 @@
     }
 
     function performNavigation(stepNumber) {
-        // Show loading overlay
         document.getElementById('loadingOverlay').style.display = 'flex';
 
-        // Create form data
         const formData = new FormData();
         formData.append('_token', '{{ csrf_token() }}');
         formData.append('_method', 'PUT');
         formData.append('action', 'navigate');
         formData.append('target_step', stepNumber);
-        formData.append('current_step', {{ $ropaForm->current_step }});
+        formData.append('current_step', {{ $step }});
 
-        // Gather all form data from current form to preserve it
         const currentForm = document.getElementById('ropaForm');
         if (currentForm) {
             const currentFormData = new FormData(currentForm);
@@ -765,61 +800,52 @@
             }
         }
 
-        // Submit via fetch
-        fetch('{{ route("ropa.update", $ropaForm) }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw err;
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                window.location.href = data.redirect;
-            } else {
-                document.getElementById('loadingOverlay').style.display = 'none';
-                let errorList = '';
-                if (data.errors && typeof data.errors === 'object') {
-                    errorList = '<ul class="text-start mb-0">' + Object.entries(data.errors)
-                        .map(([field, msgs]) => `<li class="text-danger">${Array.isArray(msgs) ? msgs.join(', ') : msgs}</li>`)
-                        .join('') + '</ul>';
+        fetch('{{ route("ropa.update") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json'
                 }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw err;
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    let errorList = '';
+                    if (data.errors && typeof data.errors === 'object') {
+                        errorList = '<ul class="text-start mb-0">' + Object.entries(data.errors)
+                            .map(([field, msgs]) => `<li class="text-danger">${Array.isArray(msgs) ? msgs.join(', ') : msgs}</li>`)
+                            .join('') + '</ul>';
+                    }
+                    Swal.fire({
+                        title: 'Error',
+                        html: (data.message || 'Failed to navigate.') + errorList,
+                        icon: 'error',
+                        confirmButtonColor: '#b69964'
+                    });
+                }
+            })
+            .catch(error => {
+                document.getElementById('loadingOverlay').style.display = 'none';
                 Swal.fire({
                     title: 'Error',
-                    html: (data.message || 'Failed to navigate.') + errorList,
+                    text: 'An error occurred. Please try again.',
                     icon: 'error',
                     confirmButtonColor: '#b69964'
                 });
-            }
-        })
-        .catch(error => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-            Swal.fire({
-                title: 'Error',
-                text: 'An error occurred. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#b69964'
             });
-        });
     }
-
-    // Auto-save before navigation when using next/previous buttons
-    document.querySelectorAll('button[name="action"][value="next"], button[name="action"][value="previous"]').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            // Let the normal form submission happen
-            // The form will save and then redirect
-        });
-    });
 </script>
 @endpush
 @endsection

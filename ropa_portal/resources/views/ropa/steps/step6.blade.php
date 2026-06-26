@@ -34,9 +34,9 @@
                     <div class="multi-select-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
-                            $legalBasis = is_array($ropaForm->legal_basis)
-                            ? $ropaForm->legal_basis
-                            : (json_decode($ropaForm->legal_basis ?? '[]', true) ?: []);
+                            $legalBasis = is_array($submission->legal_basis)
+                            ? $submission->legal_basis
+                            : (json_decode($submission->legal_basis ?? '[]', true) ?: []);
                             @endphp
                             @foreach($legalBasis as $basis)
                             <span class="tag-chip">
@@ -76,9 +76,9 @@
                     <div class="multi-select-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
-                            $sensitiveBasis = is_array($ropaForm->sensitive_legal_basis)
-                            ? $ropaForm->sensitive_legal_basis
-                            : (json_decode($ropaForm->sensitive_legal_basis ?? '[]', true) ?: []);
+                            $sensitiveBasis = is_array($submission->sensitive_legal_basis)
+                            ? $submission->sensitive_legal_basis
+                            : (json_decode($submission->sensitive_legal_basis ?? '[]', true) ?: []);
                             @endphp
                             @foreach($sensitiveBasis as $basis)
                             <span class="tag-chip" style="background: #f5efe6; border-color: #b69964;">
@@ -126,10 +126,10 @@
                     </label>
                     <select name="lia_documented" class="form-select" id="lia_documented">
                         <option value="">-- Select --</option>
-                        <option value="1" {{ $ropaForm->lia_documented === true ? 'selected' : '' }}>
+                        <option value="1" {{ $submission->lia_documented === true ? 'selected' : '' }}>
                             <i class="fas fa-check"></i> Yes
                         </option>
-                        <option value="0" {{ $ropaForm->lia_documented === false ? 'selected' : '' }}>
+                        <option value="0" {{ $submission->lia_documented === false ? 'selected' : '' }}>
                             <i class="fas fa-times"></i> No
                         </option>
                     </select>
@@ -142,7 +142,7 @@
                             <i class="fas fa-link" style="color: #b69964;"></i>
                         </span>
                         <input type="text" name="lia_location" class="form-control"
-                            value="{{ old('lia_location', $ropaForm->lia_location) }}"
+                            value="{{ old('lia_location', $submission->lia_location) }}"
                             placeholder="File path or URL">
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                             <i class="fas fa-globe" style="color: #b69964;"></i>
                         </span>
                         <input type="url" name="lia_link" class="form-control"
-                            value="{{ old('lia_link', $ropaForm->lia_link) }}"
+                            value="{{ old('lia_link', $submission->lia_link) }}"
                             placeholder="https://...">
                     </div>
                 </div>
@@ -162,7 +162,7 @@
                 <div class="col-12">
                     <label class="form-label fw-bold">Legitimate Interests Explanation</label>
                     <textarea name="legitimate_interests" class="form-control" rows="4"
-                        placeholder="Explain the legitimate interests pursued by the controller and why they override the interests of data subjects...">{{ old('legitimate_interests', $ropaForm->legitimate_interests) }}</textarea>
+                        placeholder="Explain the legitimate interests pursued by the controller and why they override the interests of data subjects...">{{ old('legitimate_interests', $submission->legitimate_interests) }}</textarea>
                 </div>
             </div>
         </div>
@@ -190,7 +190,7 @@
                             <i class="fas fa-calendar" style="color: #b69964;"></i>
                         </span>
                         <input type="text" name="retention_period" class="form-control"
-                            value="{{ old('retention_period', $ropaForm->retention_period) }}"
+                            value="{{ old('retention_period', $submission->retention_period) }}"
                             placeholder="e.g., 8 years after account closure, Indefinitely, 30 days">
                     </div>
                 </div>
@@ -199,10 +199,10 @@
                     <label class="form-label fw-bold">Legally Required to Keep Data?</label>
                     <select name="legally_required_retention" class="form-select">
                         <option value="">-- Select --</option>
-                        <option value="1" {{ $ropaForm->legally_required_retention === true ? 'selected' : '' }}>
+                        <option value="1" {{ $submission->legally_required_retention === true ? 'selected' : '' }}>
                             <i class="fas fa-gavel"></i> Yes - Legal/Regulatory requirement
                         </option>
-                        <option value="0" {{ $ropaForm->legally_required_retention === false ? 'selected' : '' }}>
+                        <option value="0" {{ $submission->legally_required_retention === false ? 'selected' : '' }}>
                             <i class="fas fa-user-check"></i> No - Determined by organization
                         </option>
                     </select>
@@ -242,9 +242,9 @@
                 'Portability' => 'success',
                 'Object' => 'secondary'
                 ];
-                $individualRights = is_array($ropaForm->individual_rights)
-                ? $ropaForm->individual_rights
-                : (json_decode($ropaForm->individual_rights ?? '[]', true) ?: []);
+                $individualRights = is_array($submission->individual_rights)
+                ? $submission->individual_rights
+                : (json_decode($submission->individual_rights ?? '[]', true) ?: []);
                 @endphp
                 @foreach(['Access','Rectification','Erasure','Restriction','Portability','Object'] as $right)
                 <div class="col-md-4 col-lg-3 mb-2">

@@ -23,10 +23,10 @@
                     </div>
                     @php
                         $transfers = [];
-                        if ($ropaForm->international_transfers) {
-                            $transfers = is_array($ropaForm->international_transfers)
-                                ? $ropaForm->international_transfers
-                                : (json_decode($ropaForm->international_transfers, true) ?? []);
+                        if ($submission->international_transfers) {
+                            $transfers = is_array($submission->international_transfers)
+                                ? $submission->international_transfers
+                                : (json_decode($submission->international_transfers, true) ?? []);
                         }
                     @endphp
                     <select name="international_transfers[]" class="form-select" multiple size="6">
@@ -59,10 +59,10 @@
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $mechanisms = [];
-                                if ($ropaForm->transfer_mechanisms) {
-                                    $mechanisms = is_array($ropaForm->transfer_mechanisms)
-                                        ? $ropaForm->transfer_mechanisms
-                                        : (json_decode($ropaForm->transfer_mechanisms, true) ?? []);
+                                if ($submission->transfer_mechanisms) {
+                                    $mechanisms = is_array($submission->transfer_mechanisms)
+                                        ? $submission->transfer_mechanisms
+                                        : (json_decode($submission->transfer_mechanisms, true) ?? []);
                                 }
                             @endphp
                             @foreach($mechanisms as $mech)

@@ -6,6 +6,7 @@ use App\Http\Controllers\RopaFormController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\SchoolController;
 
 // Admin routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -45,11 +46,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/', [RopaFormController::class, 'index'])->name('index');
         Route::get('/create', [RopaFormController::class, 'create'])->name('create');
-        Route::get('/{ropaForm}/edit', [RopaFormController::class, 'edit'])->name('edit');
-        Route::get('/{ropaForm}', [RopaFormController::class, 'show'])->name('show');
-        Route::get('/{ropaForm}/view-submitted', [RopaFormController::class, 'viewSubmitted'])->name('view-submitted');
-        Route::put('/{ropaForm}', [RopaFormController::class, 'update'])->name('update');
+        Route::get('/edit/{step?}', [RopaFormController::class, 'edit'])->name('edit'); // step optional
+        Route::post('/update', [RopaFormController::class, 'update'])->name('update');
+        Route::get('/add-sub-process/{ropaForm}', [RopaFormController::class, 'addSubProcess'])->name('add-sub-process');
+        Route::get('/finalize/{ropaForm}', [RopaFormController::class, 'finalize'])->name('finalize');
+        Route::get('/submission/{ropaSubmission}', [RopaFormController::class, 'viewSubmission'])->name('view-submission');
         Route::delete('/{ropaForm}', [RopaFormController::class, 'destroy'])->name('destroy');
+        Route::get('/add-more/{ropaForm}', [RopaFormController::class, 'addMore'])->name('add-more');
+        Route::get('/api/schools/{college}', [SchoolController::class, 'index'])->name('schools.index');
+        Route::post('/api/schools', [SchoolController::class, 'store'])->name('schools.store');
     });
 });
 

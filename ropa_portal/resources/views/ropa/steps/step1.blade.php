@@ -7,52 +7,24 @@
             </div>
             <div>
                 <h5 class="mb-1" style="color: #153d6f;">Basic Information</h5>
-                <p class="mb-0 text-muted small">Capture ownership and identification of the processing activity. Fields marked with <span class="text-danger">*</span> are required.</p>
+                <p class="mb-0 text-muted small">
+                    @if($basicInfoLocked ?? false)
+                        Add the next sub‑process under <strong>{{ $parentForm->main_process_name }}</strong>. Fields marked with <span class="text-danger">*</span> are required.
+                    @else
+                        Capture ownership and identification of the processing activity. Fields marked with <span class="text-danger">*</span> are required.
+                    @endif
+                </p>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
-                            <i class="fas fa-calendar-alt" style="color: #153d6f;"></i>
-                        </div>
-                        <h5 class="card-title mb-0" style="color: #153d6f;">Creation Details</h5>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Date Created <span class="text-danger">*</span></label>
-                        <input type="date" name="date_created" class="form-control" value="{{ date('Y-m-d') }}" readonly>
-                        <small class="text-muted">Auto-filled with today's date</small>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Personnel ID</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
-                                <input type="text" name="personnel_id" class="form-control"
-                                       value="{{ old('personnel_id', $ropaForm->personnel_id ?? Auth::user()->personnel_id ?? '') }}"
-                                       placeholder="e.g., 99999">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Role Responsible</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
-                                <input type="text" name="role_responsible" class="form-control"
-                                       value="{{ old('role_responsible', $ropaForm->role_responsible) }}"
-                                       placeholder="e.g., Senior Admin Registrar">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
+        {{-- Personal Information: pre-filled from the logged-in user where
+             the submission doesn't already have its own saved value (e.g.
+             when the user edited it manually on a previous step/visit). --}}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -62,153 +34,389 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Surname</label>
-                            <input type="text" name="surname" class="form-control"
-                                   value="{{ old('surname', $ropaForm->surname ?? Auth::user()->surname ?? '') }}"
-                                   placeholder="Last name">
+                            <label class="form-label fw-bold">Personnel ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
+                                <input type="text" name="personnel_id" class="form-control"
+                                       value="{{ old('personnel_id', $submission->personnel_id ?? Auth::user()->personnel_id ?? '') }}"
+                                       placeholder="e.g., 99999">
+                            </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Firstname</label>
-                            <input type="text" name="firstname" class="form-control"
-                                   value="{{ old('firstname', $ropaForm->firstname ?? Auth::user()->firstname ?? '') }}"
-                                   placeholder="First name">
+                            <label class="form-label fw-bold">Role Responsible</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
+                                <input type="text" name="role_responsible" class="form-control"
+                                       value="{{ old('role_responsible', $submission->role_responsible ?? Auth::user()->role ?? Auth::user()->position ?? Auth::user()->job_title ?? '') }}"
+                                       placeholder="e.g., Senior Admin Registrar">
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            Business Function
-                            <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
-                               title="College/School/Department/Unit"></i>
-                        </label>
-                        <select name="business_function" class="form-select select2">
-                            <option value="">-- Select Business Function --</option>
-                            <option value="College of Health Sciences" {{ ($ropaForm->business_function ?? '') == 'College of Health Sciences' ? 'selected' : '' }}>
-                                🏥 College of Health Sciences
-                            </option>
-                            <option value="College of Humanities" {{ ($ropaForm->business_function ?? '') == 'College of Humanities' ? 'selected' : '' }}>
-                                📚 College of Humanities
-                            </option>
-                            <option value="College of Basic and Applied Sciences" {{ ($ropaForm->business_function ?? '') == 'College of Basic and Applied Sciences' ? 'selected' : '' }}>
-                                🔬 College of Basic and Applied Sciences
-                            </option>
-                            <option value="School of Law" {{ ($ropaForm->business_function ?? '') == 'School of Law' ? 'selected' : '' }}>
-                                ⚖️ School of Law
-                            </option>
-                            <option value="University Hospital" {{ ($ropaForm->business_function ?? '') == 'University Hospital' ? 'selected' : '' }}>
-                                🏥 University Hospital
-                            </option>
-                            <option value="Directorate of Academic Affairs" {{ ($ropaForm->business_function ?? '') == 'Directorate of Academic Affairs' ? 'selected' : '' }}>
-                                📖 Directorate of Academic Affairs
-                            </option>
-                            <option value="Human Resources Division" {{ ($ropaForm->business_function ?? '') == 'Human Resources Division' ? 'selected' : '' }}>
-                                👥 Human Resources Division
-                            </option>
-                        </select>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Surname <span class="text-danger">*</span></label>
+                            <input type="text" name="surname" class="form-control"
+                                   value="{{ old('surname', $submission->surname ?? Auth::user()->surname ?? '') }}"
+                                   placeholder="Last name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Firstname <span class="text-danger">*</span></label>
+                            <input type="text" name="firstname" class="form-control"
+                                   value="{{ old('firstname', $submission->firstname ?? Auth::user()->firstname ?? '') }}"
+                                   placeholder="First name" required>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        @if($basicInfoLocked ?? false)
+            {{-- Basic process info is locked after the first sub-process.
+                 Show it read-only; the controller already has these values
+                 on $parentForm, so no hidden inputs are needed. --}}
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-lock" style="color: #153d6f;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: #153d6f;">Process Identity</h5>
+                            <span class="badge bg-secondary ms-auto">Locked</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            College, Business Function, and Main Process Name were set when the first sub‑process was created and apply to this whole RoPA.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">College</label>
+                                <input type="text" class="form-control" value="{{ $parentForm->college->name ?? '' }}" disabled>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Business Function (School/Dept)</label>
+                                <input type="text" class="form-control" value="{{ $parentForm->business_function }}" disabled>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Main Process Name</label>
+                                <input type="text" class="form-control" value="{{ $parentForm->main_process_name }}" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-sitemap" style="color: #153d6f;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: #153d6f;">Sub‑Process</h5>
+                        </div>
+                        <label class="form-label fw-bold">Sub‑Process Name <span class="text-danger">*</span></label>
+                        <input type="text" name="sub_process_name" class="form-control"
+                               value="{{ old('sub_process_name', $submission->sub_process_name ?? '') }}"
+                               placeholder="Enter the current sub‑process name" required autofocus>
+                    </div>
+                </div>
+            </div>
+        @else
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-university" style="color: #153d6f;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: #153d6f;">College & Business Function</h5>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">College <span class="text-danger">*</span></label>
+                            <select name="college_id" id="collegeSelect" class="form-select" required>
+                                <option value="">Select College</option>
+                                @foreach($colleges as $college)
+                                    <option value="{{ $college->id }}" {{ old('college_id', $parentForm->college_id ?? '') == $college->id ? 'selected' : '' }}>
+                                        {{ $college->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-1 position-relative">
+                            <label class="form-label fw-bold">
+                                Business Function (School/Dept) <span class="text-danger">*</span>
+                                <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
+                                   title="Select a college first, then type to search or add a new school/department"></i>
+                            </label>
+                            <input type="text"
+                                   name="business_function"
+                                   id="businessFunctionInput"
+                                   class="form-control"
+                                   autocomplete="off"
+                                   value="{{ old('business_function', $parentForm->business_function ?? '') }}"
+                                   placeholder="Select a college first, then type to search or add">
+                            <div id="businessFunctionSuggestions" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 220px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-tags" style="color: #153d6f;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: #153d6f;">Main Process</h5>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Main Process Name <span class="text-danger">*</span></label>
+                            <input type="text" name="main_process_name" class="form-control"
+                                   value="{{ old('main_process_name', $parentForm->main_process_name ?? '') }}"
+                                   placeholder="e.g., Admissions, Payroll, Research" required>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input type="checkbox" name="has_sub_processes" id="hasSubProcesses" class="form-check-input" value="1"
+                                   {{ old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold" for="hasSubProcesses">This process has sub‑processes</label>
+                        </div>
+                        <small class="text-muted d-block mb-3">
+                            <i class="fas fa-info-circle"></i> This choice applies to the whole process and cannot be changed after this first sub‑process is saved.
+                        </small>
+                        <div id="subProcessContainer" style="display: {{ old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'block' : 'none' }}">
+                            <label class="form-label fw-bold">Sub‑Process Name</label>
+                            <input type="text" name="sub_process_name" class="form-control"
+                                   value="{{ old('sub_process_name', $submission->sub_process_name ?? '') }}"
+                                   placeholder="Enter the current sub‑process name">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
-                            <i class="fas fa-tags" style="color: #153d6f;"></i>
+                            <i class="fas fa-file-alt" style="color: #153d6f;"></i>
                         </div>
-                        <h5 class="card-title mb-0" style="color: #153d6f;">Process & Purpose</h5>
+                        <h5 class="card-title mb-0" style="color: #153d6f;">Purpose</h5>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Name of Process / Project / Activity</label>
-                        <div class="multi-select-container">
-                            <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                @php
-                                    $processes = [];
-                                    if ($ropaForm->process_names) {
-                                        $processes = is_array($ropaForm->process_names)
-                                            ? $ropaForm->process_names
-                                            : (json_decode($ropaForm->process_names, true) ?? []);
-                                    }
-                                @endphp
-                                @foreach($processes as $tag)
-                                <span class="tag-chip">
-                                    <i class="fas fa-tag me-1"></i>
-                                    <span>{{ $tag }}</span>
-                                    <button type="button" onclick="this.parentElement.remove(); updateProcessNames();">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </span>
-                                @endforeach
-                            </div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="processInput"
-                                       placeholder="Type and press Enter to add (e.g., Admissions, Payroll, Research)">
-                                <button class="btn btn-outline-primary" type="button" onclick="addProcess()">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <input type="hidden" name="process_names" id="process_names_hidden" value="{{ json_encode($processes) }}">
-                            <small class="text-muted mt-2 d-block">
-                                <i class="fas fa-info-circle"></i> Add all relevant processes or projects
-                            </small>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            Purpose of Processing
-                            <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
-                               title="Describe why the data is being collected or used"></i>
-                        </label>
-                        <textarea name="purpose" class="form-control" rows="4"
-                                  placeholder="e.g., Recruitment process for new faculty members, Pension administration for retired staff...">{{ old('purpose', $ropaForm->purpose) }}</textarea>
-                    </div>
+                    <label class="form-label fw-bold">
+                        Purpose of Processing
+                        <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
+                           title="Describe why the data is being collected or used"></i>
+                    </label>
+                    <textarea name="purpose" class="form-control" rows="4"
+                              placeholder="e.g., Recruitment process for new faculty members, Pension administration for retired staff...">{{ old('purpose', $submission->purpose ?? '') }}</textarea>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
+@unless($basicInfoLocked ?? false)
 @push('scripts')
 <script>
-function updateProcessNames() {
-    const chips = document.querySelectorAll('#step1 .tag-chip span');
-    const values = Array.from(chips).map(chip => chip.textContent.trim());
-    document.getElementById('process_names_hidden').value = JSON.stringify(values);
-}
+    var routeSchoolsIndex = '/ropa/api/schools/';
+    var routeSchoolsStore = '/ropa/api/schools';
 
-function addProcess() {
-    const input = document.getElementById('processInput');
-    const value = input.value.trim();
-    if (!value) return;
+    document.addEventListener('DOMContentLoaded', function() {
+        var collegeSelect = document.getElementById('collegeSelect');
+        var bfInput = document.getElementById('businessFunctionInput');
+        var bfSuggestions = document.getElementById('businessFunctionSuggestions');
+        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    const container = document.querySelector('#step1 .chips-container');
-    const chip = document.createElement('span');
-    chip.className = 'tag-chip';
-    chip.innerHTML = `
-        <i class="fas fa-tag me-1"></i>
-        <span>${escapeHtml(value)}</span>
-        <button type="button" onclick="this.parentElement.remove(); updateProcessNames();">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    container.appendChild(chip);
-    input.value = '';
-    updateProcessNames();
-}
+        var currentSchools = [];
+        var schoolsLoadedForCollege = null;
+        var fetchTimer = null;
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+        function hideSuggestions() {
+            bfSuggestions.style.display = 'none';
+            bfSuggestions.innerHTML = '';
+        }
 
-document.getElementById('processInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        addProcess();
-    }
-});
+        function renderSuggestions(items, query) {
+            bfSuggestions.innerHTML = '';
+
+            var filtered = items.filter(function(name) {
+                return name.toLowerCase().includes((query || '').toLowerCase());
+            });
+
+            if (filtered.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            filtered.forEach(function(name) {
+                var item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                item.textContent = name;
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    bfInput.value = name;
+                    hideSuggestions();
+                });
+                bfSuggestions.appendChild(item);
+            });
+
+            bfSuggestions.style.display = 'block';
+        }
+
+        function fetchSchools(collegeId, callback) {
+            if (!collegeId) {
+                callback([]);
+                return;
+            }
+            var url = routeSchoolsIndex + collegeId;
+            fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            })
+                .then(function(res) {
+                    if (!res.ok) {
+                        console.error('GET ' + url + ' returned ' + res.status);
+                        callback([]);
+                        return null;
+                    }
+                    return res.json();
+                })
+                .then(function(data) {
+                    if (data === null) return;
+                    callback(Array.isArray(data) ? data : []);
+                })
+                .catch(function(err) {
+                    console.error('Failed to load schools for college ' + collegeId + ':', err);
+                    callback([]);
+                });
+        }
+
+        function loadSchoolsForCurrentCollege(then) {
+            var collegeId = collegeSelect ? collegeSelect.value : null;
+            fetchSchools(collegeId, function(schools) {
+                currentSchools = schools;
+                schoolsLoadedForCollege = collegeId;
+                if (then) then();
+            });
+        }
+
+        if (collegeSelect && collegeSelect.value) {
+            loadSchoolsForCurrentCollege();
+        }
+
+        if (collegeSelect) {
+            collegeSelect.addEventListener('change', function() {
+                bfInput.value = '';
+                hideSuggestions();
+                currentSchools = [];
+                schoolsLoadedForCollege = null;
+                loadSchoolsForCurrentCollege();
+            });
+        }
+
+        bfInput.addEventListener('focus', function() {
+            if (!collegeSelect || !collegeSelect.value) {
+                return;
+            }
+            loadSchoolsForCurrentCollege(function() {
+                renderSuggestions(currentSchools, bfInput.value);
+            });
+        });
+
+        bfInput.addEventListener('input', function() {
+            if (!collegeSelect || !collegeSelect.value) {
+                hideSuggestions();
+                return;
+            }
+
+            if (currentSchools.length > 0 || schoolsLoadedForCollege === collegeSelect.value) {
+                renderSuggestions(currentSchools, bfInput.value);
+                return;
+            }
+
+            clearTimeout(fetchTimer);
+            fetchTimer = setTimeout(function() {
+                loadSchoolsForCurrentCollege(function() {
+                    renderSuggestions(currentSchools, bfInput.value);
+                });
+            }, 150);
+        });
+
+        bfInput.addEventListener('blur', function() {
+            setTimeout(function() {
+                var collegeId = collegeSelect ? collegeSelect.value : null;
+                var typed = bfInput.value.trim();
+
+                hideSuggestions();
+
+                if (!typed || !collegeId) {
+                    return;
+                }
+
+                var alreadyExists = currentSchools.some(function(name) {
+                    return name.toLowerCase() === typed.toLowerCase();
+                });
+
+                if (alreadyExists) {
+                    return;
+                }
+
+                fetch(routeSchoolsStore, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: new URLSearchParams({ college_id: collegeId, name: typed })
+                })
+                    .then(function(res) {
+                        if (!res.ok) {
+                            return res.text().then(function(body) {
+                                console.error('POST ' + routeSchoolsStore + ' returned ' + res.status + ':', body);
+                                throw new Error('Failed to add school (status ' + res.status + ')');
+                            });
+                        }
+                        return res.json();
+                    })
+                    .then(function() {
+                        currentSchools.push(typed);
+                    })
+                    .catch(function(err) {
+                        console.error(err);
+                        alert('Failed to save school name. Please try again.');
+                    });
+            }, 150);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!bfSuggestions.contains(e.target) && e.target !== bfInput) {
+                hideSuggestions();
+            }
+        });
+
+        var hasSubProcesses = document.getElementById('hasSubProcesses');
+        var subProcessContainer = document.getElementById('subProcessContainer');
+        if (hasSubProcesses && subProcessContainer) {
+            hasSubProcesses.addEventListener('change', function() {
+                var subInput = subProcessContainer.querySelector('input');
+                if (this.checked) {
+                    subProcessContainer.style.display = 'block';
+                    if (subInput) subInput.setAttribute('required', true);
+                } else {
+                    subProcessContainer.style.display = 'none';
+                    if (subInput) {
+                        subInput.value = '';
+                        subInput.removeAttribute('required');
+                    }
+                }
+            });
+        }
+    });
 </script>
 @endpush
+@endunless

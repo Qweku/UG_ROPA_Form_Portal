@@ -28,11 +28,11 @@
             <div id="external-recipients-container">
                 @php
                     $recipients = [];
-                    if ($ropaForm->external_recipients) {
-                        if (is_array($ropaForm->external_recipients)) {
-                            $recipients = $ropaForm->external_recipients;
-                        } elseif (is_string($ropaForm->external_recipients)) {
-                            $recipients = json_decode($ropaForm->external_recipients, true) ?? [];
+                    if ($submission->external_recipients) {
+                        if (is_array($submission->external_recipients)) {
+                            $recipients = $submission->external_recipients;
+                        } elseif (is_string($submission->external_recipients)) {
+                            $recipients = json_decode($submission->external_recipients, true) ?? [];
                         }
                     }
                 @endphp

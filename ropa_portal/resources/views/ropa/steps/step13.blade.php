@@ -26,7 +26,7 @@
                         <div class="col-md-6">
                             <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('breach-yes').click()">
                                 <input class="form-check-input" type="radio" name="breach_occurred" value="1" id="breach-yes"
-                                       {{ $ropaForm->breach_occurred === true ? 'checked' : '' }}>
+                                       {{ $submission->breach_occurred === true ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="breach-yes">
                                     <i class="fas fa-exclamation-circle fa-lg me-2" style="color: #dc3545;"></i>
                                     <strong>Yes - A breach has occurred</strong>
@@ -38,7 +38,7 @@
                         <div class="col-md-6">
                             <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('breach-no').click()">
                                 <input class="form-check-input" type="radio" name="breach_occurred" value="0" id="breach-no"
-                                       {{ $ropaForm->breach_occurred === false ? 'checked' : '' }}>
+                                       {{ $submission->breach_occurred === false ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="breach-no">
                                     <i class="fas fa-shield-alt fa-lg me-2" style="color: #28a745;"></i>
                                     <strong>No - No breach has occurred</strong>
@@ -49,7 +49,7 @@
                         </div>
                     </div>
 
-                    <div id="breach-section" class="mt-4 {{ $ropaForm->breach_occurred === true ? '' : 'd-none' }}">
+                    <div id="breach-section" class="mt-4 {{ $submission->breach_occurred === true ? '' : 'd-none' }}">
                         <div class="alert alert-danger">
                             <i class="fas fa-bell me-2"></i>
                             <strong>GDPR Breach Notification Requirements (Article 33-34):</strong>
@@ -69,7 +69,7 @@
                                 <i class="fas fa-file-alt" style="color: #dc3545;"></i>
                             </span>
                             <input type="url" name="breach_link" class="form-control"
-                                   value="{{ old('breach_link', $ropaForm->breach_link) }}"
+                                   value="{{ old('breach_link', $submission->breach_link) }}"
                                    placeholder="https://... (Link to incident report, root cause analysis, and remediation actions)"
                                    required>
                         </div>

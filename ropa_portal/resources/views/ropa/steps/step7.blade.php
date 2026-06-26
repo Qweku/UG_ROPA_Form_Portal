@@ -22,7 +22,7 @@
 
             <label class="form-label fw-bold">Describe Security Measures Protecting Personal Data</label>
             <textarea name="security_measures" class="form-control" rows="6"
-                      placeholder="Describe technical and organizational security measures...">{{ old('security_measures', $ropaForm->security_measures) }}</textarea>
+                      placeholder="Describe technical and organizational security measures...">{{ old('security_measures', $submission->security_measures) }}</textarea>
 
             <div class="mt-4">
                 <label class="form-label fw-bold">Suggested Security Measures Checklist:</label>
