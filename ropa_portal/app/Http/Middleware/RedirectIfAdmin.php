@@ -4,13 +4,14 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class EnsureUserIsVerified
+class RedirectIfAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (! $request->user() || ! $request->session()->get('otp_verified')) {
-            return redirect()->route('verify.otp');
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard');
         }
 
         return $next($request);

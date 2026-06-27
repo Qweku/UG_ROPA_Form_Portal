@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Admin Dashboard'); ?>
 
-@section('title', 'Admin Dashboard')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container py-4">
     <div class="row mb-4">
         <div class="col-12">
@@ -10,7 +8,7 @@
                 <i class="fas fa-chart-line me-3" style="color: #b69964;"></i>
                 Admin Dashboard
             </h1>
-            <p class="text-muted">Welcome back, {{ Auth::user()->firstname }} {{ Auth::user()->surname }}! Here's an overview of the RoPA system.</p>
+            <p class="text-muted">Welcome back, <?php echo e(Auth::user()->firstname); ?> <?php echo e(Auth::user()->surname); ?>! Here's an overview of the RoPA system.</p>
         </div>
     </div>
 
@@ -22,7 +20,7 @@
                     <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
                         <i class="fas fa-file-alt fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['total_forms'] }}</h3>
+                    <h3 class="mb-0"><?php echo e($stats['total_forms']); ?></h3>
                     <p class="mb-0" style="opacity: 0.9;">Total RoPA Processes</p>
                 </div>
             </div>
@@ -33,7 +31,7 @@
                     <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
                         <i class="fas fa-check-circle fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['completed_forms'] }}</h3>
+                    <h3 class="mb-0"><?php echo e($stats['completed_forms']); ?></h3>
                     <p class="mb-0" style="opacity: 0.9;">Completed</p>
                 </div>
             </div>
@@ -44,7 +42,7 @@
                     <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
                         <i class="fas fa-spinner fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['in_progress_forms'] }}</h3>
+                    <h3 class="mb-0"><?php echo e($stats['in_progress_forms']); ?></h3>
                     <p class="mb-0" style="opacity: 0.9;">In Progress</p>
                 </div>
             </div>
@@ -55,7 +53,7 @@
                     <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
                         <i class="fas fa-users fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['total_users'] }}</h3>
+                    <h3 class="mb-0"><?php echo e($stats['total_users']); ?></h3>
                     <p class="mb-0" style="opacity: 0.9;">Registered Users</p>
                 </div>
             </div>
@@ -77,15 +75,15 @@
                     <div class="row mt-3 text-center">
                         <div class="col-4">
                             <div class="small text-muted">Total Sub-processes</div>
-                            <strong>{{ $stats['total_submissions'] }}</strong>
+                            <strong><?php echo e($stats['total_submissions']); ?></strong>
                         </div>
                         <div class="col-4">
                             <div class="small text-muted">Completed</div>
-                            <strong>{{ $stats['completed_submissions'] }}</strong>
+                            <strong><?php echo e($stats['completed_submissions']); ?></strong>
                         </div>
                         <div class="col-4">
                             <div class="small text-muted">Draft</div>
-                            <strong>{{ $stats['draft_submissions'] }}</strong>
+                            <strong><?php echo e($stats['draft_submissions']); ?></strong>
                         </div>
                     </div>
                 </div>
@@ -102,17 +100,17 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <small class="text-muted">RoPA processes created this month</small>
-                        <h3 class="mb-0">{{ $stats['forms_this_month'] }}</h3>
+                        <h3 class="mb-0"><?php echo e($stats['forms_this_month']); ?></h3>
                     </div>
                     <div class="mb-3">
                         <small class="text-muted">Active users (verified)</small>
-                        <h3 class="mb-0">{{ $stats['active_users'] }}</h3>
+                        <h3 class="mb-0"><?php echo e($stats['active_users']); ?></h3>
                     </div>
                     <div class="progress mb-3" style="height: 10px;">
-                        @php $verificationRate = $stats['total_users'] > 0 ? ($stats['active_users'] / $stats['total_users']) * 100 : 0; @endphp
-                        <div class="progress-bar" role="progressbar" style="width: {{ $verificationRate }}%; background: #b69964;"></div>
+                        <?php $verificationRate = $stats['total_users'] > 0 ? ($stats['active_users'] / $stats['total_users']) * 100 : 0; ?>
+                        <div class="progress-bar" role="progressbar" style="width: <?php echo e($verificationRate); ?>%; background: #b69964;"></div>
                     </div>
-                    <small class="text-muted">{{ round($verificationRate) }}% email verification rate</small>
+                    <small class="text-muted"><?php echo e(round($verificationRate)); ?>% email verification rate</small>
                 </div>
             </div>
         </div>
@@ -127,7 +125,7 @@
                         <i class="fas fa-list me-2" style="color: #b69964;"></i>
                         Recent RoPA Processes
                     </h5>
-                    <a href="{{ route('admin.submitted-forms') }}" class="btn btn-sm btn-outline-accent">
+                    <a href="<?php echo e(route('admin.submitted-forms')); ?>" class="btn btn-sm btn-outline-accent">
                         View All <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -147,35 +145,36 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($recentForms as $form)
+                                <?php $__empty_1 = true; $__currentLoopData = $recentForms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $form): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
-                                    <td>#{{ $form->id }}</td>
+                                    <td>#<?php echo e($form->id); ?></td>
                                     <td>
-                                        <strong>{{ $form->user->firstname ?? '' }} {{ $form->user->surname ?? '' }}</strong><br>
-                                        <small class="text-muted">{{ $form->user->email ?? 'N/A' }}</small>
+                                        <strong><?php echo e($form->user->firstname ?? ''); ?> <?php echo e($form->user->surname ?? ''); ?></strong><br>
+                                        <small class="text-muted"><?php echo e($form->user->email ?? 'N/A'); ?></small>
                                     </td>
-                                    <td>{{ $form->main_process_name ?: 'N/A' }}</td>
-                                    <td>{{ $form->business_function ?? 'N/A' }}</td>
+                                    <td><?php echo e($form->main_process_name ?: 'N/A'); ?></td>
+                                    <td><?php echo e($form->business_function ?? 'N/A'); ?></td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ $form->submissions->count() }}</span>
+                                        <span class="badge bg-secondary"><?php echo e($form->submissions->count()); ?></span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ $form->all_submissions_completed ? 'success' : 'warning' }}">
-                                            {{ $form->all_submissions_completed ? 'Completed' : 'In Progress' }}
+                                        <span class="badge bg-<?php echo e($form->all_submissions_completed ? 'success' : 'warning'); ?>">
+                                            <?php echo e($form->all_submissions_completed ? 'Completed' : 'In Progress'); ?>
+
                                         </span>
                                     </td>
-                                    <td>{{ $form->updated_at->diffForHumans() }}</td>
+                                    <td><?php echo e($form->updated_at->diffForHumans()); ?></td>
                                     <td>
-                                        <a href="{{ route('admin.view-form', $form) }}" class="btn btn-sm btn-info">
+                                        <a href="<?php echo e(route('admin.view-form', $form)); ?>" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
                                 </tr>
-                                @empty
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="8" class="text-center py-4">No forms found</td>
                                 </tr>
-                                @endforelse
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -193,7 +192,7 @@
                         <i class="fas fa-user-plus me-2" style="color: #b69964;"></i>
                         New Users
                     </h5>
-                    <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-accent">
+                    <a href="<?php echo e(route('admin.users')); ?>" class="btn btn-sm btn-outline-accent">
                         Manage Users <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -209,24 +208,24 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($recentUsers as $user)
+                                <?php $__empty_1 = true; $__currentLoopData = $recentUsers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
-                                    <td>{{ $user->firstname }} {{ $user->surname }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->created_at->diffForHumans() }}</td>
+                                    <td><?php echo e($user->firstname); ?> <?php echo e($user->surname); ?></td>
+                                    <td><?php echo e($user->email); ?></td>
+                                    <td><?php echo e($user->created_at->diffForHumans()); ?></td>
                                     <td>
-                                        @if($user->is_verified)
+                                        <?php if($user->is_verified): ?>
                                         <span class="badge bg-success">Verified</span>
-                                        @else
+                                        <?php else: ?>
                                         <span class="badge bg-secondary">Pending</span>
-                                        @endif
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
-                                @empty
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="4" class="text-center py-4">No users found</td>
                                 </tr>
-                                @endforelse
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -236,7 +235,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -255,8 +254,9 @@
         }
 
         const stats = {
-            completed_submissions: {{ $stats['completed_submissions'] ?? 0 }},
-            draft_submissions: {{ $stats['draft_submissions'] ?? 0 }}
+            completed_submissions: <?php echo e($stats['completed_submissions'] ?? 0); ?>,
+            draft_submissions: <?php echo e($stats['draft_submissions'] ?? 0); ?>
+
         };
 
         const ctx = chartCanvas.getContext('2d');
@@ -292,5 +292,7 @@
         });
     });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

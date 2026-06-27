@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\User;
 
 return new class extends Migration
 {
@@ -46,7 +46,7 @@ return new class extends Migration
         // Combine firstname and surname back into name
         $users = User::all();
         foreach ($users as $user) {
-            $user->name = trim($user->firstname . ' ' . $user->surname);
+            $user->name = trim($user->firstname.' '.$user->surname);
             $user->save();
         }
 

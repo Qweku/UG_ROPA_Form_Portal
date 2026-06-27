@@ -12,7 +12,7 @@ class OtpVerification extends Model
         'otp',
         'email',
         'expires_at',
-        'is_used'
+        'is_used',
     ];
 
     protected $casts = [
@@ -27,6 +27,6 @@ class OtpVerification extends Model
 
     public function isValid(): bool
     {
-        return !$this->is_used && $this->expires_at->isFuture();
+        return ! $this->is_used && $this->expires_at->isFuture();
     }
 }

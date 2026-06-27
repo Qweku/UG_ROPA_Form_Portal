@@ -42,7 +42,7 @@ class SchoolController extends Controller
             ->whereRaw('LOWER(name) = ?', [mb_strtolower($validated['name'])])
             ->first();
 
-        if (!$school) {
+        if (! $school) {
             $school = School::create([
                 'college_id' => $validated['college_id'],
                 'name' => trim($validated['name']),

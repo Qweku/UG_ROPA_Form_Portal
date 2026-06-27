@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\OtpVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,21 +20,11 @@ class LoginController extends Controller
 
             $user = Auth::user();
 
-            // Check if user is verified
-            if (!$user->is_verified) {
-                // Send OTP
-                $otpController = new OtpVerificationController();
-                $otpController->sendOtp($user);
+            // Always send OTP on every login
+            $otpController = new OtpVerificationController;
+            $otpController->sendOtp($user);
 
-                return redirect()->route('verify.otp');
-            }
-
-            // Redirect based on role
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard');
-            }
-
-            return redirect()->intended('/ropa');
+            return redirect()->route('verify.otp');
         }
 
         return back()->withErrors([
@@ -46,9 +34,11 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        session()->forget('otp_verified');
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/login');
     }
 }

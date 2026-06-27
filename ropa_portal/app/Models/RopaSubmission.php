@@ -21,7 +21,7 @@ class RopaSubmission extends Model
         'dpia_progress', 'dpia_link', 'breach_occurred', 'breach_link',
         'dpa_conditions', 'gdpr_articles', 'retention_policy_link',
         'retained_per_policy', 'retention_non_adherence_reason',
-        'current_step', 'status', 'completed_at'
+        'current_step', 'status', 'completed_at',
     ];
 
     protected $casts = [
@@ -141,16 +141,17 @@ class RopaSubmission extends Model
         ];
 
         // Drop empty values within each group, then drop empty groups.
-        $groups = array_map(fn ($fields) => array_filter($fields, fn ($v) => !is_null($v) && $v !== ''), $groups);
+        $groups = array_map(fn ($fields) => array_filter($fields, fn ($v) => ! is_null($v) && $v !== ''), $groups);
 
         return array_filter($groups, fn ($fields) => count($fields) > 0);
     }
 
     private function formatArray($value): ?string
     {
-        if (empty($value) || !is_array($value)) {
+        if (empty($value) || ! is_array($value)) {
             return null;
         }
+
         return implode(', ', $value);
     }
 
@@ -159,6 +160,7 @@ class RopaSubmission extends Model
         if (is_null($value)) {
             return null;
         }
+
         return $value ? 'Yes' : 'No';
     }
 }

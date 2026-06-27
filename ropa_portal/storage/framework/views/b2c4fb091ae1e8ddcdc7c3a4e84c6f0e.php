@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title>Verify OTP - RoPA Portal</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link href="{{ asset('assets/css/ropa.css') }}" rel="stylesheet">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon-16x16.png') }}">
-    <link rel="manifest" href="{{ asset('assets/site.webmanifest') }}">
+    <link href="<?php echo e(asset('assets/css/ropa.css')); ?>" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo e(asset('assets/apple-touch-icon.png')); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('assets/favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('assets/favicon-16x16.png')); ?>">
+    <link rel="manifest" href="<?php echo e(asset('assets/site.webmanifest')); ?>">
 
     <style>
         * {
@@ -270,14 +270,14 @@
                     <i class="fas fa-envelope"></i>
                 </div>
                 <h2>Verify Your Email</h2>
-                <p>Please enter the 6-digit code sent to <strong>{{ Auth::user()->email }}</strong></p>
+                <p>Please enter the 6-digit code sent to <strong><?php echo e(Auth::user()->email); ?></strong></p>
             </div>
 
             <div class="verification-body">
                 <div id="alertContainer"></div>
 
-                <form id="otpForm" method="POST" action="{{ route('verify.otp') }}">
-                    @csrf
+                <form id="otpForm" method="POST" action="<?php echo e(route('verify.otp')); ?>">
+                    <?php echo csrf_field(); ?>
                     <div class="otp-container">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autofocus>
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
@@ -392,10 +392,10 @@
             resendBtn.disabled = true;
             resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
 
-            fetch('{{ route("resend.otp") }}', {
+            fetch('<?php echo e(route("resend.otp")); ?>', {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                     'Content-Type': 'application/json'
                 }
             })
@@ -447,7 +447,7 @@
             fetch(form.action, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ otp: otp })
@@ -480,10 +480,11 @@
         startTimer();
 
         // Pre-fill OTP for development (remove in production)
-        const isLocalEnv = "{{ config('app.env') === 'local' ? 'true' : 'false' }}" === 'true';
+        const isLocalEnv = "<?php echo e(config('app.env') === 'local' ? 'true' : 'false'); ?>" === 'true';
         if (isLocalEnv) {
             console.log('Development mode: You can use OTP from logs');
         }
     </script>
 </body>
 </html>
+<?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/auth/verify-otp.blade.php ENDPATH**/ ?>

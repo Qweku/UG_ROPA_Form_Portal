@@ -99,7 +99,7 @@ class RopaFormController extends Controller
             ->latest('updated_at')
             ->first();
 
-        if (!$draftSubmission) {
+        if (! $draftSubmission) {
             // No open draft — most recent submission was completed.
             // Let the add-more screen decide what happens next; do not
             // create a new submission row here.
@@ -107,11 +107,11 @@ class RopaFormController extends Controller
             session()->forget('ropa_submission_id');
 
             $processLabel = $parentForm->main_process_name
-                ? ' ("' . $parentForm->main_process_name . '")'
+                ? ' ("'.$parentForm->main_process_name.'")'
                 : '';
 
             return redirect()->route('ropa.add-more', $parentForm)
-                ->with('info', 'You have an unfinished RoPA process' . $processLabel . ' — continuing where you left off. Finish or submit it before starting a new one.');
+                ->with('info', 'You have an unfinished RoPA process'.$processLabel.' — continuing where you left off. Finish or submit it before starting a new one.');
         }
 
         session([
@@ -143,14 +143,14 @@ class RopaFormController extends Controller
 
         // Session pointer missing/stale — try to recover the user's
         // existing incomplete form before considering creating a new one.
-        if (!$parentForm || $parentForm->user_id !== $user->id) {
+        if (! $parentForm || $parentForm->user_id !== $user->id) {
             $parentForm = RopaForm::where('user_id', $user->id)
                 ->where('all_submissions_completed', false)
                 ->latest('updated_at')
                 ->first();
         }
 
-        if (!$parentForm) {
+        if (! $parentForm) {
             $parentForm = RopaForm::create([
                 'user_id' => $user->id,
                 'college_id' => null,
@@ -165,14 +165,14 @@ class RopaFormController extends Controller
         // Session pointer missing/stale, or pointing at a submission that
         // doesn't belong to the resolved parent form — recover the
         // parent's current draft instead of creating a new one.
-        if (!$submission || $submission->ropaForm->id !== $parentForm->id) {
+        if (! $submission || $submission->ropaForm->id !== $parentForm->id) {
             $submission = $parentForm->submissions()
                 ->where('status', 'draft')
                 ->latest('updated_at')
                 ->first();
         }
 
-        if (!$submission) {
+        if (! $submission) {
             $submission = $parentForm->submissions()->create([
                 'sub_process_name' => null,
                 'current_step' => 1,
@@ -207,12 +207,12 @@ class RopaFormController extends Controller
         $step = (int) $request->input('current_step', 1);
 
         $parentForm = session('ropa_form_id') ? RopaForm::find(session('ropa_form_id')) : null;
-        if (!$parentForm) {
+        if (! $parentForm) {
             return redirect()->route('ropa.create')->withErrors('Session expired. Please start again.');
         }
 
         $submission = session('ropa_submission_id') ? RopaSubmission::find(session('ropa_submission_id')) : null;
-        if (!$submission) {
+        if (! $submission) {
             return redirect()->route('ropa.edit', ['step' => 1])->withErrors('Submission not found.');
         }
 
@@ -284,11 +284,12 @@ class RopaFormController extends Controller
         // Handle post‑submission decisions
         if ($action === 'submit' && $step === 14) {
             $nextAction = $request->input('next_action', 'add_more');
+
             return $this->handleSubProcessCompletion($parentForm, $nextAction);
         }
 
         return redirect()->route('ropa.edit', ['step' => $newStep])
-            ->with('success', 'Step ' . $newStep . ' saved successfully.');
+            ->with('success', 'Step '.$newStep.' saved successfully.');
     }
 
     /**
@@ -339,17 +340,19 @@ class RopaFormController extends Controller
      */
     public function addSubProcess(RopaForm $parentForm): RedirectResponse
     {
-        if (!$this->canAccess($parentForm)) {
+        if (! $this->canAccess($parentForm)) {
             abort(403);
         }
+
         return $this->handleAddAnotherSubProcess($parentForm);
     }
 
     public function finalize(RopaForm $parentForm): RedirectResponse
     {
-        if (!$this->canAccess($parentForm)) {
+        if (! $this->canAccess($parentForm)) {
             abort(403);
         }
+
         return $this->handleFinalize($parentForm);
     }
 
@@ -358,7 +361,7 @@ class RopaFormController extends Controller
      */
     public function addMore(RopaForm $parentForm): View|RedirectResponse
     {
-        if (!$this->canAccess($parentForm)) {
+        if (! $this->canAccess($parentForm)) {
             abort(403);
         }
 
@@ -379,11 +382,11 @@ class RopaFormController extends Controller
     {
         $parentForm = $submission->ropaForm;
 
-        if (!$parentForm) {
+        if (! $parentForm) {
             abort(404, 'This submission is no longer linked to a RoPA process and cannot be viewed.');
         }
 
-        if (!$this->canAccess($parentForm)) {
+        if (! $this->canAccess($parentForm)) {
             abort(403);
         }
 
@@ -409,7 +412,7 @@ class RopaFormController extends Controller
     {
         $parentForm = $submission->ropaForm;
 
-        if (!$parentForm || !$this->canAccess($parentForm)) {
+        if (! $parentForm || ! $this->canAccess($parentForm)) {
             abort(403);
         }
 
@@ -434,7 +437,7 @@ class RopaFormController extends Controller
     {
         $parentForm = $submission->ropaForm;
 
-        if (!$parentForm || !$this->canAccess($parentForm)) {
+        if (! $parentForm || ! $this->canAccess($parentForm)) {
             abort(403);
         }
 
@@ -469,7 +472,7 @@ class RopaFormController extends Controller
     {
         $parentForm = $submission->ropaForm;
 
-        if (!$parentForm || !$this->canAccess($parentForm)) {
+        if (! $parentForm || ! $this->canAccess($parentForm)) {
             abort(403);
         }
 
@@ -514,15 +517,17 @@ class RopaFormController extends Controller
                 return response()->json([
                     'success' => true,
                     'redirect' => route('ropa.edit', ['step' => $targetStep]),
-                    'message' => 'Navigated to step ' . $targetStep
+                    'message' => 'Navigated to step '.$targetStep,
                 ]);
             }
+
             return redirect()->route('ropa.edit', ['step' => $targetStep])
-                ->with('success', 'Navigated to step ' . $targetStep);
+                ->with('success', 'Navigated to step '.$targetStep);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
             }
+
             return back()->withErrors($e->getMessage());
         }
     }
@@ -532,7 +537,7 @@ class RopaFormController extends Controller
     {
         $booleans = [
             'share_internally', 'lia_documented', 'legally_required_retention',
-            'auto_decision_making', 'dpia_required', 'breach_occurred', 'retained_per_policy'
+            'auto_decision_making', 'dpia_required', 'breach_occurred', 'retained_per_policy',
         ];
         foreach ($booleans as $field) {
             if ($request->has($field)) {
@@ -544,7 +549,7 @@ class RopaFormController extends Controller
             'process_names', 'joint_controllers', 'categories_records', 'data_subjects',
             'personal_data_categories', 'internal_recipients', 'special_category_recipients',
             'legal_basis', 'sensitive_legal_basis', 'individual_rights', 'external_recipients',
-            'international_transfers', 'transfer_mechanisms', 'dpa_conditions', 'gdpr_articles'
+            'international_transfers', 'transfer_mechanisms', 'dpa_conditions', 'gdpr_articles',
         ];
         foreach ($jsonFields as $field) {
             if ($request->has($field)) {
@@ -555,10 +560,10 @@ class RopaFormController extends Controller
                         if (json_last_error() === JSON_ERROR_NONE) {
                             $request->merge([$field => $decoded]);
                         } else {
-                            $request->merge([$field => !empty($value) ? [$value] : []]);
+                            $request->merge([$field => ! empty($value) ? [$value] : []]);
                         }
                     } else {
-                        $request->merge([$field => !empty($value) ? [$value] : []]);
+                        $request->merge([$field => ! empty($value) ? [$value] : []]);
                     }
                 }
             }
@@ -566,10 +571,10 @@ class RopaFormController extends Controller
 
         $checkboxFields = [
             'categories_records', 'individual_rights', 'dpa_conditions',
-            'gdpr_articles', 'legal_basis', 'sensitive_legal_basis'
+            'gdpr_articles', 'legal_basis', 'sensitive_legal_basis',
         ];
         foreach ($checkboxFields as $field) {
-            if (!$request->has($field) || $request->input($field) === null) {
+            if (! $request->has($field) || $request->input($field) === null) {
                 $request->merge([$field => []]);
             }
         }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RopaForm extends Model
 {
@@ -42,6 +41,6 @@ class RopaForm extends Model
         return $this->college_id !== null
             && $this->business_function !== ''
             && $this->main_process_name !== ''
-            && !is_null($this->has_sub_processes);
+            && ! is_null($this->has_sub_processes);
     }
 }

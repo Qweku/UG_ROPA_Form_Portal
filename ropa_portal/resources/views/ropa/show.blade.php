@@ -11,7 +11,7 @@
                 <div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('ropa.index') }}" class="text-decoration-none">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('ropa.index') }}" class="text-decoration-none">Dashboard</a></li>
                             <li class="breadcrumb-item active">Submission #{{ $submission->id }}</li>
                         </ol>
                     </nav>
@@ -23,7 +23,7 @@
                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                         <i class="fas fa-trash-alt me-2"></i> Delete
                     </button>
-                    <a href="{{ route('ropa.index') }}" class="btn btn-secondary">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('ropa.index') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
                     </a>
                 </div>

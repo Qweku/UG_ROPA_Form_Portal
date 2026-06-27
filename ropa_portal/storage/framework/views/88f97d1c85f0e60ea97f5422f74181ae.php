@@ -13,7 +13,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="<?php echo e(asset('assets/css/ropa.css')); ?>" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo e(asset('assets/apple-touch-icon.png')); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('assets/favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('assets/favicon-16x16.png')); ?>">
+    <link rel="manifest" href="<?php echo e(asset('assets/site.webmanifest')); ?>">
 
+    
     <style>
         * {
             margin: 0;

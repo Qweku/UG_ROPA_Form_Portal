@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ropa_submissions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ropa_form_id')->constrained()->onDelete('cascade');
-            $table->string('sub_process_name')->nullable(); 
+            $table->string('sub_process_name')->nullable();
             $table->string('personnel_id')->nullable();
             $table->string('surname')->nullable();
             $table->string('firstname')->nullable();
