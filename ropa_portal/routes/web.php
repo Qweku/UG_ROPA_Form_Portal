@@ -50,7 +50,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/update', [RopaFormController::class, 'update'])->name('update');
         Route::get('/add-sub-process/{ropaForm}', [RopaFormController::class, 'addSubProcess'])->name('add-sub-process');
         Route::get('/finalize/{ropaForm}', [RopaFormController::class, 'finalize'])->name('finalize');
-        Route::get('/submission/{ropaSubmission}', [RopaFormController::class, 'viewSubmission'])->name('view-submission');
+        Route::get('/submission/{submission}', [RopaFormController::class, 'viewSubmission'])->name('view-submission');
+        Route::patch('/submission/{submission}', [RopaFormController::class, 'updateSubmission'])->name('update-submission');
+        Route::patch('/submission/{submission}/identity', [RopaFormController::class, 'updateProcessIdentity'])->name('update-process-identity');
+        Route::delete('/submission/{submission}', [RopaFormController::class, 'destroySubmission'])->name('destroy-submission');
         Route::delete('/{ropaForm}', [RopaFormController::class, 'destroy'])->name('destroy');
         Route::get('/add-more/{ropaForm}', [RopaFormController::class, 'addMore'])->name('add-more');
         Route::get('/api/schools/{college}', [SchoolController::class, 'index'])->name('schools.index');
@@ -58,16 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-// Authenticated routes
-// Route::middleware(['auth'])->group(function () {
-//     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/test-404', fn () => abort(404));
+Route::get('/test-403', fn () => abort(403));
+Route::get('/test-500', fn () => abort(500));
 
-//     Route::prefix('ropa')->name('ropa.')->group(function () {
-//         Route::get('/', [RopaFormController::class, 'index'])->name('index');
-//         Route::get('/create', [RopaFormController::class, 'create'])->name('create');
-//         Route::get('/{ropaForm}/edit', [RopaFormController::class, 'edit'])->name('edit');
-//         Route::get('/{ropaForm}', [RopaFormController::class, 'show'])->name('show');
-//         Route::put('/{ropaForm}', [RopaFormController::class, 'update'])->name('update');
-//         Route::delete('/{ropaForm}', [RopaFormController::class, 'destroy'])->name('destroy');
-//     });
-// });
+

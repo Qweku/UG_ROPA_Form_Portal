@@ -39,3 +39,9 @@
 - Step templates use `@push('scripts')` for step-specific JavaScript
 - `@stack('scripts')` in `app.blade.php` (line 248) renders pushed scripts
 - Stack merging works correctly when templates are included via `@include`
+
+### 5. Sub-process Validation Fix
+- When `$basicInfoLocked` is true (subsequent sub-process), the form shows read-only `disabled` inputs
+- **Problem:** Disabled inputs don't submit values, causing validation to fail
+- **Fix:** Add hidden inputs with the locked values (college_id, business_function, main_process_name) in step1.blade.php
+- **Additional Fix:** Controller validation rules should skip required fields when `$basicInfoLocked` is true
