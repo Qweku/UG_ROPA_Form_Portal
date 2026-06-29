@@ -66,56 +66,59 @@
             </div>
         </div>
 
-        <?php if($basicInfoLocked ?? false): ?>
-            
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
-                                <i class="fas fa-lock" style="color: #153d6f;"></i>
-                            </div>
-                            <h5 class="card-title mb-0" style="color: #153d6f;">Process Identity</h5>
-                            <span class="badge bg-secondary ms-auto">Locked</span>
-                        </div>
-                        <p class="text-muted small mb-3">
-                            College, Business Function, and Main Process Name were set when the first sub‑process was created and apply to this whole RoPA.
-                        </p>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold">College</label>
-                                <input type="text" class="form-control" value="<?php echo e($parentForm->college->name ?? ''); ?>" disabled>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold">Business Function (School/Dept)</label>
-                                <input type="text" class="form-control" value="<?php echo e($parentForm->business_function); ?>" disabled>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold">Main Process Name</label>
-                                <input type="text" class="form-control" value="<?php echo e($parentForm->main_process_name); ?>" disabled>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<?php if($basicInfoLocked ?? false): ?>
+             
+             <div class="col-12">
+                 <div class="card border-0 shadow-sm">
+                     <div class="card-body">
+                         <div class="d-flex align-items-center mb-3">
+                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                 <i class="fas fa-lock" style="color: #153d6f;"></i>
+                             </div>
+                             <h5 class="card-title mb-0" style="color: #153d6f;">Process Identity</h5>
+                             <span class="badge bg-secondary ms-auto">Locked</span>
+                         </div>
+                         <p class="text-muted small mb-3">
+                             College, Business Function, and Main Process Name were set when the first sub‑process was created and apply to this whole RoPA.
+                         </p>
+                         <div class="row">
+                             <div class="col-md-4 mb-3">
+                                 <label class="form-label fw-bold">College</label>
+                                 <input type="text" class="form-control" value="<?php echo e($parentForm->college->name ?? ''); ?>" disabled>
+                                 <input type="hidden" name="college_id" value="<?php echo e($parentForm->college_id); ?>">
+                             </div>
+                             <div class="col-md-4 mb-3">
+                                 <label class="form-label fw-bold">Business Function (School/Dept)</label>
+                                 <input type="text" class="form-control" value="<?php echo e($parentForm->business_function); ?>" disabled>
+                                 <input type="hidden" name="business_function" value="<?php echo e($parentForm->business_function); ?>">
+                             </div>
+                             <div class="col-md-4 mb-3">
+                                 <label class="form-label fw-bold">Main Process Name</label>
+                                 <input type="text" class="form-control" value="<?php echo e($parentForm->main_process_name); ?>" disabled>
+                                 <input type="hidden" name="main_process_name" value="<?php echo e($parentForm->main_process_name); ?>">
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
 
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
-                                <i class="fas fa-sitemap" style="color: #153d6f;"></i>
-                            </div>
-                            <h5 class="card-title mb-0" style="color: #153d6f;">Sub‑Process</h5>
-                        </div>
-                        <label class="form-label fw-bold">Sub‑Process Name <span class="text-danger">*</span></label>
-                        <input type="text" name="sub_process_name" class="form-control"
-                               value="<?php echo e(old('sub_process_name', $submission->sub_process_name ?? '')); ?>"
-                               placeholder="Enter the current sub‑process name" required autofocus>
-                    </div>
-                </div>
-            </div>
-        <?php else: ?>
+             <div class="col-12">
+                 <div class="card border-0 shadow-sm">
+                     <div class="card-body">
+                         <div class="d-flex align-items-center mb-3">
+                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                 <i class="fas fa-sitemap" style="color: #153d6f;"></i>
+                             </div>
+                             <h5 class="card-title mb-0" style="color: #153d6f;">Sub‑Process</h5>
+                         </div>
+                         <label class="form-label fw-bold">Sub‑Process Name <span class="text-danger">*</span></label>
+                         <input type="text" name="sub_process_name" class="form-control"
+                                value="<?php echo e(old('sub_process_name', $submission->sub_process_name ?? '')); ?>"
+                                placeholder="Enter the current sub‑process name" required autofocus>
+                     </div>
+                 </div>
+             </div>
+         <?php else: ?>
             <div class="col-md-6">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body">

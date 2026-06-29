@@ -191,11 +191,7 @@ class RopaFormController extends Controller
 
         $colleges = College::all();
 
-        if ($step >= 2 && $step <= 14) {
-            return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges'));
-        }
-
-        return view('ropa.steps.step1', compact('parentForm', 'submission', 'colleges'));
+        return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges'));
     }
 
     /**
