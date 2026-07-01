@@ -13,7 +13,7 @@
 
     <div class="row g-4">
         <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
+            <div class="h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -29,19 +29,24 @@
                                 : (json_decode($submission->international_transfers, true) ?? []);
                         }
                     @endphp
-                    <select name="international_transfers[]" class="form-select" multiple size="6">
-                        <option value="Kenya" {{ in_array('Kenya', $transfers) ? 'selected' : '' }}>🇰🇪 Kenya</option>
-                        <option value="United Kingdom" {{ in_array('United Kingdom', $transfers) ? 'selected' : '' }}>🇬🇧 United Kingdom</option>
-                        <option value="USA" {{ in_array('USA', $transfers) ? 'selected' : '' }}>🇺🇸 United States</option>
-                        <option value="Germany" {{ in_array('Germany', $transfers) ? 'selected' : '' }}>🇩🇪 Germany</option>
-                        <option value="South Africa" {{ in_array('South Africa', $transfers) ? 'selected' : '' }}>🇿🇦 South Africa</option>
-                        <option value="India" {{ in_array('India', $transfers) ? 'selected' : '' }}>🇮🇳 India</option>
-                        <option value="Netherlands" {{ in_array('Netherlands', $transfers) ? 'selected' : '' }}>🇳🇱 Netherlands</option>
-                        <option value="Ireland" {{ in_array('Ireland', $transfers) ? 'selected' : '' }}>🇮🇪 Ireland</option>
-                        <option value="Canada" {{ in_array('Canada', $transfers) ? 'selected' : '' }}>🇨🇦 Canada</option>
-                        <option value="Australia" {{ in_array('Australia', $transfers) ? 'selected' : '' }}>🇦🇺 Australia</option>
-                    </select>
-                    <small class="text-muted mt-2 d-block">Hold Ctrl/Cmd to select multiple countries</small>
+                    <div class="multi-select-container" id="transfersContainer">
+                        <div class="chips-container mb-2">
+                            @foreach($transfers as $transfer)
+                            <span class="tag-chip">
+                                <span>{{ $transfer }}</span>
+                                <button type="button" onclick="this.parentElement.remove(); updateTransfers();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                            @endforeach
+                        </div>
+                        <input type="text" class="form-control" id="transfersInput"
+                               placeholder="Type and press Enter (e.g., Kenya, USA, Germany)"
+                               autocomplete="off">
+                        <div class="suggestions-dropdown" id="transfersSuggestions"></div>
+                        <input type="hidden" name="international_transfers" id="transfers_hidden" value="{{ json_encode($transfers) }}">
+                    </div>
+                    <small class="text-muted mt-2 d-block">Type a country and press Enter, or select from suggestions</small>
                 </div>
             </div>
         </div>
@@ -94,6 +99,136 @@
 
 @push('scripts')
 <script>
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateTransfers() {
+    const container = document.querySelector('#transfersContainer .chips-container');
+    if (!container) return;
+    const values = Array.from(container.querySelectorAll('.tag-chip span'))
+        .map(span => span.textContent.trim());
+    document.getElementById('transfers_hidden').value = JSON.stringify(values);
+}
+
+(function() {
+    const input = document.getElementById('transfersInput');
+    const suggestionsBox = document.getElementById('transfersSuggestions');
+    const container = document.querySelector('#transfersContainer .chips-container');
+    const hiddenInput = document.getElementById('transfers_hidden');
+
+    const PREDEFINED = [
+        'Kenya',
+        'United Kingdom',
+        'United States',
+        'Germany',
+        'South Africa',
+        'India',
+        'Netherlands',
+        'Ireland',
+        'Canada',
+        'Australia'
+    ];
+
+    function getCurrentValues() {
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+    }
+
+    function updateHidden() {
+        const values = getCurrentValues();
+        hiddenInput.value = JSON.stringify(values);
+    }
+
+    function renderSuggestions(filter = '') {
+        if (!suggestionsBox) return;
+        const current = getCurrentValues();
+        const filtered = PREDEFINED.filter(item =>
+            item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+        );
+
+        let html = '';
+
+        if (filtered.length === 0 && filter) {
+            html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+        } else if (filtered.length > 0) {
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+            });
+        }
+
+        suggestionsBox.innerHTML = html;
+
+        if (html) {
+            suggestionsBox.classList.add('active');
+            suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    addTransfer(this.getAttribute('data-value'));
+                    input.value = '';
+                    input.focus();
+                    renderSuggestions('');
+                });
+            });
+        } else {
+            suggestionsBox.classList.remove('active');
+        }
+    }
+
+    function addTransfer(value) {
+        if (!container) return;
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        if (getCurrentValues().includes(trimmed)) return;
+
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `<span>${escapeHtml(trimmed)}</span><button type="button" onclick="this.parentElement.remove(); updateTransfers();"><i class="fas fa-times"></i></button>`;
+        container.appendChild(chip);
+        updateHidden();
+    }
+
+    if (input && suggestionsBox) {
+        input.addEventListener('focus', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('input', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value) {
+                    addTransfer(value);
+                    this.value = '';
+                    renderSuggestions('');
+                }
+            } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                const chips = container.querySelectorAll('.tag-chip');
+                if (chips.length) {
+                    chips[chips.length - 1].remove();
+                    updateHidden();
+                    renderSuggestions('');
+                }
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!input || !suggestionsBox) return;
+        if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('active');
+        }
+    });
+})();
+
 function updateMechanisms() {
     const chips = document.querySelectorAll('#step9 .chips-container .tag-chip span');
     const values = Array.from(chips).map(chip => chip.textContent.trim());

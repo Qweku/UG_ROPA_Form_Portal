@@ -45,7 +45,7 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
                                 <input type="text" name="role_responsible" class="form-control"
-                                       value="<?php echo e(old('role_responsible', $submission->role_responsible ?? Auth::user()->role ?? Auth::user()->position ?? Auth::user()->job_title ?? '')); ?>"
+                                       value="<?php echo e(old('role_responsible', $submission->role_responsible ?? '')); ?>"
                                        placeholder="e.g., Senior Admin Registrar">
                             </div>
                         </div>

@@ -65,8 +65,8 @@
                                     <i class="fas fa-handshake me-1" style="color: #b69964;"></i> Relationship Type
                                 </label>
                                 <select name="external_recipients[<?php echo e($idx); ?>][relationship]" class="form-select">
-                                    <option value="Controller" <?php echo e(($recipient['relationship'] ?? '') == 'Controller' ? 'selected' : ''); ?>>Controller</option>
-                                    <option value="Processor" <?php echo e(($recipient['relationship'] ?? '') == 'Processor' ? 'selected' : ''); ?>>Processor</option>
+                                    <option value="Data Controller" <?php echo e(($recipient['relationship'] ?? '') == 'Data Controller' ? 'selected' : ''); ?>>Data Controller</option>
+                                    <option value="Data Processor" <?php echo e(($recipient['relationship'] ?? '') == 'Data Processor' ? 'selected' : ''); ?>>Data Processor</option>
                                     <option value="Joint Controller" <?php echo e(($recipient['relationship'] ?? '') == 'Joint Controller' ? 'selected' : ''); ?>>Joint Controller</option>
                                 </select>
                             </div>
@@ -74,10 +74,13 @@
                                 <label class="form-label fw-bold">
                                     <i class="fas fa-file-signature me-1" style="color: #b69964;"></i> Contract in Place?
                                 </label>
-                                <select name="external_recipients[<?php echo e($idx); ?>][contract]" class="form-select">
-                                    <option value="yes" <?php echo e(($recipient['contract'] ?? '') == 'yes' ? 'selected' : ''); ?>>✅ Yes</option>
-                                    <option value="no" <?php echo e(($recipient['contract'] ?? '') == 'no' ? 'selected' : ''); ?>>❌ No</option>
-                                    <option value="na" <?php echo e(($recipient['contract'] ?? '') == 'na' ? 'selected' : ''); ?>>N/A</option>
+                                <select name="external_recipients[<?php echo e($idx); ?>][contract]" class="form-select contract-select">
+                                    <?php if(($recipient['relationship'] ?? '') == 'Processor'): ?>
+                                        <option value="yes" <?php echo e(($recipient['contract'] ?? '') == 'yes' ? 'selected' : ''); ?>>✅ Yes</option>
+                                        <option value="no" <?php echo e(($recipient['contract'] ?? '') == 'no' ? 'selected' : ''); ?>>❌ No</option>
+                                    <?php else: ?>
+                                        <option value="na" <?php echo e(($recipient['contract'] ?? '') == 'na' ? 'selected' : ''); ?>>N/A</option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
                         </div>
@@ -103,17 +106,15 @@
                             <div class="col-md-3 mb-3">
                                 <label class="form-label fw-bold">Relationship Type</label>
                                 <select name="external_recipients[0][relationship]" class="form-select">
-                                    <option>Controller</option>
-                                    <option>Processor</option>
+                                    <option>Data Controller</option>
+                                    <option>Data Processor</option>
                                     <option>Joint Controller</option>
                                 </select>
                             </div>
                             <div class="col-md-2 mb-3">
                                 <label class="form-label fw-bold">Contract in Place?</label>
-                                <select name="external_recipients[0][contract]" class="form-select">
-                                    <option>Yes</option>
-                                    <option>No</option>
-                                    <option>N/A</option>
+                                <select name="external_recipients[0][contract]" class="form-select contract-select">
+                                    <option value="na" selected>N/A</option>
                                 </select>
                             </div>
                         </div>
@@ -134,6 +135,49 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+function updateContractOptions(contractSelect) {
+    const card = contractSelect.closest('.recipient-card');
+    if (!card) return;
+    const relationshipSelect = card.querySelector('select[name$="[relationship]"]');
+    if (!relationshipSelect) return;
+
+    const currentValue = contractSelect.value;
+    const isProcessor = relationshipSelect.value === 'Processor';
+
+    contractSelect.innerHTML = '';
+
+    if (isProcessor) {
+        const optYes = document.createElement('option');
+        optYes.value = 'yes';
+        optYes.textContent = '✅ Yes';
+        if (currentValue === 'yes') optYes.selected = true;
+        contractSelect.appendChild(optYes);
+
+        const optNo = document.createElement('option');
+        optNo.value = 'no';
+        optNo.textContent = '❌ No';
+        if (currentValue === 'no') optNo.selected = true;
+        contractSelect.appendChild(optNo);
+    } else {
+        const optNa = document.createElement('option');
+        optNa.value = 'na';
+        optNa.textContent = 'N/A';
+        if (currentValue === 'na') optNa.selected = true;
+        contractSelect.appendChild(optNa);
+    }
+}
+
+function initContractSelect(card) {
+    const contractSelect = card.querySelector('.contract-select');
+    const relationshipSelect = card.querySelector('select[name$="[relationship]"]');
+    if (!contractSelect || !relationshipSelect) return;
+
+    updateContractOptions(contractSelect);
+    relationshipSelect.addEventListener('change', () => updateContractOptions(contractSelect));
+}
+
+document.querySelectorAll('.recipient-card').forEach(card => initContractSelect(card));
+
 document.getElementById('add-recipient')?.addEventListener('click', function() {
     const container = document.getElementById('external-recipients-container');
     const idx = container.children.length;
@@ -166,16 +210,17 @@ document.getElementById('add-recipient')?.addEventListener('click', function() {
                 </div>
                 <div class="col-md-2 mb-3">
                     <label class="form-label fw-bold">Contract in Place?</label>
-                    <select name="external_recipients[${idx}][contract]" class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
-                        <option>N/A</option>
+                    <select name="external_recipients[${idx}][contract]" class="form-select contract-select">
+                        <option value="yes">✅ Yes</option>
+                        <option value="no">❌ No</option>
+                        <option value="na" selected>N/A</option>
                     </select>
                 </div>
             </div>
         </div>
     `;
     container.appendChild(card);
+    initContractSelect(card);
     card.querySelector('.remove-recipient').onclick = () => card.remove();
 });
 

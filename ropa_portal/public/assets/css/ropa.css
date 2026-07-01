@@ -675,20 +675,79 @@
   }
 
 
- /* Responsive styles */
- @media (max-width: 768px) {
-     .step-label {
-         font-size: 0.5rem;
-         max-width: 50px;
-     }
+  /* Responsive styles */
+  @media (max-width: 768px) {
+      .step-label {
+          font-size: 0.5rem;
+          max-width: 50px;
+      }
 
-     .step {
-         width: 30px;
-         height: 30px;
-         font-size: 0.8rem;
-     }
+      .step {
+          width: 30px;
+          height: 30px;
+          font-size: 0.8rem;
+      }
 
-     .card-header-custom h3 {
-         font-size: 1.2rem;
-     }
- }
+      .card-header-custom h3 {
+          font-size: 1.2rem;
+      }
+  }
+
+  /* Multi-select with autocomplete */
+  .multi-select-container {
+      position: relative;
+      z-index: 99999;
+  }
+
+  .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+  }
+
+  .suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid var(--gray-200);
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 99999;
+      margin-top: 4px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px);
+      transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+      pointer-events: none;
+      will-change: transform, opacity;
+  }
+
+  .suggestions-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+  }
+
+  .suggestion-item {
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background 0.15s ease;
+      border-bottom: 1px solid var(--gray-100);
+  }
+
+  .suggestion-item:last-child {
+      border-bottom: none;
+  }
+
+  .suggestion-item:hover,
+  .suggestion-item.custom {
+      background: var(--primary-light);
+      color: var(--primary);
+  }

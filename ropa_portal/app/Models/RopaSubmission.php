@@ -163,4 +163,21 @@ class RopaSubmission extends Model
 
         return $value ? 'Yes' : 'No';
     }
+
+    public function getDpiaRiskBadgeAttribute(): ?array
+    {
+        if ($this->dpia_progress === 'completed') {
+            return ['level' => 'Risk Managed', 'class' => 'bg-success', 'icon' => 'check'];
+        }
+
+        if ($this->dpia_progress === 'in_progress') {
+            return ['level' => 'Mitigation in Progress', 'class' => 'bg-warning', 'icon' => 'clock'];
+        }
+
+        if ($this->dpia_required) {
+            return ['level' => 'High - Assessment Required', 'class' => 'bg-danger', 'icon' => 'exclamation'];
+        }
+
+        return ['level' => 'Not Assessed', 'class' => 'bg-secondary', 'icon' => 'exclamation'];
+    }
 }

@@ -22,11 +22,16 @@
                         <h5 class="card-title mb-0" style="color: #153d6f;">DPIA Requirement</h5>
                     </div>
 
+
+
                     <div class="row">
+                        @php
+                        $dpiaRequired = (string) old('dpia_required', $submission->dpia_required);
+                        @endphp
                         <div class="col-md-6">
-                            <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('dpia-yes').click()">
+                            <div class="form-check mb-3 p-3 border rounded" style="cursor:pointer;">
                                 <input class="form-check-input" type="radio" name="dpia_required" value="1" id="dpia-yes"
-                                       {{ $submission->dpia_required === true ? 'checked' : '' }}>
+                                    {{ $dpiaRequired === '1' ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="dpia-yes">
                                     <i class="fas fa-exclamation-triangle fa-lg me-2" style="color: #ffc107;"></i>
                                     <strong>Yes - DPIA Required</strong>
@@ -36,9 +41,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('dpia-no').click()">
+                            <div class="form-check mb-3 p-3 border rounded" style="cursor:pointer;">
                                 <input class="form-check-input" type="radio" name="dpia_required" value="0" id="dpia-no"
-                                       {{ $submission->dpia_required === false ? 'checked' : '' }}>
+                                    {{ $dpiaRequired === '0' ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="dpia-no">
                                     <i class="fas fa-check-circle fa-lg me-2" style="color: #28a745;"></i>
                                     <strong>No - DPIA Not Required</strong>
@@ -49,7 +54,9 @@
                         </div>
                     </div>
 
-                    <div id="dpia-section" class="mt-4 {{ $submission->dpia_required !== true ? 'd-none' : '' }}">
+                    <div id="dpia-section"
+                        class="mt-4"
+                        style="display: {{ $dpiaRequired === '1' ? 'block' : 'none' }};">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
@@ -57,13 +64,13 @@
                                     DPIA Progress
                                 </label>
                                 <select name="dpia_progress" class="form-select" id="dpia_progress">
-                                    <option value="not_started" {{ $submission->dpia_progress == 'not_started' ? 'selected' : '' }}>
+                                    <option value="not_started" {{ old('dpia_progress', $submission->dpia_progress) == 'not_started' ? 'selected' : '' }}>
                                         ⚪ Not Started
                                     </option>
-                                    <option value="in_progress" {{ $submission->dpia_progress == 'in_progress' ? 'selected' : '' }}>
+                                    <option value="in_progress" {{ old('dpia_progress', $submission->dpia_progress) == 'in_progress' ? 'selected' : '' }}>
                                         🟡 In Progress
                                     </option>
-                                    <option value="completed" {{ $submission->dpia_progress == 'completed' ? 'selected' : '' }}>
+                                    <option value="completed" {{ old('dpia_progress', $submission->dpia_progress) == 'completed' ? 'selected' : '' }}>
                                         🟢 Completed
                                     </option>
                                 </select>
@@ -78,42 +85,31 @@
                                         <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
                                     </span>
                                     <input type="url" name="dpia_link" class="form-control"
-                                           value="{{ old('dpia_link', $submission->dpia_link) }}"
-                                           placeholder="URL to DPIA document">
+                                        value="{{ old('dpia_link', $submission->dpia_link) }}"
+                                        placeholder="URL to DPIA document">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-4 p-3 rounded" id="risk-indicator" style="background: #f8f9fa;">
+                        <div class="mt-4 p-3 rounded border" id="risk-indicator" style="background: #f8f9fa;">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
                                     <i class="fas fa-chart-line me-2"></i>
                                     <strong>Risk Level Assessment:</strong>
                                 </div>
                                 <div>
-                                     @php
-                                         $riskLevel = 'Not Assessed';
-                                         $riskClass = 'bg-secondary';
-                                         if ($submission->dpia_progress == 'completed') {
-                                             $riskLevel = 'Risk Managed';
-                                             $riskClass = 'bg-success';
-                                         } elseif ($submission->dpia_progress == 'in_progress') {
-                                             $riskLevel = 'Mitigation in Progress';
-                                             $riskClass = 'bg-warning';
-                                         } elseif ($submission->dpia_required === true) {
-                                             $riskLevel = 'High - Assessment Required';
-                                             $riskClass = 'bg-danger';
-                                         }
-                                     @endphp
-                                     <span class="badge {{ $riskClass }}" style="padding: 8px 16px;">
-                                         <i class="fas fa-{{ $submission->dpia_progress == 'completed' ? 'check' : ($submission->dpia_progress == 'in_progress' ? 'clock' : 'exclamation') }} me-1"></i>
-                                         {{ $riskLevel }}
-                                     </span>
+                                    @php
+                                    $risk = $submission->dpia_risk_badge;
+                                    @endphp
+                                    <span class="badge {{ $risk['class'] }}" style="padding: 8px 16px;">
+                                        <i class="fas fa-{{ $risk['icon'] }} me-1"></i>
+                                        {{ $risk['level'] }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="alert alert-light mt-3">
+                        <div class="alert alert-light mt-3 border-0">
                             <i class="fas fa-info-circle me-2" style="color: #b69964;"></i>
                             <strong>When is a DPIA required?</strong>
                             <ul class="mb-0 mt-2 small">
@@ -132,45 +128,47 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dpiaYes = document.getElementById('dpia-yes');
-    const dpiaNo = document.getElementById('dpia-no');
-    const dpiaSection = document.getElementById('dpia-section');
-    const dpiaProgress = document.getElementById('dpia_progress');
-    const riskIndicator = document.getElementById('risk-indicator');
+    document.addEventListener('DOMContentLoaded', function() {
+        const dpiaYes = document.getElementById('dpia-yes');
+        const dpiaNo = document.getElementById('dpia-no');
+        const dpiaSection = document.getElementById('dpia-section');
+        const dpiaProgress = document.getElementById('dpia_progress');
+        const riskIndicator = document.getElementById('risk-indicator');
 
-    function toggleDpiaSection() {
-        if (dpiaYes && dpiaYes.checked) {
-            dpiaSection.style.display = 'block';
-        } else if (dpiaNo && dpiaNo.checked) {
-            dpiaSection.style.display = 'none';
-        }
-    }
+        function toggleDpiaSection() {
 
-    function updateRiskLevel() {
-        if (!dpiaSection || dpiaSection.style.display === 'none') return;
+            if (!dpiaSection) return;
 
-        const progress = dpiaProgress?.value;
-        let riskLevel = '';
-        let riskColor = '';
-        let riskIcon = '';
-
-        if (progress === 'completed') {
-            riskLevel = 'Risk Managed';
-            riskColor = '#28a745';
-            riskIcon = 'check';
-        } else if (progress === 'in_progress') {
-            riskLevel = 'Mitigation in Progress';
-            riskColor = '#ffc107';
-            riskIcon = 'clock';
-        } else {
-            riskLevel = 'High - Assessment Required';
-            riskColor = '#dc3545';
-            riskIcon = 'exclamation';
+            dpiaSection.style.display =
+                (dpiaYes && dpiaYes.checked) ?
+                'block' :
+                'none';
         }
 
-        if (riskIndicator) {
-            riskIndicator.innerHTML = `
+        function updateRiskLevel() {
+            if (!dpiaSection || dpiaSection.style.display === 'none') return;
+
+            const progress = dpiaProgress?.value;
+            let riskLevel = '';
+            let riskColor = '';
+            let riskIcon = '';
+
+            if (progress === 'completed') {
+                riskLevel = 'Risk Managed';
+                riskColor = '#28a745';
+                riskIcon = 'check';
+            } else if (progress === 'in_progress') {
+                riskLevel = 'Mitigation in Progress';
+                riskColor = '#ffc107';
+                riskIcon = 'clock';
+            } else {
+                riskLevel = 'High - Assessment Required';
+                riskColor = '#dc3545';
+                riskIcon = 'exclamation';
+            }
+
+            if (riskIndicator) {
+                riskIndicator.innerHTML = `
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <i class="fas fa-chart-line me-2"></i>
@@ -184,18 +182,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
+            }
         }
-    }
 
-    if (dpiaYes && dpiaNo) {
-        dpiaYes.addEventListener('change', toggleDpiaSection);
-        dpiaNo.addEventListener('change', toggleDpiaSection);
+        if (dpiaYes) {
+            dpiaYes.addEventListener('change', toggleDpiaSection);
+        }
+
+        if (dpiaNo) {
+            dpiaNo.addEventListener('change', toggleDpiaSection);
+        }
+
+
+        if (dpiaProgress) {
+            dpiaProgress.addEventListener('change', updateRiskLevel);
+        }
+
         toggleDpiaSection();
-    }
-
-    if (dpiaProgress) {
-        dpiaProgress.addEventListener('change', updateRiskLevel);
-    }
-});
+    });
 </script>
 @endpush

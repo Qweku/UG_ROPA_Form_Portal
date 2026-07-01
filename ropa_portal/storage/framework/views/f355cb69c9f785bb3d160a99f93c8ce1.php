@@ -54,99 +54,43 @@ return $value;
                 </div>
 
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <label class="form-label fw-bold">
                             <i class="fas fa-building me-1"></i> Which Units Receive Shared Data?
                         </label>
                         <?php
-                        // Decode internal_recipients properly
                         $internalRecipients = [];
                         if ($submission->internal_recipients) {
-                        if (is_array($submission->internal_recipients)) {
-                        $internalRecipients = $submission->internal_recipients;
-                        } elseif (is_string($submission->internal_recipients)) {
-                        $internalRecipients = json_decode($submission->internal_recipients, true) ?? [];
-                        }
+                            if (is_array($submission->internal_recipients)) {
+                                $internalRecipients = $submission->internal_recipients;
+                            } elseif (is_string($submission->internal_recipients)) {
+                                $internalRecipients = json_decode($submission->internal_recipients, true) ?? [];
+                            }
                         }
                         ?>
-                        <select name="internal_recipients[]" class="form-select" multiple size="5">
-                            <option value="Directorate of Academic Affairs"
-                                <?php echo e(in_array('Directorate of Academic Affairs', $internalRecipients) ? 'selected' : ''); ?>>
-                                📚 Directorate of Academic Affairs
-                            </option>
-                            <option value="Human Resources Division"
-                                <?php echo e(in_array('Human Resources Division', $internalRecipients) ? 'selected' : ''); ?>>
-                                👥 Human Resources Division
-                            </option>
-                            <option value="Finance Department"
-                                <?php echo e(in_array('Finance Department', $internalRecipients) ? 'selected' : ''); ?>>
-                                💰 Finance Department
-                            </option>
-                            <option value="Internal Audit"
-                                <?php echo e(in_array('Internal Audit', $internalRecipients) ? 'selected' : ''); ?>>
-                                🔍 Internal Audit
-                            </option>
-                            <option value="University Committees"
-                                <?php echo e(in_array('University Committees', $internalRecipients) ? 'selected' : ''); ?>>
-                                📋 University Committees
-                            </option>
-                            <option value="Research Office"
-                                <?php echo e(in_array('Research Office', $internalRecipients) ? 'selected' : ''); ?>>
-                                🔬 Research Office
-                            </option>
-                            <option value="Legal Counsel"
-                                <?php echo e(in_array('Legal Counsel', $internalRecipients) ? 'selected' : ''); ?>>
-                                ⚖️ Legal Counsel
-                            </option>
-                        </select>
-                        <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-shield-alt me-1"></i> Which Units Receive Special Category Data?
-                            <span class="badge bg-danger">Sensitive</span>
-                        </label>
-                        <?php
-// Decode special_category_recipients properly
-                         $specialRecipients = [];
-                         if ($submission->special_category_recipients) {
-                         if (is_array($submission->special_category_recipients)) {
-                         $specialRecipients = $submission->special_category_recipients;
-                         } elseif (is_string($submission->special_category_recipients)) {
-                         $specialRecipients = json_decode($submission->special_category_recipients, true) ?? [];
-                         }
-                         }
-                        ?>
-                        <select name="special_category_recipients[]" class="form-select" multiple size="5">
-                            <option value="School of Medicine and Dentistry"
-                                <?php echo e(in_array('School of Medicine and Dentistry', $specialRecipients) ? 'selected' : ''); ?>>
-                                🏥 School of Medicine and Dentistry
-                            </option>
-                            <option value="University Hospital"
-                                <?php echo e(in_array('University Hospital', $specialRecipients) ? 'selected' : ''); ?>>
-                                🏨 University Hospital
-                            </option>
-                            <option value="Counseling Services"
-                                <?php echo e(in_array('Counseling Services', $specialRecipients) ? 'selected' : ''); ?>>
-                                🗣️ Counseling Services
-                            </option>
-                            <option value="Research Ethics Committee"
-                                <?php echo e(in_array('Research Ethics Committee', $specialRecipients) ? 'selected' : ''); ?>>
-                                📜 Research Ethics Committee
-                            </option>
-                            <option value="Disability Support Services"
-                                <?php echo e(in_array('Disability Support Services', $specialRecipients) ? 'selected' : ''); ?>>
-                                ♿ Disability Support Services
-                            </option>
-                        </select>
-                        <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+                        <div class="multi-select-container" id="internalRecipientsContainer">
+                            <div class="chips-container mb-2">
+                                <?php $__currentLoopData = $internalRecipients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $recipient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <span class="tag-chip">
+                                    <span><?php echo e($recipient); ?></span>
+                                    <button type="button" onclick="this.parentElement.remove(); updateInternalRecipients();">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                            <input type="text" class="form-control" id="internalRecipientsInput"
+                                   placeholder="Type and press Enter (e.g., Finance Department, Research Office)"
+                                   autocomplete="off">
+                            <div class="suggestions-dropdown" id="internalRecipientsSuggestions"></div>
+                            <input type="hidden" name="internal_recipients" id="internal_recipients_hidden" value="<?php echo e(json_encode($internalRecipients)); ?>">
+                        </div>
                     </div>
                 </div>
 
                 <div class="mt-3">
                     <label class="form-label fw-bold">
-                        <i class="fas fa-question-circle me-1"></i> Reasons for Sharing Data
+                        <i class="fas fa-question-circle me-1"></i> Reasons for Sharing Data 
                     </label>
                     <textarea name="sharing_reasons" class="form-control" rows="3"
                         placeholder="e.g., Investigative processes, reporting requirements, student support services..."><?php echo e(safeValue(old('sharing_reasons', $submission->sharing_reasons))); ?></textarea>
@@ -158,7 +102,22 @@ return $value;
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateInternalRecipients() {
+    const container = document.querySelector('#internalRecipientsContainer .chips-container');
+    if (container) {
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        document.getElementById('internal_recipients_hidden').value = JSON.stringify(values);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
         // Toggle internal recipients section based on radio selection
         const shareYes = document.getElementById('share-yes');
         const shareNo = document.getElementById('share-no');
@@ -171,8 +130,11 @@ return $value;
                 internalSection.style.display = 'none';
                 // Clear the fields when hidden to prevent validation issues
                 document.querySelector('textarea[name="internal_sharing_categories"]').value = '';
-                document.querySelector('select[name="internal_recipients[]"]').selectedIndex = -1;
-                document.querySelector('select[name="special_category_recipients[]"]').selectedIndex = -1;
+                const chipsContainer = document.querySelector('#internalRecipientsContainer .chips-container');
+                if (chipsContainer) {
+                    chipsContainer.innerHTML = '';
+                }
+                document.getElementById('internal_recipients_hidden').value = '[]';
                 document.querySelector('textarea[name="sharing_reasons"]').value = '';
             }
         }
@@ -182,6 +144,120 @@ return $value;
             shareNo.addEventListener('change', toggleInternalSection);
             toggleInternalSection();
         }
+
+        // Internal recipients multi-select with autocomplete
+        (function() {
+            const input = document.getElementById('internalRecipientsInput');
+            const suggestionsBox = document.getElementById('internalRecipientsSuggestions');
+            const container = document.querySelector('#internalRecipientsContainer .chips-container');
+            const hiddenInput = document.getElementById('internal_recipients_hidden');
+
+            const PREDEFINED = [
+                'Directorate of Academic Affairs',
+                'Human Resources Division',
+                'Finance Department',
+                'Internal Audit',
+                'University Committees',
+                'Research Office',
+                'Legal Counsel'
+            ];
+
+            function getCurrentValues() {
+                if (!container) return [];
+                return Array.from(container.querySelectorAll('.tag-chip span'))
+                    .map(span => span.textContent.trim());
+            }
+
+            function updateHidden() {
+                const values = getCurrentValues();
+                hiddenInput.value = JSON.stringify(values);
+            }
+
+            function renderSuggestions(filter = '') {
+                if (!suggestionsBox) return;
+                const current = getCurrentValues();
+                const filtered = PREDEFINED.filter(item =>
+                    item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+                );
+
+                let html = '';
+
+                if (filtered.length === 0 && filter) {
+                    html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+                } else if (filtered.length > 0) {
+                    filtered.forEach(item => {
+                        html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+                    });
+                }
+
+                suggestionsBox.innerHTML = html;
+
+                if (html) {
+                    suggestionsBox.classList.add('active');
+                    suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                        item.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            addChip(this.getAttribute('data-value'));
+                            input.value = '';
+                            input.focus();
+                            renderSuggestions('');
+                        });
+                    });
+                } else {
+                    suggestionsBox.classList.remove('active');
+                }
+            }
+
+            function addChip(value) {
+                if (!container) return;
+                const trimmed = value.trim();
+                if (!trimmed) return;
+                if (getCurrentValues().includes(trimmed)) return;
+
+                const chip = document.createElement('span');
+                chip.className = 'tag-chip';
+                chip.innerHTML = `<span>${escapeHtml(trimmed)}</span><button type="button" onclick="this.parentElement.remove(); updateInternalRecipients();"><i class="fas fa-times"></i></button>`;
+                container.appendChild(chip);
+                updateHidden();
+            }
+
+            if (input && suggestionsBox) {
+                input.addEventListener('focus', function() {
+                    renderSuggestions(this.value.trim());
+                });
+
+                input.addEventListener('input', function() {
+                    renderSuggestions(this.value.trim());
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = this.value.trim();
+                        if (value) {
+                            addChip(value);
+                            this.value = '';
+                            renderSuggestions('');
+                        }
+                    } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                        const chips = container.querySelectorAll('.tag-chip');
+                        if (chips.length) {
+                            chips[chips.length - 1].remove();
+                            updateHidden();
+                            renderSuggestions('');
+                        }
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!input || !suggestionsBox) return;
+                if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.innerHTML = '';
+                    suggestionsBox.classList.remove('active');
+                }
+            });
+        })();
 
         // Debug: Log when form is submitted
         const form = document.querySelector('#ropaForm');

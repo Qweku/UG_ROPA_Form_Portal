@@ -50,14 +50,38 @@
                                            class="form-control" value="<?php echo e($controller['name'] ?? ''); ?>"
                                            placeholder="e.g., Research Collaborator, External Partner">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">
-                                        <i class="fas fa-address-card me-1" style="color: #b69964;"></i> Contact Details
-                                    </label>
-                                    <textarea name="joint_controllers[<?php echo e($idx); ?>][contact]"
-                                              class="form-control" rows="2"
-                                              placeholder="Name, Address, Email, Phone"><?php echo e($controller['contact'] ?? ''); ?></textarea>
-                                </div>
+                                 <div class="col-md-6 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                                     </label>
+                                     <input type="text" name="joint_controllers[<?php echo e($idx); ?>][contact_name]"
+                                            class="form-control" value="<?php echo e($controller['contact_name'] ?? ''); ?>"
+                                            placeholder="Full name">
+                                 </div>
+                                 <div class="col-md-6 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                                     </label>
+                                     <input type="email" name="joint_controllers[<?php echo e($idx); ?>][contact_email]"
+                                            class="form-control" value="<?php echo e($controller['contact_email'] ?? ''); ?>"
+                                            placeholder="email@example.com">
+                                 </div>
+                                 <div class="col-md-6 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                                     </label>
+                                     <input type="tel" name="joint_controllers[<?php echo e($idx); ?>][contact_phone]"
+                                            class="form-control" value="<?php echo e($controller['contact_phone'] ?? ''); ?>"
+                                            placeholder="+233 20 123 4567">
+                                 </div>
+                                 <div class="col-12 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                                     </label>
+                                     <textarea name="joint_controllers[<?php echo e($idx); ?>][contact_address]"
+                                               class="form-control" rows="2"
+                                               placeholder="Physical address"><?php echo e($controller['contact_address'] ?? ''); ?></textarea>
+                                 </div>
                             </div>
                         </div>
                     </div>
@@ -72,13 +96,34 @@
                                     <input type="text" name="joint_controllers[0][name]" class="form-control"
                                            placeholder="e.g., Research Collaborator">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">
-                                        <i class="fas fa-address-card me-1" style="color: #b69964;"></i> Contact Details
-                                    </label>
-                                    <textarea name="joint_controllers[0][contact]" class="form-control" rows="2"
-                                              placeholder="Name, Address, Email, Phone"></textarea>
-                                </div>
+                                 <div class="col-md-6 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                                     </label>
+                                     <input type="text" name="joint_controllers[0][contact_name]" class="form-control"
+                                            placeholder="Full name">
+                                 </div>
+                                 <div class="col-md-6 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                                     </label>
+                                     <input type="email" name="joint_controllers[0][contact_email]" class="form-control"
+                                            placeholder="email@example.com">
+                                 </div> 
+                                 <div class="col-md-6 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                                     </label>
+                                     <input type="tel" name="joint_controllers[0][contact_phone]" class="form-control"
+                                            placeholder="+233 20 123 4567">
+                                 </div>
+                                 <div class="col-12 mb-3">
+                                     <label class="form-label fw-bold">
+                                         <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                                     </label>
+                                     <textarea name="joint_controllers[0][contact_address]" class="form-control" rows="2"
+                                               placeholder="Physical address"></textarea>
+                                 </div>
                             </div>
                         </div>
                     </div>
@@ -112,12 +157,30 @@ document.getElementById('add-joint-controller')?.addEventListener('click', funct
                     </label>
                     <input type="text" name="joint_controllers[${idx}][name]" class="form-control" placeholder="e.g., Research Collaborator">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-address-card me-1" style="color: #b69964;"></i> Contact Details
-                    </label>
-                    <textarea name="joint_controllers[${idx}][contact]" class="form-control" rows="2" placeholder="Name, Address, Email, Phone"></textarea>
-                </div>
+                 <div class="col-md-6 mb-3">
+                     <label class="form-label fw-bold">
+                         <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                     </label>
+                     <input type="text" name="joint_controllers[${idx}][contact_name]" class="form-control" placeholder="Full name">
+                 </div>
+                 <div class="col-md-6 mb-3">
+                     <label class="form-label fw-bold">
+                         <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                     </label>
+                     <input type="email" name="joint_controllers[${idx}][contact_email]" class="form-control" placeholder="email@example.com">
+                 </div>
+                 <div class="col-md-6 mb-3">
+                     <label class="form-label fw-bold">
+                         <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                     </label>
+                     <input type="tel" name="joint_controllers[${idx}][contact_phone]" class="form-control" placeholder="+233 20 123 4567">
+                 </div>
+                 <div class="col-12 mb-3">
+                     <label class="form-label fw-bold">
+                         <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                     </label>
+                     <textarea name="joint_controllers[${idx}][contact_address]" class="form-control" rows="2" placeholder="Physical address"></textarea>
+                 </div>
             </div>
         </div>
     `;

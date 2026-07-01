@@ -12,49 +12,45 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
                             <i class="fas fa-file-alt" style="color: #153d6f;"></i>
                         </div>
-                        <h5 class="card-title mb-0" style="color: #153d6f;">Record Types</h5>
-                    </div>
-                    <?php
-                        $categoriesRecords = [];
-                        if ($submission->categories_records) {
-                            $categoriesRecords = is_array($submission->categories_records)
-                                ? $submission->categories_records
-                                : (json_decode($submission->categories_records ?? '[]', true) ?? []);
-                        }
-                    ?>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="categories_records[]" value="Paper" id="rec-paper"
-                               <?php echo e(in_array('Paper', $categoriesRecords) ? 'checked' : ''); ?>>
-                        <label class="form-check-label" for="rec-paper">
-                            <i class="fas fa-file-pdf me-1 text-danger"></i> Paper-based records
-                        </label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="categories_records[]" value="Electronic" id="rec-electronic"
-                               <?php echo e(in_array('Electronic', $categoriesRecords) ? 'checked' : ''); ?>>
-                        <label class="form-check-label" for="rec-electronic">
-                            <i class="fas fa-laptop me-1 text-primary"></i> Electronic records
-                        </label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="categories_records[]" value="Other" id="rec-other"
-                               <?php echo e(in_array('Other', $categoriesRecords) ? 'checked' : ''); ?>>
-                        <label class="form-check-label" for="rec-other">
-                            <i class="fas fa-box me-1 text-warning"></i> Other physical assets
-                        </label>
-                    </div>
+                          <h5 class="card-title mb-0" style="color: #153d6f;">Record Types</h5>
+                      </div>
+                      <?php
+                          $categoriesRecords = [];
+                          if ($submission->categories_records) {
+                              $categoriesRecords = is_array($submission->categories_records)
+                                  ? $submission->categories_records
+                                  : (json_decode($submission->categories_records ?? '[]', true) ?? []);
+                          }
+                      ?>
+                      <div class="multi-select-container" id="categoriesRecordsContainer">
+                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                             <?php $__currentLoopData = $categoriesRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                             <span class="tag-chip">
+                                 <i class="fas fa-file-alt me-1"></i>
+                                 <span><?php echo e($record); ?></span>
+                                 <button type="button" onclick="this.parentElement.remove(); updateCategoriesRecords();">
+                                     <i class="fas fa-times"></i>
+                                 </button>
+                             </span>
+                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                         </div>
+                         <label class="form-label fw-bold">List Categories of Records you Process</label>
+                         <input type="text" class="form-control" id="categoriesRecordsInput"
+                                placeholder="Type and press Enter (e.g., Paper, Electronic, Cloud backups)">
+                         <input type="hidden" name="categories_records" id="categories_records_hidden" value="<?php echo e(json_encode($categoriesRecords)); ?>">
+                      </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
@@ -63,8 +59,8 @@
                         </div>
                         <h5 class="card-title mb-0" style="color: #153d6f;">Data Subjects</h5>
                     </div>
-                    <div class="multi-select-container">
-                        <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="multi-select-container" id="dataSubjectsContainer">
+                        <div class="chips-container mb-2">
                             <?php
                                 $dataSubjects = [];
                                 if ($submission->data_subjects) {
@@ -83,16 +79,19 @@
                             </span>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
+                        <label class="form-label fw-bold">List Categories of Data Subjects (Individuals) you process</label>
                         <input type="text" class="form-control" id="dataSubjectsInput"
-                               placeholder="Type and press Enter (e.g., Employees, Students, Consultants)">
+                               placeholder="Type and press Enter (e.g., Employees, Students, Consultants)"
+                               autocomplete="off">
+                        <div class="suggestions-dropdown" id="dataSubjectsSuggestions"></div>
                         <input type="hidden" name="data_subjects" id="data_subjects_hidden" value="<?php echo e(json_encode($dataSubjects)); ?>">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-6">
+            <div class="h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -100,8 +99,8 @@
                         </div>
                         <h5 class="card-title mb-0" style="color: #153d6f;">Personal Data</h5>
                     </div>
-                    <div class="multi-select-container">
-                        <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="multi-select-container" id="personalDataContainer">
+                        <div class="chips-container mb-2">
                             <?php
                                 $personalData = [];
                                 if ($submission->personal_data_categories) {
@@ -120,16 +119,19 @@
                             </span>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
+                        <label class="form-label fw-bold">List Categories of Personal Data you Process</label>
                         <input type="text" class="form-control" id="personalDataInput"
-                               placeholder="Type and press Enter e.g., Contact data, Medical data, IP addresses">
+                               placeholder="Type and press Enter e.g., Contact data, Medical data, IP addresses"
+                               autocomplete="off">
+                        <div class="suggestions-dropdown" id="personalDataSuggestions"></div>
                         <input type="hidden" name="personal_data_categories" id="personal_data_hidden" value="<?php echo e(json_encode($personalData)); ?>">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
+        <div class="col-md-6">
+            <div class="border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -138,9 +140,32 @@
                         <h5 class="card-title mb-0" style="color: #153d6f;">Special Category Data</h5>
                         <span class="badge bg-danger ms-2">Sensitive Information</span>
                     </div>
-                    <label class="form-label fw-bold">Types of Documents Containing Special Category Data</label>
-                    <textarea name="special_category_documents" class="form-control" rows="3"
-                              placeholder="e.g., Medical reports, lab results, psychological assessments, biometric data..."><?php echo e(old('special_category_documents', $submission->special_category_documents)); ?></textarea>
+                    <?php
+                        $specialCategories = [];
+                        if ($submission->special_category_documents) {
+                            $decoded = json_decode($submission->special_category_documents, true);
+                            $specialCategories = is_array($decoded) ? $decoded : [$submission->special_category_documents];
+                        }
+                    ?>
+                    <div class="multi-select-container" id="specialCategoryContainer">
+                        <div class="chips-container mb-2">
+                            <?php $__currentLoopData = $specialCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <span class="tag-chip">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                <span><?php echo e($cat); ?></span>
+                                <button type="button" onclick="this.parentElement.remove(); updateSpecialCategories();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                        <label class="form-label fw-bold">Types of Documents Containing Special Category Data</label>
+                        <input type="text" class="form-control" id="specialCategoryInput"
+                               placeholder="Type and press Enter (e.g., Medical reports, biometric data...)"
+                               autocomplete="off">
+                        <div class="suggestions-dropdown" id="specialCategorySuggestions"></div>
+                        <input type="hidden" name="special_category_documents" id="special_category_hidden" value="<?php echo e(json_encode($specialCategories)); ?>">
+                    </div>
                     <small class="text-muted mt-2 d-block">
                         <i class="fas fa-shield-alt me-1"></i>
                         Special category data includes health information, biometric data, political opinions, religious beliefs, trade union membership, etc.
@@ -154,7 +179,7 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 function updateDataSubjects() {
-    const container = document.querySelector('#step3 .multi-select-container:first-child .chips-container');
+    const container = document.querySelector('#dataSubjectsContainer .chips-container');
     if (container) {
         const values = Array.from(container.querySelectorAll('.tag-chip span'))
             .map(span => span.textContent.trim());
@@ -163,7 +188,7 @@ function updateDataSubjects() {
 }
 
 function updatePersonalData() {
-    const container = document.querySelector('#step3 .multi-select-container:last-child .chips-container');
+    const container = document.querySelector('#personalDataContainer .chips-container');
     if (container) {
         const values = Array.from(container.querySelectorAll('.tag-chip span'))
             .map(span => span.textContent.trim());
@@ -171,37 +196,397 @@ function updatePersonalData() {
     }
 }
 
-document.getElementById('dataSubjectsInput')?.addEventListener('keypress', function(e) {
+function updateCategoriesRecords() {
+    const container = document.querySelector('#categoriesRecordsContainer .chips-container');
+    if (container) {
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        document.getElementById('categories_records_hidden').value = JSON.stringify(values);
+    }
+}
+
+function updateSpecialCategories() {
+    const container = document.querySelector('#specialCategoryContainer .chips-container');
+    if (container) {
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        document.getElementById('special_category_hidden').value = JSON.stringify(values);
+    }
+}
+
+(function() {
+    const input = document.getElementById('specialCategoryInput');
+    const suggestionsBox = document.getElementById('specialCategorySuggestions');
+    const container = document.querySelector('#specialCategoryContainer .chips-container');
+    const hiddenInput = document.getElementById('special_category_hidden');
+
+    const PREDEFINED = [
+        'Medical certificates',
+        'Garda vetting details',
+        'Disability data relating to a person',
+        'Extenuating circumstances documentation',
+        'Health data including but not limited to sick leave records',
+        'Visa/immigration data',
+        'Data relating to a child (student under 18 for example)',
+        'Accident data',
+        'Personal specific trade union data'
+    ];
+
+    function getCurrentValues() {
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+    }
+
+    function updateHidden() {
+        const values = getCurrentValues();
+        hiddenInput.value = JSON.stringify(values);
+    }
+
+    function renderSuggestions(filter = '') {
+        if (!suggestionsBox) return;
+        const current = getCurrentValues();
+        const filtered = PREDEFINED.filter(item =>
+            item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+        );
+
+        let html = '';
+
+        if (filtered.length === 0 && filter) {
+            html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+        } else if (filtered.length > 0) {
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+            });
+        }
+
+        suggestionsBox.innerHTML = html;
+
+        if (html) {
+            suggestionsBox.classList.add('active');
+            suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    addChip(this.getAttribute('data-value'));
+                    input.value = '';
+                    input.focus();
+                    renderSuggestions('');
+                });
+            });
+        } else {
+            suggestionsBox.classList.remove('active');
+        }
+    }
+
+    function addChip(value) {
+        if (!container) return;
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        if (getCurrentValues().includes(trimmed)) return;
+
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `<i class="fas fa-shield-alt me-1"></i><span>${escapeHtml(trimmed)}</span><button type="button" onclick="this.parentElement.remove(); updateSpecialCategories();"><i class="fas fa-times"></i></button>`;
+        container.appendChild(chip);
+        updateHidden();
+    }
+
+    if (input && suggestionsBox) {
+        input.addEventListener('focus', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('input', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value) {
+                    addChip(value);
+                    this.value = '';
+                    renderSuggestions('');
+                }
+            } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                const chips = container.querySelectorAll('.tag-chip');
+                if (chips.length) {
+                    chips[chips.length - 1].remove();
+                    updateHidden();
+                    renderSuggestions('');
+                }
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!input || !suggestionsBox) return;
+        if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('active');
+        }
+    });
+})();
+
+(function() {
+    const input = document.getElementById('dataSubjectsInput');
+    const suggestionsBox = document.getElementById('dataSubjectsSuggestions');
+    const container = document.querySelector('#dataSubjectsContainer .chips-container');
+    const hiddenInput = document.getElementById('data_subjects_hidden');
+
+    const PREDEFINED = [
+        'Employees/staff',
+        'PhD students',
+        'Current students',
+        'Former students',
+        'Members of the public',
+        'Persons that attended events on campus',
+        'Research project collaborators',
+        'Research project participants',
+        'Agency workers',
+        'Contractors'
+    ];
+
+    function getCurrentValues() {
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+    }
+
+    function updateHidden() {
+        const values = getCurrentValues();
+        hiddenInput.value = JSON.stringify(values);
+    }
+
+    function renderSuggestions(filter = '') {
+        if (!suggestionsBox) return;
+        const current = getCurrentValues();
+        const filtered = PREDEFINED.filter(item =>
+            item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+        );
+
+        let html = '';
+
+        if (filtered.length === 0 && filter) {
+            html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+        } else if (filtered.length > 0) {
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+            });
+        }
+
+        suggestionsBox.innerHTML = html;
+
+        if (html) {
+            suggestionsBox.classList.add('active');
+            suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    addChip(this.getAttribute('data-value'));
+                    input.value = '';
+                    input.focus();
+                    renderSuggestions('');
+                });
+            });
+        } else {
+            suggestionsBox.classList.remove('active');
+        }
+    }
+
+    function addChip(value) {
+        if (!container) return;
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        if (getCurrentValues().includes(trimmed)) return;
+
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `<i class="fas fa-user me-1"></i><span>${escapeHtml(trimmed)}</span><button type="button" onclick="this.parentElement.remove(); updateDataSubjects();"><i class="fas fa-times"></i></button>`;
+        container.appendChild(chip);
+        updateHidden();
+    }
+
+    if (input && suggestionsBox) {
+        input.addEventListener('focus', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('input', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value) {
+                    addChip(value);
+                    this.value = '';
+                    renderSuggestions('');
+                }
+            } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                const chips = container.querySelectorAll('.tag-chip');
+                if (chips.length) {
+                    chips[chips.length - 1].remove();
+                    updateHidden();
+                    renderSuggestions('');
+                }
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!input || !suggestionsBox) return;
+        if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('active');
+        }
+    });
+})();
+
+(function() {
+    const input = document.getElementById('personalDataInput');
+    const suggestionsBox = document.getElementById('personalDataSuggestions');
+    const container = document.querySelector('#personalDataContainer .chips-container');
+    const hiddenInput = document.getElementById('personal_data_hidden');
+
+    const PREDEFINED = [
+        'Full name',
+        'Home address',
+        'Email address',
+        'Phone number',
+        'Date of birth',
+        'National identification number (e.g., PPS number)',
+        'Passport number',
+        'Driver\'s license number',
+        'Person\'s photo',
+        'Person\'s voice recording',
+        'Person\'s video',
+        'IP address',
+        'Cookie identifiers',
+        'Device identifiers (e.g., IMEI, MAC address)',
+    ];
+
+    function getCurrentValues() {
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+    }
+
+    function updateHidden() {
+        const values = getCurrentValues();
+        hiddenInput.value = JSON.stringify(values);
+    }
+
+    function renderSuggestions(filter = '') {
+        if (!suggestionsBox) return;
+        const current = getCurrentValues();
+        const filtered = PREDEFINED.filter(item =>
+            item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+        );
+
+        let html = '';
+
+        if (filtered.length === 0 && filter) {
+            html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+        } else if (filtered.length > 0) {
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+            });
+        }
+
+        suggestionsBox.innerHTML = html;
+
+        if (html) {
+            suggestionsBox.classList.add('active');
+            suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    addChip(this.getAttribute('data-value'));
+                    input.value = '';
+                    input.focus();
+                    renderSuggestions('');
+                });
+            });
+        } else {
+            suggestionsBox.classList.remove('active');
+        }
+    }
+
+    function addChip(value) {
+        if (!container) return;
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        if (getCurrentValues().includes(trimmed)) return;
+
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `<i class="fas fa-database me-1"></i><span>${escapeHtml(trimmed)}</span><button type="button" onclick="this.parentElement.remove(); updatePersonalData();"><i class="fas fa-times"></i></button>`;
+        container.appendChild(chip);
+        updateHidden();
+    }
+
+    if (input) {
+        input.addEventListener('focus', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('input', function() {
+            renderSuggestions(this.value.trim());
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value) {
+                    addChip(value);
+                    this.value = '';
+                    renderSuggestions('');
+                }
+            } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                const chips = container.querySelectorAll('.tag-chip');
+                if (chips.length) {
+                    chips[chips.length - 1].remove();
+                    updateHidden();
+                    renderSuggestions('');
+                }
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!input || !suggestionsBox) return;
+        if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('active');
+        }
+    });
+})();
+
+document.getElementById('categoriesRecordsInput')?.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
         const value = this.value.trim();
         if (value) {
-            const container = document.querySelector('#step3 .multi-select-container:first-child .chips-container');
+            const container = document.querySelector('#categoriesRecordsContainer .chips-container');
             const chip = document.createElement('span');
             chip.className = 'tag-chip';
-            chip.innerHTML = `<i class="fas fa-user me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updateDataSubjects();"><i class="fas fa-times"></i></button>`;
+            chip.innerHTML = `<i class="fas fa-file-alt me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updateCategoriesRecords();"><i class="fas fa-times"></i></button>`;
             container.appendChild(chip);
             this.value = '';
-            updateDataSubjects();
+            updateCategoriesRecords();
         }
     }
 });
 
-document.getElementById('personalDataInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const value = this.value.trim();
-        if (value) {
-            const container = document.querySelector('#step3 .multi-select-container:last-child .chips-container');
-            const chip = document.createElement('span');
-            chip.className = 'tag-chip';
-            chip.innerHTML = `<i class="fas fa-database me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updatePersonalData();"><i class="fas fa-times"></i></button>`;
-            container.appendChild(chip);
-            this.value = '';
-            updatePersonalData();
-        }
-    }
-});
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 </script>
 <?php $__env->stopPush(); ?>
+
 <?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/ropa/steps/step3.blade.php ENDPATH**/ ?>

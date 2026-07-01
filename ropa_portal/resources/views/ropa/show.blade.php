@@ -252,8 +252,16 @@
                                 <div class="tag-chip d-inline-flex me-2 mb-2">
                                     <span>
                                         <strong>{{ is_array($controller) ? ($controller['name'] ?? 'N/A') : $controller }}</strong>
-                                        @if(is_array($controller) && !empty($controller['contact']))
-                                            &middot; {{ $controller['contact'] }}
+                                        @if(is_array($controller))
+                                            @if(!empty($controller['contact_email']))
+                                                &middot; {{ $controller['contact_email'] }}
+                                            @endif
+                                            @if(!empty($controller['contact_phone']))
+                                                &middot; {{ $controller['contact_phone'] }}
+                                            @endif
+                                            @if(!empty($controller['contact_address']))
+                                                <br><small class="text-muted">{{ $controller['contact_address'] }}</small>
+                                            @endif
                                         @endif
                                     </span>
                                 </div>
@@ -261,8 +269,8 @@
                                 <span class="text-muted">N/A</span>
                             @endforelse
                         </div>
-                        <textarea name="joint_controllers_raw" rows="2" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='JSON array, e.g. [{"name":"Org Name","contact":"email@example.com"}]'>{{ json_encode($submission->joint_controllers ?? [], JSON_PRETTY_PRINT) }}</textarea>
-                        <small class="text-muted edit-mode d-none">Each joint controller needs a "name" and "contact" — edit as JSON.</small>
+                        <textarea name="joint_controllers_raw" rows="2" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='JSON array, e.g. [{"name":"Org Name","contact_name":"...","contact_email":"...","contact_phone":"...","contact_address":"..."}]'>{{ json_encode($submission->joint_controllers ?? [], JSON_PRETTY_PRINT) }}</textarea>
+                        <small class="text-muted edit-mode d-none">Each joint controller needs a "name" and at least one contact field (contact_name, contact_email, contact_phone, contact_address) — edit as JSON.</small>
                     </div>
                 </form>
             </div>
@@ -320,8 +328,14 @@
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Special Category Documents</small>
-                                <p class="mb-0 view-mode">{{ $submission->special_category_documents ?? 'N/A' }}</p>
-                                <textarea name="special_category_documents" rows="2" class="form-control edit-mode d-none">{{ $submission->special_category_documents }}</textarea>
+                                <p class="mb-0 view-mode">
+                                    @forelse($submission->special_category_documents ?? [] as $item)
+                                        <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
+                                    @empty
+                                        <span class="text-muted">N/A</span>
+                                    @endforelse
+                                </p>
+                                <textarea name="special_category_documents_raw" rows="2" class="form-control edit-mode d-none" data-array-field="special_category_documents" placeholder="Comma-separated list">{{ implode(', ', $submission->special_category_documents ?? []) }}</textarea>
                             </div>
                         </div>
                     </div>

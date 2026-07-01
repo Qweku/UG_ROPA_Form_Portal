@@ -23,7 +23,7 @@
     <div class="row g-4">
         <!-- Legal Basis Cards -->
         <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
+            <div class="h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -31,8 +31,8 @@
                         </div>
                         <h5 class="card-title mb-0" style="color: #153d6f;">Legal Basis for Processing</h5>
                     </div>
-                    <div class="multi-select-container">
-                        <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="multi-select-container" id="legalBasisContainer">
+                        <div class="chips-container mb-2">
                             <?php
                             $legalBasis = is_array($submission->legal_basis)
                             ? $submission->legal_basis
@@ -50,11 +50,13 @@
                         </div>
                         <div class="input-group">
                             <input type="text" class="form-control" id="legalBasisInput"
-                                placeholder="Type and press Enter to add (e.g., Consent, Contract, Legal Obligation)">
+                                placeholder="Type and press Enter to add (e.g., Consent, Contract, Legal Obligation)"
+                                autocomplete="off">
                             <button class="btn btn-outline-primary" type="button" onclick="addLegalBasis()">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
+                        <div class="suggestions-dropdown" id="legalBasisSuggestions"></div>
                         <input type="hidden" name="legal_basis" id="legal_basis_hidden" value="<?php echo e(json_encode($legalBasis)); ?>">
                         <small class="text-muted mt-2 d-block">
                             <i class="fas fa-info-circle"></i> Add all applicable legal bases
@@ -73,8 +75,8 @@
                         </div>
                         <h5 class="card-title mb-0" style="color: #153d6f;">Sensitive Personal Data Basis</h5>
                     </div>
-                    <div class="multi-select-container">
-                        <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="multi-select-container" id="sensitiveBasisContainer">
+                        <div class="chips-container mb-2">
                             <?php
                             $sensitiveBasis = is_array($submission->sensitive_legal_basis)
                             ? $submission->sensitive_legal_basis
@@ -120,7 +122,7 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">
-                        LIA Documented?
+                        Is LIA Documented?
                         <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
                             title="Legitimate Interest Assessment"></i>
                     </label>
@@ -135,7 +137,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4" id="liaFields" <?php if(old('lia_documented', $submission->lia_documented) != 1): ?> style="display:none;" <?php endif; ?>>
                     <label class="form-label fw-bold">Document Location</label>
                     <div class="input-group">
                         <span class="input-group-text bg-transparent">
@@ -147,7 +149,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4" id="liaLinkField" <?php if(old('lia_documented', $submission->lia_documented) != 1): ?> style="display:none;" <?php endif; ?>>
                     <label class="form-label fw-bold">LIA Link</label>
                     <div class="input-group">
                         <span class="input-group-text bg-transparent">
@@ -270,58 +272,165 @@
 <script>
     // Legal Basis functions
     function updateLegalBasis() {
-        const chips = document.querySelectorAll('#step6 .multi-select-container:first-child .tag-chip span');
-        const values = Array.from(chips).map(chip => chip.textContent.trim());
+        const container = document.querySelector('#legalBasisContainer .chips-container');
+        if (!container) return;
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
         document.getElementById('legal_basis_hidden').value = JSON.stringify(values);
-        console.log('Legal basis updated:', values);
     }
 
-    function addLegalBasis() {
-        const input = document.getElementById('legalBasisInput');
-        const value = input.value.trim();
-        if (!value) return;
+    function addLegalBasis(value) {
+        const container = document.querySelector('#legalBasisContainer .chips-container');
+        if (!container) return;
+        const trimmed = (value || document.getElementById('legalBasisInput').value).trim();
+        if (!trimmed) return;
+        const current = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        if (current.includes(trimmed)) return;
 
-        const container = document.querySelector('#step6 .multi-select-container:first-child .chips-container');
         const chip = document.createElement('span');
         chip.className = 'tag-chip';
         chip.innerHTML = `
         <i class="fas fa-check-circle me-1" style="color: #28a745;"></i>
-        <span>${escapeHtml(value)}</span>
+        <span>${escapeHtml(trimmed)}</span>
         <button type="button" onclick="this.parentElement.remove(); updateLegalBasis();">
             <i class="fas fa-times"></i>
         </button>
     `;
         container.appendChild(chip);
-        input.value = '';
+        document.getElementById('legalBasisInput').value = '';
         updateLegalBasis();
     }
 
+    (function() {
+        const input = document.getElementById('legalBasisInput');
+        const suggestionsBox = document.getElementById('legalBasisSuggestions');
+        const container = document.querySelector('#legalBasisContainer .chips-container');
+        const hiddenInput = document.getElementById('legal_basis_hidden');
+
+        const PREDEFINED = [
+            'Consent',
+            'Contract',
+            'Legal obligation',
+            'Vital interests',
+            'Public interest',
+            'Legitimate interests'
+        ];
+
+        function getCurrentValues() {
+            if (!container) return [];
+            return Array.from(container.querySelectorAll('.tag-chip span'))
+                .map(span => span.textContent.trim());
+        }
+
+        function updateHidden() {
+            const values = getCurrentValues();
+            hiddenInput.value = JSON.stringify(values);
+        }
+
+        function renderSuggestions(filter = '') {
+            if (!suggestionsBox) return;
+            const current = getCurrentValues();
+            const filtered = PREDEFINED.filter(item =>
+                item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+            );
+
+            let html = '';
+
+            if (filtered.length === 0 && filter) {
+                html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+            } else if (filtered.length > 0) {
+                filtered.forEach(item => {
+                    html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+                });
+            }
+
+            suggestionsBox.innerHTML = html;
+
+            if (html) {
+                suggestionsBox.classList.add('active');
+                suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        addLegalBasis(this.getAttribute('data-value'));
+                        input.value = '';
+                        input.focus();
+                        renderSuggestions('');
+                    });
+                });
+            } else {
+                suggestionsBox.classList.remove('active');
+            }
+        }
+
+        if (input && suggestionsBox) {
+            input.addEventListener('focus', function() {
+                renderSuggestions(this.value.trim());
+            });
+
+            input.addEventListener('input', function() {
+                renderSuggestions(this.value.trim());
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = this.value.trim();
+                    if (value) {
+                        addLegalBasis(value);
+                        this.value = '';
+                        renderSuggestions('');
+                    }
+                } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                    const chips = container.querySelectorAll('.tag-chip');
+                    if (chips.length) {
+                        chips[chips.length - 1].remove();
+                        updateHidden();
+                        renderSuggestions('');
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!input || !suggestionsBox) return;
+            if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.classList.remove('active');
+            }
+        });
+    })();
+
     // Sensitive Basis functions
     function updateSensitiveBasis() {
-        const chips = document.querySelectorAll('#step6 .multi-select-container:last-child .tag-chip span');
-        const values = Array.from(chips).map(chip => chip.textContent.trim());
+        const container = document.querySelector('#sensitiveBasisContainer .chips-container');
+        if (!container) return;
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
         document.getElementById('sensitive_basis_hidden').value = JSON.stringify(values);
-        console.log('Sensitive basis updated:', values);
     }
 
-    function addSensitiveBasis() {
-        const input = document.getElementById('sensitiveBasisInput');
-        const value = input.value.trim();
-        if (!value) return;
+    function addSensitiveBasis(value) {
+        const container = document.querySelector('#sensitiveBasisContainer .chips-container');
+        if (!container) return;
+        const trimmed = (value || document.getElementById('sensitiveBasisInput').value).trim();
+        if (!trimmed) return;
+        const current = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        if (current.includes(trimmed)) return;
 
-        const container = document.querySelector('#step6 .multi-select-container:last-child .chips-container');
         const chip = document.createElement('span');
         chip.className = 'tag-chip';
         chip.style.cssText = 'background: #f5efe6; border-color: #b69964; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; margin: 2px; display: inline-flex; align-items: center; gap: 6px;';
         chip.innerHTML = `
         <i class="fas fa-exclamation-triangle me-1" style="color: #b69964;"></i>
-        <span>${escapeHtml(value)}</span>
+        <span>${escapeHtml(trimmed)}</span>
         <button type="button" onclick="this.parentElement.remove(); updateSensitiveBasis();">
             <i class="fas fa-times"></i>
         </button>
     `;
         container.appendChild(chip);
-        input.value = '';
+        document.getElementById('sensitiveBasisInput').value = '';
         updateSensitiveBasis();
     }
 
@@ -331,35 +440,29 @@
         return div.innerHTML;
     }
 
-    // Initialize Enter key handlers
+    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
-        // Legal basis input
-        const legalInput = document.getElementById('legalBasisInput');
-        if (legalInput) {
-            legalInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addLegalBasis();
-                }
-            });
-        }
-
-        // Sensitive basis input
-        const sensitiveInput = document.getElementById('sensitiveBasisInput');
-        if (sensitiveInput) {
-            sensitiveInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addSensitiveBasis();
-                }
-            });
-        }
-
-        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+
+        // Toggle LIA fields visibility based on select value
+        const liaSelect = document.getElementById('lia_documented');
+        const liaFields = document.getElementById('liaFields');
+        const liaLinkField = document.getElementById('liaLinkField');
+
+        function toggleLiaFields() {
+            if (!liaSelect || !liaFields || !liaLinkField) return;
+            const isYes = liaSelect.value === '1';
+            liaFields.style.display = isYes ? '' : 'none';
+            liaLinkField.style.display = isYes ? '' : 'none';
+        }
+
+        if (liaSelect) {
+            liaSelect.addEventListener('change', toggleLiaFields);
+            toggleLiaFields();
+        }
 
         // Log initial values for debugging
         console.log('Initial legal basis:', document.getElementById('legal_basis_hidden')?.value);
