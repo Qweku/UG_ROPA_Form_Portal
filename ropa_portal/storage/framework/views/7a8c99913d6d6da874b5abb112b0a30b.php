@@ -97,10 +97,10 @@
                                                         <p><strong>Data Subjects:</strong> <?php echo e(implode(', ', $sub->data_subjects ?? [])); ?></p>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <p><strong>Personnel:</strong> <?php echo e($sub->firstname); ?> <?php echo e($sub->surname); ?> (<?php echo e($sub->personnel_id); ?>)</p>
-                                                        <p><strong>Role:</strong> <?php echo e($sub->role_responsible); ?></p>
-                                                        <p><strong>Completed:</strong> <?php echo e($sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A'); ?></p>
-                                                    </div>
+                                                            <p><strong>Personnel:</strong> <?php echo e($form->firstname); ?> <?php echo e($form->surname); ?> (<?php echo e($form->personnel_id); ?>)</p>
+                                                            <p><strong>Role:</strong> <?php echo e($form->role_responsible); ?></p>
+                                                            <p><strong>Completed:</strong> <?php echo e($sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A'); ?></p>
+                                                        </div>
                                                 </div>
                                                 <a href="<?php echo e(route('ropa.view-submission', $sub)); ?>" class="btn btn-sm btn-info">View Full Details</a>
                                             </div>

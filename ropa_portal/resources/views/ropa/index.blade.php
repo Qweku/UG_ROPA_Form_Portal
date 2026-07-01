@@ -97,10 +97,10 @@
                                                         <p><strong>Data Subjects:</strong> {{ implode(', ', $sub->data_subjects ?? []) }}</p>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <p><strong>Personnel:</strong> {{ $sub->firstname }} {{ $sub->surname }} ({{ $sub->personnel_id }})</p>
-                                                        <p><strong>Role:</strong> {{ $sub->role_responsible }}</p>
-                                                        <p><strong>Completed:</strong> {{ $sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A' }}</p>
-                                                    </div>
+                                                            <p><strong>Personnel:</strong> {{ $form->firstname }} {{ $form->surname }} ({{ $form->personnel_id }})</p>
+                                                            <p><strong>Role:</strong> {{ $form->role_responsible }}</p>
+                                                            <p><strong>Completed:</strong> {{ $sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A' }}</p>
+                                                        </div>
                                                 </div>
                                                 <a href="{{ route('ropa.view-submission', $sub) }}" class="btn btn-sm btn-info">View Full Details</a>
                                             </div>

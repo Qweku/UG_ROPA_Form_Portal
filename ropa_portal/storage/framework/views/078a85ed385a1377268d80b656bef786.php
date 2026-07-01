@@ -9,7 +9,7 @@
                 <h5 class="mb-1" style="color: #153d6f;">Basic Information</h5>
                 <p class="mb-0 text-muted small">
                     <?php if($basicInfoLocked ?? false): ?>
-                        Add the next sub‑process under <strong><?php echo e($parentForm->main_process_name); ?></strong>. Fields marked with <span class="text-danger">*</span> are required.
+                        Add the next sub-process under <strong><?php echo e($parentForm->main_process_name); ?></strong>. Fields marked with <span class="text-danger">*</span> are required.
                     <?php else: ?>
                         Capture ownership and identification of the processing activity. Fields marked with <span class="text-danger">*</span> are required.
                     <?php endif; ?>
@@ -31,94 +31,124 @@
                         <h5 class="card-title mb-0" style="color: #153d6f;">Personal Information</h5>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Personnel ID</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
-                                <input type="text" name="personnel_id" class="form-control"
-                                       value="<?php echo e(old('personnel_id', $submission->personnel_id ?? Auth::user()->personnel_id ?? '')); ?>"
-                                       placeholder="e.g., 99999">
+                        <?php if($basicInfoLocked ?? false): ?>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Personnel ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
+                                    <input type="text" class="form-control" value="<?php echo e($parentForm->personnel_id ?? ''); ?>" disabled>
+                                    <input type="hidden" name="personnel_id" value="<?php echo e($parentForm->personnel_id); ?>">
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Role Responsible</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
-                                <input type="text" name="role_responsible" class="form-control"
-                                       value="<?php echo e(old('role_responsible', $submission->role_responsible ?? '')); ?>"
-                                       placeholder="e.g., Senior Admin Registrar">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Role Responsible</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
+                                    <input type="text" class="form-control" value="<?php echo e($parentForm->role_responsible ?? ''); ?>" disabled>
+                                    <input type="hidden" name="role_responsible" value="<?php echo e($parentForm->role_responsible); ?>">
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Surname <span class="text-danger">*</span></label>
-                            <input type="text" name="surname" class="form-control"
-                                   value="<?php echo e(old('surname', $submission->surname ?? Auth::user()->surname ?? '')); ?>"
-                                   placeholder="Last name" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Firstname <span class="text-danger">*</span></label>
-                            <input type="text" name="firstname" class="form-control"
-                                   value="<?php echo e(old('firstname', $submission->firstname ?? Auth::user()->firstname ?? '')); ?>"
-                                   placeholder="First name" required>
-                        </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Surname <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" value="<?php echo e($parentForm->surname ?? ''); ?>" disabled>
+                                <input type="hidden" name="surname" value="<?php echo e($parentForm->surname); ?>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Firstname <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" value="<?php echo e($parentForm->firstname ?? ''); ?>" disabled>
+                                <input type="hidden" name="firstname" value="<?php echo e($parentForm->firstname); ?>">
+                            </div>
+                        <?php else: ?>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Personnel ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
+                                    <input type="text" name="personnel_id" class="form-control"
+                                           value="<?php echo e(old('personnel_id', $parentForm->personnel_id ?? Auth::user()->personnel_id ?? '')); ?>"
+                                           placeholder="e.g., 99999">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Role Responsible</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
+                                    <input type="text" name="role_responsible" class="form-control"
+                                           value="<?php echo e(old('role_responsible', $parentForm->role_responsible ?? '')); ?>"
+                                           placeholder="e.g., Senior Admin Registrar">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Surname <span class="text-danger">*</span></label>
+                                <input type="text" name="surname" class="form-control"
+                                       value="<?php echo e(old('surname', $parentForm->surname ?? Auth::user()->surname ?? '')); ?>"
+                                       placeholder="Last name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Firstname <span class="text-danger">*</span></label>
+                                <input type="text" name="firstname" class="form-control"
+                                       value="<?php echo e(old('firstname', $parentForm->firstname ?? Auth::user()->firstname ?? '')); ?>"
+                                       placeholder="First name" required>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
-<?php if($basicInfoLocked ?? false): ?>
-             
-             <div class="col-12">
-                 <div class="card border-0 shadow-sm">
-                     <div class="card-body">
-                         <div class="d-flex align-items-center mb-3">
-                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
-                                 <i class="fas fa-lock" style="color: #153d6f;"></i>
-                             </div>
-                             <h5 class="card-title mb-0" style="color: #153d6f;">Process Identity</h5>
-                             <span class="badge bg-secondary ms-auto">Locked</span>
-                         </div>
-                         <p class="text-muted small mb-3">
-                             College, Business Function, and Main Process Name were set when the first sub‑process was created and apply to this whole RoPA.
-                         </p>
-                         <div class="row">
-                             <div class="col-md-4 mb-3">
-                                 <label class="form-label fw-bold">College</label>
-                                 <input type="text" class="form-control" value="<?php echo e($parentForm->college->name ?? ''); ?>" disabled>
-                                 <input type="hidden" name="college_id" value="<?php echo e($parentForm->college_id); ?>">
-                             </div>
-                             <div class="col-md-4 mb-3">
-                                 <label class="form-label fw-bold">Business Function (School/Dept)</label>
-                                 <input type="text" class="form-control" value="<?php echo e($parentForm->business_function); ?>" disabled>
-                                 <input type="hidden" name="business_function" value="<?php echo e($parentForm->business_function); ?>">
-                             </div>
-                             <div class="col-md-4 mb-3">
-                                 <label class="form-label fw-bold">Main Process Name</label>
-                                 <input type="text" class="form-control" value="<?php echo e($parentForm->main_process_name); ?>" disabled>
-                                 <input type="hidden" name="main_process_name" value="<?php echo e($parentForm->main_process_name); ?>">
-                             </div>
-                         </div>
-                     </div>
-                 </div>
-             </div>
+        <?php if($basicInfoLocked ?? false): ?>
+            
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-lock" style="color: #153d6f;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: #153d6f;">Process Identity</h5>
+                            <span class="badge bg-secondary ms-auto">Locked</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            College, Business Function, and Main Process Name were set when the first sub-process was created and apply to this whole RoPA.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">College</label>
+                                <input type="text" class="form-control" value="<?php echo e($parentForm->college->name ?? ''); ?>" disabled>
+                                <input type="hidden" name="college_id" value="<?php echo e($parentForm->college_id); ?>">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Business Function (School/Dept)</label>
+                                <input type="text" class="form-control" value="<?php echo e($parentForm->business_function); ?>" disabled>
+                                <input type="hidden" name="business_function" value="<?php echo e($parentForm->business_function); ?>">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Main Process Name</label>
+                                <input type="text" class="form-control" value="<?php echo e($parentForm->main_process_name); ?>" disabled>
+                                <input type="hidden" name="main_process_name" value="<?php echo e($parentForm->main_process_name); ?>">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-             <div class="col-12">
-                 <div class="card border-0 shadow-sm">
-                     <div class="card-body">
-                         <div class="d-flex align-items-center mb-3">
-                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
-                                 <i class="fas fa-sitemap" style="color: #153d6f;"></i>
-                             </div>
-                             <h5 class="card-title mb-0" style="color: #153d6f;">Sub‑Process</h5>
-                         </div>
-                         <label class="form-label fw-bold">Sub‑Process Name <span class="text-danger">*</span></label>
-                         <input type="text" name="sub_process_name" class="form-control"
-                                value="<?php echo e(old('sub_process_name', $submission->sub_process_name ?? '')); ?>"
-                                placeholder="Enter the current sub‑process name" required autofocus>
-                     </div>
-                 </div>
-             </div>
-         <?php else: ?>
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-sitemap" style="color: #153d6f;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: #153d6f;">Sub-Process</h5>
+                        </div>
+                        <label class="form-label fw-bold">Sub-Process Name <span class="text-danger">*</span></label>
+                        <input type="text" name="sub_process_name" class="form-control"
+                               value="<?php echo e(old('sub_process_name', $submission->sub_process_name ?? '')); ?>"
+                               placeholder="Enter the current sub-process name" required autofocus>
+                    </div>
+                </div>
+            </div>
+        <?php else: ?>
             <div class="col-md-6">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body">
@@ -177,16 +207,16 @@
                         <div class="form-check mb-1">
                             <input type="checkbox" name="has_sub_processes" id="hasSubProcesses" class="form-check-input" value="1"
                                    <?php echo e(old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'checked' : ''); ?>>
-                            <label class="form-check-label fw-bold" for="hasSubProcesses">This process has sub‑processes</label>
+                            <label class="form-check-label fw-bold" for="hasSubProcesses">This process has sub-processes</label>
                         </div>
                         <small class="text-muted d-block mb-3">
-                            <i class="fas fa-info-circle"></i> This choice applies to the whole process and cannot be changed after this first sub‑process is saved.
+                            <i class="fas fa-info-circle"></i> This choice applies to the whole process and cannot be changed after this first sub-process is saved.
                         </small>
                         <div id="subProcessContainer" style="display: <?php echo e(old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'block' : 'none'); ?>">
-                            <label class="form-label fw-bold">Sub‑Process Name</label>
+                            <label class="form-label fw-bold">Sub-Process Name</label>
                             <input type="text" name="sub_process_name" class="form-control"
                                    value="<?php echo e(old('sub_process_name', $submission->sub_process_name ?? '')); ?>"
-                                   placeholder="Enter the current sub‑process name">
+                                   placeholder="Enter the current sub-process name">
                         </div>
                     </div>
                 </div>
@@ -419,5 +449,4 @@
     });
 </script>
 <?php $__env->stopPush(); ?>
-<?php endif; ?>
-<?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/ropa/steps/step1.blade.php ENDPATH**/ ?>
+<?php endif; ?><?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/ropa/steps/step1.blade.php ENDPATH**/ ?>

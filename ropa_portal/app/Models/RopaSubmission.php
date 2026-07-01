@@ -8,7 +8,7 @@ class RopaSubmission extends Model
 {
     protected $fillable = [
         'ropa_form_id', 'sub_process_name',
-        'personnel_id', 'surname', 'firstname', 'purpose', 'role_responsible',
+        'purpose',
         'joint_controllers', 'categories_records', 'data_subjects', 'personal_data_categories',
         'special_category_documents', 'internal_sharing_categories', 'share_internally',
         'internal_recipients', 'special_category_recipients', 'sharing_reasons',
@@ -63,14 +63,16 @@ class RopaSubmission extends Model
      */
     public function displayFields(): array
     {
+        $parentForm = $this->ropaForm;
+
         $groups = [
             'Process Identity' => [
                 'Sub-process Name' => $this->sub_process_name,
-                'Personnel ID' => $this->personnel_id,
-                'Surname' => $this->surname,
-                'Firstname' => $this->firstname,
+                'Personnel ID' => $parentForm->personnel_id,
+                'Surname' => $parentForm->surname,
+                'Firstname' => $parentForm->firstname,
                 'Purpose of Processing' => $this->purpose,
-                'Role Responsible' => $this->role_responsible,
+                'Role Responsible' => $parentForm->role_responsible,
             ],
             'Joint Controllers' => [
                 'Joint Controllers' => $this->formatArray($this->joint_controllers),

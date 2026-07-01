@@ -202,18 +202,18 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <small class="text-muted">Personnel ID</small>
-                                <p class="mb-0 fw-bold view-mode">{{ $submission->personnel_id ?? 'N/A' }}</p>
-                                <input type="text" name="personnel_id" class="form-control edit-mode d-none" maxlength="50" value="{{ $submission->personnel_id }}">
+                                <p class="mb-0 fw-bold view-mode">{{ $parentForm->personnel_id ?? 'N/A' }}</p>
+                                <input type="text" name="personnel_id" class="form-control edit-mode d-none" maxlength="50" value="{{ $parentForm->personnel_id }}">
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted">Surname</small>
-                                <p class="mb-0 fw-bold view-mode">{{ $submission->surname ?? 'N/A' }}</p>
-                                <input type="text" name="surname" class="form-control edit-mode d-none" maxlength="100" value="{{ $submission->surname }}" required>
+                                <p class="mb-0 fw-bold view-mode">{{ $parentForm->surname ?? 'N/A' }}</p>
+                                <input type="text" name="surname" class="form-control edit-mode d-none" maxlength="100" value="{{ $parentForm->surname }}" required>
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted">Firstname</small>
-                                <p class="mb-0 fw-bold view-mode">{{ $submission->firstname ?? 'N/A' }}</p>
-                                <input type="text" name="firstname" class="form-control edit-mode d-none" maxlength="100" value="{{ $submission->firstname }}" required>
+                                <p class="mb-0 fw-bold view-mode">{{ $parentForm->firstname ?? 'N/A' }}</p>
+                                <input type="text" name="firstname" class="form-control edit-mode d-none" maxlength="100" value="{{ $parentForm->firstname }}" required>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Purpose</small>
@@ -222,8 +222,8 @@
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Role Responsible</small>
-                                <p class="mb-0 fw-bold view-mode">{{ $submission->role_responsible ?? 'N/A' }}</p>
-                                <input type="text" name="role_responsible" class="form-control edit-mode d-none" maxlength="255" value="{{ $submission->role_responsible }}">
+                                <p class="mb-0 fw-bold view-mode">{{ $parentForm->role_responsible ?? 'N/A' }}</p>
+                                <input type="text" name="role_responsible" class="form-control edit-mode d-none" maxlength="255" value="{{ $parentForm->role_responsible }}">
                             </div>
                         </div>
                     </div>

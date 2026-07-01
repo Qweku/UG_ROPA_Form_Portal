@@ -190,8 +190,9 @@ class RopaFormController extends Controller
         }
 
         $colleges = College::all();
+        $basicInfoLocked = $parentForm->basicInfoLocked();
 
-        return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges'));
+        return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges', 'basicInfoLocked'));
     }
 
     /**
@@ -218,34 +219,38 @@ class RopaFormController extends Controller
 
         // --- Step 1 specific handling ---
         if ($step === 1) {
+            $basicInfoLocked = $parentForm->basicInfoLocked();
+
             $validated = $request->validate([
                 'college_id' => 'required|exists:colleges,id',
                 'business_function' => 'required|string|max:255',
                 'main_process_name' => 'required|string|max:255',
                 'has_sub_processes' => 'nullable|boolean',
                 'sub_process_name' => 'nullable|string|max:255|required_if:has_sub_processes,1',
-                'personnel_id' => 'nullable|string|max:50',
-                'surname' => 'required|string|max:100',
-                'firstname' => 'required|string|max:100',
+                'personnel_id' => $basicInfoLocked ? 'sometimes|nullable|string|max:50' : 'nullable|string|max:50',
+                'surname' => $basicInfoLocked ? 'sometimes|required|string|max:100' : 'required|string|max:100',
+                'firstname' => $basicInfoLocked ? 'sometimes|required|string|max:100' : 'required|string|max:100',
                 'purpose' => 'nullable|string',
                 'role_responsible' => 'nullable|string|max:255',
             ]);
 
-            // Save has_sub_processes on the parent form
-            $parentForm->update([
+            // Save has_sub_processes and personnel fields on the parent form
+            $parentFormUpdateData = [
                 'college_id' => $validated['college_id'],
                 'business_function' => $validated['business_function'],
                 'main_process_name' => $validated['main_process_name'],
                 'has_sub_processes' => $validated['has_sub_processes'] ?? false,
-            ]);
+                'firstname' => $validated['firstname'],
+                'surname' => $validated['surname'],
+                'personnel_id' => $validated['personnel_id'],
+                'role_responsible' => $validated['role_responsible'],
+            ];
+
+            $parentForm->update($parentFormUpdateData);
 
             $submission->update([
                 'sub_process_name' => ($validated['has_sub_processes'] ?? false) ? $validated['sub_process_name'] : null,
-                'personnel_id' => $validated['personnel_id'],
-                'surname' => $validated['surname'],
-                'firstname' => $validated['firstname'],
                 'purpose' => $validated['purpose'],
-                'role_responsible' => $validated['role_responsible'],
                 'current_step' => 2,
             ]);
 
@@ -453,7 +458,24 @@ class RopaFormController extends Controller
 
         $validated = $request->validate($relevantRules);
 
-        $submission->update($validated);
+        // Personnel fields now belong to the parent form, not the submission
+        $personnelFields = ['personnel_id', 'firstname', 'surname', 'role_responsible'];
+        $formUpdateData = array_filter(
+            $validated,
+            fn ($key) => in_array($key, $personnelFields),
+            ARRAY_FILTER_USE_KEY
+        );
+        $submissionUpdateData = array_filter(
+            $validated,
+            fn ($key) => ! in_array($key, $personnelFields),
+            ARRAY_FILTER_USE_KEY
+        );
+
+        if (! empty($formUpdateData)) {
+            $parentForm->update($formUpdateData);
+        }
+
+        $submission->update($submissionUpdateData);
 
         return redirect()->route('ropa.view-submission', $submission)
             ->with('success', 'Submission updated successfully.');
@@ -586,11 +608,7 @@ class RopaFormController extends Controller
 
         $stepRules = [
             1 => [
-                'personnel_id' => 'nullable|string|max:50',
-                'surname' => 'required|string|max:100',
-                'firstname' => 'required|string|max:100',
                 'purpose' => 'nullable|string',
-                'role_responsible' => 'nullable|string|max:255',
             ],
             2 => [
                 'joint_controllers' => 'required|array|min:1',

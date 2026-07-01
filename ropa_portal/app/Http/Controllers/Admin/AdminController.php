@@ -55,9 +55,7 @@ class AdminController extends Controller
     {
         $query = RopaForm::with(['user', 'college', 'submissions']);
 
-        // Search filter — search the form, its owner, and its submissions'
-        // personnel details (personnel_id/surname/firstname now live on
-        // RopaSubmission, not RopaForm).
+        // Search filter — search the form, its owner, and its personnel fields.
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -69,10 +67,10 @@ class AdminController extends Controller
                             ->orWhere('surname', 'LIKE', "%{$search}%")
                             ->orWhere('email', 'LIKE', "%{$search}%");
                     })
-                    ->orWhereHas('submissions', function ($q3) use ($search) {
+                    ->orWhere(function ($q3) use ($search) {
                         $q3->where('personnel_id', 'LIKE', "%{$search}%")
-                            ->orWhere('surname', 'LIKE', "%{$search}%")
-                            ->orWhere('firstname', 'LIKE', "%{$search}%");
+                            ->orWhere('firstname', 'LIKE', "%{$search}%")
+                            ->orWhere('surname', 'LIKE', "%{$search}%");
                     });
             });
         }
@@ -202,8 +200,8 @@ class AdminController extends Controller
                         $form->main_process_name ?? 'N/A',
                         $submission->sub_process_name ?? 'N/A (main process)',
                         ucfirst($submission->status),
-                        $submission->personnel_id ?? 'N/A',
-                        trim(($submission->firstname ?? '').' '.($submission->surname ?? '')) ?: 'N/A',
+                        $form->personnel_id ?? 'N/A',
+                        trim(($form->firstname ?? '').' '.($form->surname ?? '')) ?: 'N/A',
                         implode(', ', $submission->data_subjects ?? []),
                         implode(', ', $submission->personal_data_categories ?? []),
                         implode(', ', $submission->legal_basis ?? []),

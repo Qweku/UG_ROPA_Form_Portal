@@ -119,7 +119,7 @@
                                         </button>
                                     </h2>
                                     <div id="adminCollapse{{ $ropaForm->id }}_{{ $index }}" class="accordion-collapse collapse {{ $index == 0 ? 'show' : '' }}" data-bs-parent="#adminAccordion{{ $ropaForm->id }}">
-                                        <div class="accordion-body">
+<div class="accordion-body">
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <p><strong>Purpose:</strong> {{ $sub->purpose ?? 'N/A' }}</p>
@@ -127,8 +127,8 @@
                                                     <p><strong>Data Subjects:</strong> {{ implode(', ', $sub->data_subjects ?? []) ?: 'N/A' }}</p>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <p><strong>Personnel:</strong> {{ $sub->firstname ?? '' }} {{ $sub->surname ?? '' }} ({{ $sub->personnel_id ?? 'N/A' }})</p>
-                                                    <p><strong>Role:</strong> {{ $sub->role_responsible ?? 'N/A' }}</p>
+                                                    <p><strong>Personnel:</strong> {{ $ropaForm->firstname ?? '' }} {{ $ropaForm->surname ?? '' }} ({{ $ropaForm->personnel_id ?? 'N/A' }})</p>
+                                                    <p><strong>Role:</strong> {{ $ropaForm->role_responsible ?? 'N/A' }}</p>
                                                     <p><strong>Completed:</strong> {{ $sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A' }}</p>
                                                 </div>
                                             </div>
