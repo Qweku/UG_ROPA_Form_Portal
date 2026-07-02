@@ -75,7 +75,7 @@
                                     <i class="fas fa-file-signature me-1" style="color: #b69964;"></i> Contract in Place?
                                 </label>
                                 <select name="external_recipients[<?php echo e($idx); ?>][contract]" class="form-select contract-select">
-                                    <?php if(($recipient['relationship'] ?? '') == 'Processor'): ?>
+                                    <?php if(($recipient['relationship'] ?? '') == 'Data Processor'): ?>
                                         <option value="yes" <?php echo e(($recipient['contract'] ?? '') == 'yes' ? 'selected' : ''); ?>>✅ Yes</option>
                                         <option value="no" <?php echo e(($recipient['contract'] ?? '') == 'no' ? 'selected' : ''); ?>>❌ No</option>
                                     <?php else: ?>
@@ -142,7 +142,7 @@ function updateContractOptions(contractSelect) {
     if (!relationshipSelect) return;
 
     const currentValue = contractSelect.value;
-    const isProcessor = relationshipSelect.value === 'Processor';
+    const isProcessor = relationshipSelect.value === 'Data Processor';
 
     contractSelect.innerHTML = '';
 

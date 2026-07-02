@@ -51,7 +51,7 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
+            <div class=" h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -222,7 +222,7 @@ function updateSpecialCategories() {
 
     const PREDEFINED = [
         'Medical certificates',
-        'Garda vetting details',
+        'Garde vetting details',
         'Disability data relating to a person',
         'Extenuating circumstances documentation',
         'Health data including but not limited to sick leave records',
@@ -336,8 +336,9 @@ function updateSpecialCategories() {
     const hiddenInput = document.getElementById('data_subjects_hidden');
 
     const PREDEFINED = [
-        'Employees/staff',
+        'Employees',
         'PhD students',
+        'Masters students',
         'Current students',
         'Former students',
         'Members of the public',

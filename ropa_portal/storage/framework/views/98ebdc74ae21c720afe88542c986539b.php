@@ -18,7 +18,7 @@
                     <button onclick="window.print()" class="btn btn-outline-primary">
                         <i class="fas fa-print me-2"></i> Print
                     </button>
-                    <a href="<?php echo e(route('admin.submitted-forms')); ?>" class="btn btn-secondary">
+                    <a href="<?php echo e(route('admin.dashboard')); ?>" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-2"></i> Back
                     </a>
                 </div>
@@ -121,7 +121,7 @@
                                         </button>
                                     </h2>
                                     <div id="adminCollapse<?php echo e($ropaForm->id); ?>_<?php echo e($index); ?>" class="accordion-collapse collapse <?php echo e($index == 0 ? 'show' : ''); ?>" data-bs-parent="#adminAccordion<?php echo e($ropaForm->id); ?>">
-                                        <div class="accordion-body">
+<div class="accordion-body">
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <p><strong>Purpose:</strong> <?php echo e($sub->purpose ?? 'N/A'); ?></p>
@@ -129,8 +129,8 @@
                                                     <p><strong>Data Subjects:</strong> <?php echo e(implode(', ', $sub->data_subjects ?? []) ?: 'N/A'); ?></p>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <p><strong>Personnel:</strong> <?php echo e($sub->firstname ?? ''); ?> <?php echo e($sub->surname ?? ''); ?> (<?php echo e($sub->personnel_id ?? 'N/A'); ?>)</p>
-                                                    <p><strong>Role:</strong> <?php echo e($sub->role_responsible ?? 'N/A'); ?></p>
+                                                    <p><strong>Personnel:</strong> <?php echo e($ropaForm->firstname ?? ''); ?> <?php echo e($ropaForm->surname ?? ''); ?> (<?php echo e($ropaForm->personnel_id ?? 'N/A'); ?>)</p>
+                                                    <p><strong>Role:</strong> <?php echo e($ropaForm->role_responsible ?? 'N/A'); ?></p>
                                                     <p><strong>Completed:</strong> <?php echo e($sub->completed_at ? $sub->completed_at->format('M d, Y H:i') : 'N/A'); ?></p>
                                                 </div>
                                             </div>

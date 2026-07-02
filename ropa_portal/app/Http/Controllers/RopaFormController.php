@@ -139,12 +139,13 @@ class RopaFormController extends Controller
     {
         $user = Auth::user();
 
-        $parentForm = session('ropa_form_id') ? RopaForm::find(session('ropa_form_id')) : null;
+        $parentForm = session('ropa_form_id') ? RopaForm::with('college')->find(session('ropa_form_id')) : null;
 
         // Session pointer missing/stale — try to recover the user's
         // existing incomplete form before considering creating a new one.
         if (! $parentForm || $parentForm->user_id !== $user->id) {
-            $parentForm = RopaForm::where('user_id', $user->id)
+            $parentForm = RopaForm::with('college')
+                ->where('user_id', $user->id)
                 ->where('all_submissions_completed', false)
                 ->latest('updated_at')
                 ->first();
@@ -239,7 +240,7 @@ class RopaFormController extends Controller
                 'college_id' => $validated['college_id'],
                 'business_function' => $validated['business_function'],
                 'main_process_name' => $validated['main_process_name'],
-                'has_sub_processes' => $validated['has_sub_processes'] ?? false,
+                'has_sub_processes' => $validated['has_sub_processes'] ?? 0,
                 'firstname' => $validated['firstname'],
                 'surname' => $validated['surname'],
                 'personnel_id' => $validated['personnel_id'],
@@ -249,7 +250,7 @@ class RopaFormController extends Controller
             $parentForm->update($parentFormUpdateData);
 
             $submission->update([
-                'sub_process_name' => ($validated['has_sub_processes'] ?? false) ? $validated['sub_process_name'] : null,
+                'sub_process_name' => ($parentForm->has_sub_processes ?? false) ? $validated['sub_process_name'] : null,
                 'purpose' => $validated['purpose'],
                 'current_step' => 2,
             ]);
@@ -366,6 +367,8 @@ class RopaFormController extends Controller
             abort(403);
         }
 
+        $parentForm->load('college');
+
         $completedSubmissions = $parentForm->submissions()->where('status', 'completed')->get();
         if ($completedSubmissions->isEmpty()) {
             return redirect()->route('ropa.edit', ['step' => 1]);
@@ -381,7 +384,7 @@ class RopaFormController extends Controller
      */
     public function viewSubmission(RopaSubmission $submission): View
     {
-        $parentForm = $submission->ropaForm;
+        $parentForm = $submission->load('ropaForm.college')->ropaForm;
 
         if (! $parentForm) {
             abort(404, 'This submission is no longer linked to a RoPA process and cannot be viewed.');
@@ -411,7 +414,7 @@ class RopaFormController extends Controller
      */
     public function updateProcessIdentity(Request $request, RopaSubmission $submission): RedirectResponse
     {
-        $parentForm = $submission->ropaForm;
+        $parentForm = $submission->load('ropaForm.college')->ropaForm;
 
         if (! $parentForm || ! $this->canAccess($parentForm)) {
             abort(403);
@@ -436,7 +439,7 @@ class RopaFormController extends Controller
 
     public function updateSubmission(Request $request, RopaSubmission $submission): RedirectResponse
     {
-        $parentForm = $submission->ropaForm;
+        $parentForm = $submission->load('ropaForm.college')->ropaForm;
 
         if (! $parentForm || ! $this->canAccess($parentForm)) {
             abort(403);
@@ -568,6 +571,7 @@ class RopaFormController extends Controller
             'personal_data_categories', 'internal_recipients', 'special_category_recipients',
             'legal_basis', 'sensitive_legal_basis', 'individual_rights', 'external_recipients',
             'international_transfers', 'transfer_mechanisms', 'dpa_conditions', 'gdpr_articles',
+            'cybersecurity_articles', 'other_articles',
         ];
         foreach ($jsonFields as $field) {
             if ($request->has($field)) {
@@ -589,7 +593,8 @@ class RopaFormController extends Controller
 
         $checkboxFields = [
             'categories_records', 'individual_rights', 'dpa_conditions',
-            'gdpr_articles', 'legal_basis', 'sensitive_legal_basis',
+            'gdpr_articles', 'cybersecurity_articles', 'other_articles',
+            'legal_basis', 'sensitive_legal_basis',
         ];
         foreach ($checkboxFields as $field) {
             if (! $request->has($field) || $request->input($field) === null) {
@@ -672,6 +677,8 @@ class RopaFormController extends Controller
             14 => [
                 'dpa_conditions' => 'required|array|min:1',
                 'gdpr_articles' => 'required|array|min:1',
+                'cybersecurity_articles' => 'nullable|array',
+                'other_articles' => 'nullable|array',
                 'retention_policy_link' => 'required|url|max:500',
                 'retained_per_policy' => 'required|boolean',
                 'retention_non_adherence_reason' => 'nullable|string|required_if:retained_per_policy,false',

@@ -112,6 +112,7 @@
                             College, Business Function, and Main Process Name were set when the first sub-process was created and apply to this whole RoPA.
                         </p>
                         <div class="row">
+                            <input type="hidden" name="has_sub_processes" value="<?php echo e($parentForm->has_sub_processes ? 1 : 0); ?>">
                             <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">College</label>
                                 <input type="text" class="form-control" value="<?php echo e($parentForm->college->name ?? ''); ?>" disabled>
@@ -150,7 +151,7 @@
             </div>
         <?php else: ?>
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="h-100 border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -449,4 +450,5 @@
     });
 </script>
 <?php $__env->stopPush(); ?>
-<?php endif; ?><?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/ropa/steps/step1.blade.php ENDPATH**/ ?>
+<?php endif; ?>
+<?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/ropa/steps/step1.blade.php ENDPATH**/ ?>

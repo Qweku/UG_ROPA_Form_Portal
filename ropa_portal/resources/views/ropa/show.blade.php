@@ -11,7 +11,7 @@
                 <div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('ropa.index') }}" class="text-decoration-none">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('ropa.index') }}" class="text-decoration-none">Dashboard</a></li>
                             <li class="breadcrumb-item active">Submission #{{ $submission->id }}</li>
                         </ol>
                     </nav>
@@ -23,7 +23,7 @@
                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                         <i class="fas fa-trash-alt me-2"></i> Delete
                     </button>
-                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('ropa.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('ropa.index') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
                     </a>
                 </div>
@@ -141,6 +141,50 @@
 
         <div class="col-lg-9" data-aos="fade-left">
 
+            @php
+                /**
+                 * Safely coerce a value to a PHP array, handling three possible
+                 * states that can come out of the DB for array-cast fields:
+                 *   1. Already a PHP array (Eloquent cast worked correctly)  → return as-is
+                 *   2. A JSON-encoded string (double-encoded on save)         → json_decode it
+                 *   3. null / empty                                           → return []
+                 */
+                $toArray = function ($value): array {
+                    if (is_array($value)) return $value;
+                    if (is_string($value) && $value !== '') {
+                        $decoded = json_decode($value, true);
+                        return is_array($decoded) ? $decoded : [$value];
+                    }
+                    return [];
+                };
+
+                // Normalize every array-typed field on this submission so
+                // @forelse and implode() never receive a string.
+                $jointControllers        = $toArray($submission->joint_controllers);
+                $categoriesRecords       = $toArray($submission->categories_records);
+                $dataSubjects            = $toArray($submission->data_subjects);
+                $personalDataCategories  = $toArray($submission->personal_data_categories);
+                $internalRecipients      = $toArray($submission->internal_recipients);
+                $specialCategoryRecipients = $toArray($submission->special_category_recipients);
+                $legalBasis              = $toArray($submission->legal_basis);
+                $sensitiveLegalBasis     = $toArray($submission->sensitive_legal_basis);
+                $individualRights        = $toArray($submission->individual_rights);
+                $externalRecipients      = $toArray($submission->external_recipients);
+                $internationalTransfers  = $toArray($submission->international_transfers);
+                $transferMechanisms      = $toArray($submission->transfer_mechanisms);
+                $dpaConditions           = $toArray($submission->dpa_conditions);
+                $gdprArticles            = $toArray($submission->gdpr_articles);
+
+                // special_category_documents is a plain string column (not array-cast),
+                // but some submissions have it stored as a JSON-encoded array string.
+                // Decode it for display so it renders sensibly either way.
+                $specialCategoryDocuments = $submission->special_category_documents;
+                if (is_string($specialCategoryDocuments) && str_starts_with(trim($specialCategoryDocuments), '[')) {
+                    $decoded = json_decode($specialCategoryDocuments, true);
+                    $specialCategoryDocuments = is_array($decoded) ? implode(', ', $decoded) : $specialCategoryDocuments;
+                }
+            @endphp
+
             {{-- ============================================================ --}}
             {{-- SECTION: Process Identity (main + sub-process names)         --}}
             {{-- ============================================================ --}}
@@ -248,29 +292,51 @@
                     </div>
                     <div class="card-body">
                         <div class="view-mode">
-                            @forelse($submission->joint_controllers ?? [] as $controller)
-                                <div class="tag-chip d-inline-flex me-2 mb-2">
-                                    <span>
-                                        <strong>{{ is_array($controller) ? ($controller['name'] ?? 'N/A') : $controller }}</strong>
-                                        @if(is_array($controller))
-                                            @if(!empty($controller['contact_email']))
-                                                &middot; {{ $controller['contact_email'] }}
-                                            @endif
-                                            @if(!empty($controller['contact_phone']))
-                                                &middot; {{ $controller['contact_phone'] }}
-                                            @endif
-                                            @if(!empty($controller['contact_address']))
-                                                <br><small class="text-muted">{{ $controller['contact_address'] }}</small>
-                                            @endif
+                            @forelse($jointControllers as $controller)
+                                @php $c = is_array($controller) ? $controller : []; @endphp
+                                <div class="card border mb-3 p-3" style="border-radius: 12px;">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Organisation / Name</small>
+                                            <p class="mb-0 fw-bold">{{ $c['name'] ?? 'N/A' }}</p>
+                                        </div>
+                                        @if(!empty($c['contact_name']))
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Name</small>
+                                            <p class="mb-0">{{ $c['contact_name'] }}</p>
+                                        </div>
                                         @endif
-                                    </span>
+                                        @if(!empty($c['contact_email']))
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Email</small>
+                                            <p class="mb-0">
+                                                <a href="mailto:{{ $c['contact_email'] }}">{{ $c['contact_email'] }}</a>
+                                            </p>
+                                        </div>
+                                        @endif
+                                        @if(!empty($c['contact_phone']))
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Phone</small>
+                                            <p class="mb-0">{{ $c['contact_phone'] }}</p>
+                                        </div>
+                                        @endif
+                                        @if(!empty($c['contact_address']))
+                                        <div class="col-12">
+                                            <small class="text-muted">Contact Address</small>
+                                            <p class="mb-0">{{ $c['contact_address'] }}</p>
+                                        </div>
+                                        @endif
+                                    </div>
                                 </div>
                             @empty
                                 <span class="text-muted">N/A</span>
                             @endforelse
                         </div>
-                        <textarea name="joint_controllers_raw" rows="2" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='JSON array, e.g. [{"name":"Org Name","contact_name":"...","contact_email":"...","contact_phone":"...","contact_address":"..."}]'>{{ json_encode($submission->joint_controllers ?? [], JSON_PRETTY_PRINT) }}</textarea>
-                        <small class="text-muted edit-mode d-none">Each joint controller needs a "name" and at least one contact field (contact_name, contact_email, contact_phone, contact_address) — edit as JSON.</small>
+                        <textarea name="joint_controllers_raw" rows="6" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='[{"name":"Organisation name","contact_name":"Full name","contact_email":"email@example.com","contact_phone":"0201234567","contact_address":"City, Country"}]'>{{ json_encode($jointControllers, JSON_PRETTY_PRINT) }}</textarea>
+                        <small class="text-muted edit-mode d-none">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Edit as JSON. Each entry supports: <code>name</code>, <code>contact_name</code>, <code>contact_email</code>, <code>contact_phone</code>, <code>contact_address</code>.
+                        </small>
                     </div>
                 </form>
             </div>
@@ -296,46 +362,40 @@
                             <div class="col-12">
                                 <small class="text-muted">Categories of Records</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->categories_records ?? [] as $item)
+                                    @forelse($categoriesRecords as $item)
                                         <span class="badge bg-primary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="categories_records_raw" rows="2" class="form-control edit-mode d-none" data-array-field="categories_records" placeholder="Comma-separated list">{{ implode(', ', $submission->categories_records ?? []) }}</textarea>
+                                <textarea name="categories_records_raw" rows="2" class="form-control edit-mode d-none" data-array-field="categories_records" placeholder="Comma-separated list">{{ implode(', ', $categoriesRecords) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Data Subjects</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->data_subjects ?? [] as $item)
+                                    @forelse($dataSubjects as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="data_subjects_raw" rows="2" class="form-control edit-mode d-none" data-array-field="data_subjects" placeholder="Comma-separated list">{{ implode(', ', $submission->data_subjects ?? []) }}</textarea>
+                                <textarea name="data_subjects_raw" rows="2" class="form-control edit-mode d-none" data-array-field="data_subjects" placeholder="Comma-separated list">{{ implode(', ', $dataSubjects) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Personal Data Categories</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->personal_data_categories ?? [] as $item)
+                                    @forelse($personalDataCategories as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="personal_data_categories_raw" rows="2" class="form-control edit-mode d-none" data-array-field="personal_data_categories" placeholder="Comma-separated list">{{ implode(', ', $submission->personal_data_categories ?? []) }}</textarea>
+                                <textarea name="personal_data_categories_raw" rows="2" class="form-control edit-mode d-none" data-array-field="personal_data_categories" placeholder="Comma-separated list">{{ implode(', ', $personalDataCategories) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Special Category Documents</small>
-                                <p class="mb-0 view-mode">
-                                    @forelse($submission->special_category_documents ?? [] as $item)
-                                        <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
-                                    @empty
-                                        <span class="text-muted">N/A</span>
-                                    @endforelse
-                                </p>
-                                <textarea name="special_category_documents_raw" rows="2" class="form-control edit-mode d-none" data-array-field="special_category_documents" placeholder="Comma-separated list">{{ implode(', ', $submission->special_category_documents ?? []) }}</textarea>
+                                <p class="mb-0 view-mode">{{ $specialCategoryDocuments ?? 'N/A' }}</p>
+                                <textarea name="special_category_documents" rows="2" class="form-control edit-mode d-none">{{$specialCategoryDocuments}}</textarea>
                             </div>
                         </div>
                     </div>
@@ -376,24 +436,24 @@
                             <div class="col-12">
                                 <small class="text-muted">Internal Recipients</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->internal_recipients ?? [] as $item)
+                                    @forelse($internalRecipients as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="internal_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="internal_recipients" placeholder="Comma-separated list">{{ implode(', ', $submission->internal_recipients ?? []) }}</textarea>
+                                <textarea name="internal_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="internal_recipients" placeholder="Comma-separated list">{{ implode(', ', $internalRecipients) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Special Category Recipients</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->special_category_recipients ?? [] as $item)
+                                    @forelse($specialCategoryRecipients as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="special_category_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="special_category_recipients" placeholder="Comma-separated list">{{ implode(', ', $submission->special_category_recipients ?? []) }}</textarea>
+                                <textarea name="special_category_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="special_category_recipients" placeholder="Comma-separated list">{{ implode(', ', $specialCategoryRecipients) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Sharing Reasons</small>
@@ -462,13 +522,13 @@
                             <div class="col-12">
                                 <small class="text-muted">Legal Basis</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->legal_basis ?? [] as $item)
+                                    @forelse($legalBasis as $item)
                                         <span class="badge bg-primary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="legal_basis" placeholder="Comma-separated list">{{ implode(', ', $submission->legal_basis ?? []) }}</textarea>
+                                <textarea name="legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="legal_basis" placeholder="Comma-separated list">{{ implode(', ', $legalBasis) }}</textarea>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">LIA Documented?</small>
@@ -486,13 +546,13 @@
                             <div class="col-12">
                                 <small class="text-muted">Sensitive Legal Basis</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->sensitive_legal_basis ?? [] as $item)
+                                    @forelse($sensitiveLegalBasis as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="sensitive_legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="sensitive_legal_basis" placeholder="Comma-separated list">{{ implode(', ', $submission->sensitive_legal_basis ?? []) }}</textarea>
+                                <textarea name="sensitive_legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="sensitive_legal_basis" placeholder="Comma-separated list">{{ implode(', ', $sensitiveLegalBasis) }}</textarea>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">Retention Period</small>
@@ -533,13 +593,13 @@
                             <div class="col-12">
                                 <small class="text-muted">Individual Rights</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->individual_rights ?? [] as $item)
+                                    @forelse($individualRights as $item)
                                         <span class="badge bg-primary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="individual_rights_raw" rows="2" class="form-control edit-mode d-none" data-array-field="individual_rights" placeholder="Comma-separated list">{{ implode(', ', $submission->individual_rights ?? []) }}</textarea>
+                                <textarea name="individual_rights_raw" rows="2" class="form-control edit-mode d-none" data-array-field="individual_rights" placeholder="Comma-separated list">{{ implode(', ', $individualRights) }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -587,7 +647,7 @@
                     </div>
                     <div class="card-body">
                         <div class="view-mode">
-                            @forelse($submission->external_recipients ?? [] as $recipient)
+                            @forelse($externalRecipients as $recipient)
                                 <div class="tag-chip d-inline-flex me-2 mb-2 align-items-start">
                                     <span>
                                         <strong>{{ is_array($recipient) ? ($recipient['name'] ?? 'N/A') : $recipient }}</strong>
@@ -605,7 +665,7 @@
                                 <span class="text-muted">N/A</span>
                             @endforelse
                         </div>
-                        <textarea name="external_recipients_raw" rows="3" class="form-control edit-mode d-none" data-json-field="external_recipients" placeholder='JSON array, e.g. [{"name":"...","type":"...","contract":"Yes","relationship":"..."}]'>{{ json_encode($submission->external_recipients ?? [], JSON_PRETTY_PRINT) }}</textarea>
+                        <textarea name="external_recipients_raw" rows="3" class="form-control edit-mode d-none" data-json-field="external_recipients" placeholder='JSON array, e.g. [{"name":"...","type":"...","contract":"Yes","relationship":"..."}]'>{{ json_encode($externalRecipients, JSON_PRETTY_PRINT) }}</textarea>
                         <small class="text-muted edit-mode d-none">Each recipient needs name, type, contract, and relationship — edit as JSON.</small>
                     </div>
                 </form>
@@ -632,24 +692,24 @@
                             <div class="col-12">
                                 <small class="text-muted">International Transfers</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->international_transfers ?? [] as $item)
+                                    @forelse($internationalTransfers as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="international_transfers_raw" rows="2" class="form-control edit-mode d-none" data-array-field="international_transfers" placeholder="Comma-separated list">{{ implode(', ', $submission->international_transfers ?? []) }}</textarea>
+                                <textarea name="international_transfers_raw" rows="2" class="form-control edit-mode d-none" data-array-field="international_transfers" placeholder="Comma-separated list">{{ implode(', ', $internationalTransfers) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Transfer Mechanisms</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->transfer_mechanisms ?? [] as $item)
+                                    @forelse($transferMechanisms as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="transfer_mechanisms_raw" rows="2" class="form-control edit-mode d-none" data-array-field="transfer_mechanisms" placeholder="Comma-separated list">{{ implode(', ', $submission->transfer_mechanisms ?? []) }}</textarea>
+                                <textarea name="transfer_mechanisms_raw" rows="2" class="form-control edit-mode d-none" data-array-field="transfer_mechanisms" placeholder="Comma-separated list">{{ implode(', ', $transferMechanisms) }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -845,24 +905,24 @@
                             <div class="col-md-6">
                                 <small class="text-muted">DPA 2018 Conditions</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->dpa_conditions ?? [] as $item)
+                                    @forelse($dpaConditions as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="dpa_conditions_raw" rows="2" class="form-control edit-mode d-none" data-array-field="dpa_conditions" placeholder="Comma-separated list">{{ implode(', ', $submission->dpa_conditions ?? []) }}</textarea>
+                                <textarea name="dpa_conditions_raw" rows="2" class="form-control edit-mode d-none" data-array-field="dpa_conditions" placeholder="Comma-separated list">{{ implode(', ', $dpaConditions) }}</textarea>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">GDPR Articles</small>
                                 <p class="mb-0 view-mode">
-                                    @forelse($submission->gdpr_articles ?? [] as $item)
+                                    @forelse($gdprArticles as $item)
                                         <span class="badge bg-secondary me-1 mb-1">{{ $item }}</span>
                                     @empty
                                         <span class="text-muted">N/A</span>
                                     @endforelse
                                 </p>
-                                <textarea name="gdpr_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="gdpr_articles" placeholder="Comma-separated list">{{ implode(', ', $submission->gdpr_articles ?? []) }}</textarea>
+                                <textarea name="gdpr_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="gdpr_articles" placeholder="Comma-separated list">{{ implode(', ', $gdprArticles) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Retention Policy Link</small>

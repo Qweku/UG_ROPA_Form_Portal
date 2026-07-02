@@ -142,6 +142,50 @@
 
         <div class="col-lg-9" data-aos="fade-left">
 
+            <?php
+                /**
+                 * Safely coerce a value to a PHP array, handling three possible
+                 * states that can come out of the DB for array-cast fields:
+                 *   1. Already a PHP array (Eloquent cast worked correctly)  → return as-is
+                 *   2. A JSON-encoded string (double-encoded on save)         → json_decode it
+                 *   3. null / empty                                           → return []
+                 */
+                $toArray = function ($value): array {
+                    if (is_array($value)) return $value;
+                    if (is_string($value) && $value !== '') {
+                        $decoded = json_decode($value, true);
+                        return is_array($decoded) ? $decoded : [$value];
+                    }
+                    return [];
+                };
+
+                // Normalize every array-typed field on this submission so
+                // @forelse and implode() never receive a string.
+                $jointControllers        = $toArray($submission->joint_controllers);
+                $categoriesRecords       = $toArray($submission->categories_records);
+                $dataSubjects            = $toArray($submission->data_subjects);
+                $personalDataCategories  = $toArray($submission->personal_data_categories);
+                $internalRecipients      = $toArray($submission->internal_recipients);
+                $specialCategoryRecipients = $toArray($submission->special_category_recipients);
+                $legalBasis              = $toArray($submission->legal_basis);
+                $sensitiveLegalBasis     = $toArray($submission->sensitive_legal_basis);
+                $individualRights        = $toArray($submission->individual_rights);
+                $externalRecipients      = $toArray($submission->external_recipients);
+                $internationalTransfers  = $toArray($submission->international_transfers);
+                $transferMechanisms      = $toArray($submission->transfer_mechanisms);
+                $dpaConditions           = $toArray($submission->dpa_conditions);
+                $gdprArticles            = $toArray($submission->gdpr_articles);
+
+                // special_category_documents is a plain string column (not array-cast),
+                // but some submissions have it stored as a JSON-encoded array string.
+                // Decode it for display so it renders sensibly either way.
+                $specialCategoryDocuments = $submission->special_category_documents;
+                if (is_string($specialCategoryDocuments) && str_starts_with(trim($specialCategoryDocuments), '[')) {
+                    $decoded = json_decode($specialCategoryDocuments, true);
+                    $specialCategoryDocuments = is_array($decoded) ? implode(', ', $decoded) : $specialCategoryDocuments;
+                }
+            ?>
+
             
             
             
@@ -203,18 +247,18 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <small class="text-muted">Personnel ID</small>
-                                <p class="mb-0 fw-bold view-mode"><?php echo e($submission->personnel_id ?? 'N/A'); ?></p>
-                                <input type="text" name="personnel_id" class="form-control edit-mode d-none" maxlength="50" value="<?php echo e($submission->personnel_id); ?>">
+                                <p class="mb-0 fw-bold view-mode"><?php echo e($parentForm->personnel_id ?? 'N/A'); ?></p>
+                                <input type="text" name="personnel_id" class="form-control edit-mode d-none" maxlength="50" value="<?php echo e($parentForm->personnel_id); ?>">
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted">Surname</small>
-                                <p class="mb-0 fw-bold view-mode"><?php echo e($submission->surname ?? 'N/A'); ?></p>
-                                <input type="text" name="surname" class="form-control edit-mode d-none" maxlength="100" value="<?php echo e($submission->surname); ?>" required>
+                                <p class="mb-0 fw-bold view-mode"><?php echo e($parentForm->surname ?? 'N/A'); ?></p>
+                                <input type="text" name="surname" class="form-control edit-mode d-none" maxlength="100" value="<?php echo e($parentForm->surname); ?>" required>
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted">Firstname</small>
-                                <p class="mb-0 fw-bold view-mode"><?php echo e($submission->firstname ?? 'N/A'); ?></p>
-                                <input type="text" name="firstname" class="form-control edit-mode d-none" maxlength="100" value="<?php echo e($submission->firstname); ?>" required>
+                                <p class="mb-0 fw-bold view-mode"><?php echo e($parentForm->firstname ?? 'N/A'); ?></p>
+                                <input type="text" name="firstname" class="form-control edit-mode d-none" maxlength="100" value="<?php echo e($parentForm->firstname); ?>" required>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Purpose</small>
@@ -223,8 +267,8 @@
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Role Responsible</small>
-                                <p class="mb-0 fw-bold view-mode"><?php echo e($submission->role_responsible ?? 'N/A'); ?></p>
-                                <input type="text" name="role_responsible" class="form-control edit-mode d-none" maxlength="255" value="<?php echo e($submission->role_responsible); ?>">
+                                <p class="mb-0 fw-bold view-mode"><?php echo e($parentForm->role_responsible ?? 'N/A'); ?></p>
+                                <input type="text" name="role_responsible" class="form-control edit-mode d-none" maxlength="255" value="<?php echo e($parentForm->role_responsible); ?>">
                             </div>
                         </div>
                     </div>
@@ -249,22 +293,51 @@
                     </div>
                     <div class="card-body">
                         <div class="view-mode">
-                            <?php $__empty_1 = true; $__currentLoopData = $submission->joint_controllers ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $controller): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <div class="tag-chip d-inline-flex me-2 mb-2">
-                                    <span>
-                                        <strong><?php echo e(is_array($controller) ? ($controller['name'] ?? 'N/A') : $controller); ?></strong>
-                                        <?php if(is_array($controller) && !empty($controller['contact'])): ?>
-                                            &middot; <?php echo e($controller['contact']); ?>
-
+                            <?php $__empty_1 = true; $__currentLoopData = $jointControllers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $controller): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <?php $c = is_array($controller) ? $controller : []; ?>
+                                <div class="card border mb-3 p-3" style="border-radius: 12px;">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Organisation / Name</small>
+                                            <p class="mb-0 fw-bold"><?php echo e($c['name'] ?? 'N/A'); ?></p>
+                                        </div>
+                                        <?php if(!empty($c['contact_name'])): ?>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Name</small>
+                                            <p class="mb-0"><?php echo e($c['contact_name']); ?></p>
+                                        </div>
                                         <?php endif; ?>
-                                    </span>
+                                        <?php if(!empty($c['contact_email'])): ?>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Email</small>
+                                            <p class="mb-0">
+                                                <a href="mailto:<?php echo e($c['contact_email']); ?>"><?php echo e($c['contact_email']); ?></a>
+                                            </p>
+                                        </div>
+                                        <?php endif; ?>
+                                        <?php if(!empty($c['contact_phone'])): ?>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Phone</small>
+                                            <p class="mb-0"><?php echo e($c['contact_phone']); ?></p>
+                                        </div>
+                                        <?php endif; ?>
+                                        <?php if(!empty($c['contact_address'])): ?>
+                                        <div class="col-12">
+                                            <small class="text-muted">Contact Address</small>
+                                            <p class="mb-0"><?php echo e($c['contact_address']); ?></p>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <span class="text-muted">N/A</span>
                             <?php endif; ?>
                         </div>
-                        <textarea name="joint_controllers_raw" rows="2" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='JSON array, e.g. [{"name":"Org Name","contact":"email@example.com"}]'><?php echo e(json_encode($submission->joint_controllers ?? [], JSON_PRETTY_PRINT)); ?></textarea>
-                        <small class="text-muted edit-mode d-none">Each joint controller needs a "name" and "contact" — edit as JSON.</small>
+                        <textarea name="joint_controllers_raw" rows="6" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='[{"name":"Organisation name","contact_name":"Full name","contact_email":"email@example.com","contact_phone":"0201234567","contact_address":"City, Country"}]'><?php echo e(json_encode($jointControllers, JSON_PRETTY_PRINT)); ?></textarea>
+                        <small class="text-muted edit-mode d-none">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Edit as JSON. Each entry supports: <code>name</code>, <code>contact_name</code>, <code>contact_email</code>, <code>contact_phone</code>, <code>contact_address</code>.
+                        </small>
                     </div>
                 </form>
             </div>
@@ -290,40 +363,40 @@
                             <div class="col-12">
                                 <small class="text-muted">Categories of Records</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->categories_records ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $categoriesRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-primary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="categories_records_raw" rows="2" class="form-control edit-mode d-none" data-array-field="categories_records" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->categories_records ?? [])); ?></textarea>
+                                <textarea name="categories_records_raw" rows="2" class="form-control edit-mode d-none" data-array-field="categories_records" placeholder="Comma-separated list"><?php echo e(implode(', ', $categoriesRecords)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Data Subjects</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->data_subjects ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $dataSubjects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="data_subjects_raw" rows="2" class="form-control edit-mode d-none" data-array-field="data_subjects" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->data_subjects ?? [])); ?></textarea>
+                                <textarea name="data_subjects_raw" rows="2" class="form-control edit-mode d-none" data-array-field="data_subjects" placeholder="Comma-separated list"><?php echo e(implode(', ', $dataSubjects)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Personal Data Categories</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->personal_data_categories ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $personalDataCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="personal_data_categories_raw" rows="2" class="form-control edit-mode d-none" data-array-field="personal_data_categories" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->personal_data_categories ?? [])); ?></textarea>
+                                <textarea name="personal_data_categories_raw" rows="2" class="form-control edit-mode d-none" data-array-field="personal_data_categories" placeholder="Comma-separated list"><?php echo e(implode(', ', $personalDataCategories)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Special Category Documents</small>
-                                <p class="mb-0 view-mode"><?php echo e($submission->special_category_documents ?? 'N/A'); ?></p>
-                                <textarea name="special_category_documents" rows="2" class="form-control edit-mode d-none"><?php echo e($submission->special_category_documents); ?></textarea>
+                                <p class="mb-0 view-mode"><?php echo e($specialCategoryDocuments ?? 'N/A'); ?></p>
+                                <textarea name="special_category_documents" rows="2" class="form-control edit-mode d-none"><?php echo e($specialCategoryDocuments); ?></textarea>
                             </div>
                         </div>
                     </div>
@@ -364,24 +437,24 @@
                             <div class="col-12">
                                 <small class="text-muted">Internal Recipients</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->internal_recipients ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $internalRecipients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="internal_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="internal_recipients" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->internal_recipients ?? [])); ?></textarea>
+                                <textarea name="internal_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="internal_recipients" placeholder="Comma-separated list"><?php echo e(implode(', ', $internalRecipients)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Special Category Recipients</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->special_category_recipients ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $specialCategoryRecipients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="special_category_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="special_category_recipients" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->special_category_recipients ?? [])); ?></textarea>
+                                <textarea name="special_category_recipients_raw" rows="2" class="form-control edit-mode d-none" data-array-field="special_category_recipients" placeholder="Comma-separated list"><?php echo e(implode(', ', $specialCategoryRecipients)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Sharing Reasons</small>
@@ -450,13 +523,13 @@
                             <div class="col-12">
                                 <small class="text-muted">Legal Basis</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->legal_basis ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $legalBasis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-primary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="legal_basis" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->legal_basis ?? [])); ?></textarea>
+                                <textarea name="legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="legal_basis" placeholder="Comma-separated list"><?php echo e(implode(', ', $legalBasis)); ?></textarea>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">LIA Documented?</small>
@@ -474,13 +547,13 @@
                             <div class="col-12">
                                 <small class="text-muted">Sensitive Legal Basis</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->sensitive_legal_basis ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $sensitiveLegalBasis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="sensitive_legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="sensitive_legal_basis" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->sensitive_legal_basis ?? [])); ?></textarea>
+                                <textarea name="sensitive_legal_basis_raw" rows="2" class="form-control edit-mode d-none" data-array-field="sensitive_legal_basis" placeholder="Comma-separated list"><?php echo e(implode(', ', $sensitiveLegalBasis)); ?></textarea>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">Retention Period</small>
@@ -521,13 +594,13 @@
                             <div class="col-12">
                                 <small class="text-muted">Individual Rights</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->individual_rights ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $individualRights; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-primary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="individual_rights_raw" rows="2" class="form-control edit-mode d-none" data-array-field="individual_rights" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->individual_rights ?? [])); ?></textarea>
+                                <textarea name="individual_rights_raw" rows="2" class="form-control edit-mode d-none" data-array-field="individual_rights" placeholder="Comma-separated list"><?php echo e(implode(', ', $individualRights)); ?></textarea>
                             </div>
                         </div>
                     </div>
@@ -575,7 +648,7 @@
                     </div>
                     <div class="card-body">
                         <div class="view-mode">
-                            <?php $__empty_1 = true; $__currentLoopData = $submission->external_recipients ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $recipient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php $__empty_1 = true; $__currentLoopData = $externalRecipients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $recipient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <div class="tag-chip d-inline-flex me-2 mb-2 align-items-start">
                                     <span>
                                         <strong><?php echo e(is_array($recipient) ? ($recipient['name'] ?? 'N/A') : $recipient); ?></strong>
@@ -594,7 +667,7 @@
                                 <span class="text-muted">N/A</span>
                             <?php endif; ?>
                         </div>
-                        <textarea name="external_recipients_raw" rows="3" class="form-control edit-mode d-none" data-json-field="external_recipients" placeholder='JSON array, e.g. [{"name":"...","type":"...","contract":"Yes","relationship":"..."}]'><?php echo e(json_encode($submission->external_recipients ?? [], JSON_PRETTY_PRINT)); ?></textarea>
+                        <textarea name="external_recipients_raw" rows="3" class="form-control edit-mode d-none" data-json-field="external_recipients" placeholder='JSON array, e.g. [{"name":"...","type":"...","contract":"Yes","relationship":"..."}]'><?php echo e(json_encode($externalRecipients, JSON_PRETTY_PRINT)); ?></textarea>
                         <small class="text-muted edit-mode d-none">Each recipient needs name, type, contract, and relationship — edit as JSON.</small>
                     </div>
                 </form>
@@ -621,24 +694,24 @@
                             <div class="col-12">
                                 <small class="text-muted">International Transfers</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->international_transfers ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $internationalTransfers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="international_transfers_raw" rows="2" class="form-control edit-mode d-none" data-array-field="international_transfers" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->international_transfers ?? [])); ?></textarea>
+                                <textarea name="international_transfers_raw" rows="2" class="form-control edit-mode d-none" data-array-field="international_transfers" placeholder="Comma-separated list"><?php echo e(implode(', ', $internationalTransfers)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Transfer Mechanisms</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->transfer_mechanisms ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $transferMechanisms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="transfer_mechanisms_raw" rows="2" class="form-control edit-mode d-none" data-array-field="transfer_mechanisms" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->transfer_mechanisms ?? [])); ?></textarea>
+                                <textarea name="transfer_mechanisms_raw" rows="2" class="form-control edit-mode d-none" data-array-field="transfer_mechanisms" placeholder="Comma-separated list"><?php echo e(implode(', ', $transferMechanisms)); ?></textarea>
                             </div>
                         </div>
                     </div>
@@ -834,24 +907,24 @@
                             <div class="col-md-6">
                                 <small class="text-muted">DPA 2018 Conditions</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->dpa_conditions ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $dpaConditions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="dpa_conditions_raw" rows="2" class="form-control edit-mode d-none" data-array-field="dpa_conditions" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->dpa_conditions ?? [])); ?></textarea>
+                                <textarea name="dpa_conditions_raw" rows="2" class="form-control edit-mode d-none" data-array-field="dpa_conditions" placeholder="Comma-separated list"><?php echo e(implode(', ', $dpaConditions)); ?></textarea>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">GDPR Articles</small>
                                 <p class="mb-0 view-mode">
-                                    <?php $__empty_1 = true; $__currentLoopData = $submission->gdpr_articles ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $__empty_1 = true; $__currentLoopData = $gdprArticles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                         <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </p>
-                                <textarea name="gdpr_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="gdpr_articles" placeholder="Comma-separated list"><?php echo e(implode(', ', $submission->gdpr_articles ?? [])); ?></textarea>
+                                <textarea name="gdpr_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="gdpr_articles" placeholder="Comma-separated list"><?php echo e(implode(', ', $gdprArticles)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Retention Policy Link</small>

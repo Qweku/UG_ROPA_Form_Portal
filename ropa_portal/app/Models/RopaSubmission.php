@@ -19,7 +19,8 @@ class RopaSubmission extends Model
         'international_transfers', 'transfer_mechanisms', 'auto_decision_making',
         'profiling_description', 'consent_link', 'data_location', 'dpia_required',
         'dpia_progress', 'dpia_link', 'breach_occurred', 'breach_link',
-        'dpa_conditions', 'gdpr_articles', 'retention_policy_link',
+        'dpa_conditions', 'gdpr_articles', 'cybersecurity_articles', 'other_articles',
+        'retention_policy_link',
         'retained_per_policy', 'retention_non_adherence_reason',
         'current_step', 'status', 'completed_at',
     ];
@@ -39,6 +40,8 @@ class RopaSubmission extends Model
         'transfer_mechanisms' => 'array',
         'dpa_conditions' => 'array',
         'gdpr_articles' => 'array',
+        'cybersecurity_articles' => 'array',
+        'other_articles' => 'array',
         'share_internally' => 'boolean',
         'lia_documented' => 'boolean',
         'legally_required_retention' => 'boolean',
@@ -136,6 +139,8 @@ class RopaSubmission extends Model
             'Compliance' => [
                 'DPA Conditions' => $this->formatArray($this->dpa_conditions),
                 'GDPR Articles' => $this->formatArray($this->gdpr_articles),
+                'Cybersecurity Articles' => $this->formatArray($this->cybersecurity_articles),
+                'Other Articles' => $this->formatArray($this->other_articles),
                 'Retention Policy Link' => $this->retention_policy_link,
                 'Retained Per Policy?' => $this->formatBool($this->retained_per_policy),
                 'Retention Non-Adherence Reason' => $this->retention_non_adherence_reason,

@@ -41,7 +41,7 @@
             $currentIcon = $stepIcons[$step] ?? 'check-circle';
             $currentStep = $step;
             $submissionStatus = $submission->status ?? 'draft';
-            $hasSubProcesses = $parentForm->has_sub_processes ?? false;
+            $hasSubProcesses = $parentForm->has_sub_processes ?? 0;
             ?>
 
             <?php $__currentLoopData = $steps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $num => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -373,11 +373,12 @@
                         return;
                     }
 
-                    // If this parent process has sub-processes, ask the user what to do next
+// If this parent process has sub-processes, ask the user what to do next
                     if (hasSubProcesses) {
+                        const subProcessName = document.querySelector('input[name="sub_process_name"]')?.value || <?php echo json_encode($submission->sub_process_name ?? '', 15, 512) ?> || 'this sub-process';
                         Swal.fire({
                             title: 'Sub-process Completed!',
-                            html: `<p>You have completed data for <strong>"${document.querySelector('input[name="sub_process_name"]')?.value || 'this sub-process'}"</strong>.</p>
+                            html: `<p>You have completed data for <strong>"${subProcessName}"</strong>.</p>
                                    <p class="text-muted small">What would you like to do next?</p>`,
                             icon: 'question',
                             showCancelButton: true,

@@ -229,26 +229,26 @@
             <div class="row">
                 @php
                 $rightsIcons = [
-                'Access' => 'fa-eye',
-                'Rectification' => 'fa-pen',
-                'Erasure' => 'fa-trash-alt',
-                'Restriction' => 'fa-pause',
-                'Portability' => 'fa-download',
-                'Object' => 'fa-thumbs-down'
+                'Rights to Access' => 'fa-eye',
+                'Rights to Rectification' => 'fa-pen',
+                'Rights to Erasure' => 'fa-trash-alt',
+                'Rights to Restriction' => 'fa-pause',
+                'Rights to Portability' => 'fa-download',
+                'Rights to Object' => 'fa-thumbs-down'
                 ];
                 $rightsColors = [
-                'Access' => 'primary',
-                'Rectification' => 'info',
-                'Erasure' => 'danger',
-                'Restriction' => 'warning',
-                'Portability' => 'success',
-                'Object' => 'secondary'
+                'Rights to Access' => 'primary',
+                'Rights to Rectification' => 'info',
+                'Rights to Erasure' => 'danger',
+                'Rights to Restriction' => 'warning',
+                'Rights to Portability' => 'success',
+                'Rights to Object' => 'secondary'
                 ];
                 $individualRights = is_array($submission->individual_rights)
                 ? $submission->individual_rights
                 : (json_decode($submission->individual_rights ?? '[]', true) ?: []);
                 @endphp
-                @foreach(['Access','Rectification','Erasure','Restriction','Portability','Object'] as $right)
+                @foreach(['Rights to Access','Rights to Rectification','Rights to Erasure','Rights to Restriction','Rights to Portability','Rights to Object'] as $right)
                 <div class="col-md-4 col-lg-3 mb-2">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="individual_rights[]"

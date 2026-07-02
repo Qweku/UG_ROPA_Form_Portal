@@ -43,7 +43,7 @@
             $currentIcon = $stepIcons[$step] ?? 'check-circle';
             $currentStep = $step;
             $submissionStatus = $submission->status ?? 'draft';
-            $hasSubProcesses = $parentForm->has_sub_processes ?? false;
+            $hasSubProcesses = $parentForm->has_sub_processes ?? 0;
             @endphp
 
             @foreach($steps as $num => $label)
@@ -373,11 +373,12 @@
                         return;
                     }
 
-                    // If this parent process has sub-processes, ask the user what to do next
+// If this parent process has sub-processes, ask the user what to do next
                     if (hasSubProcesses) {
+                        const subProcessName = document.querySelector('input[name="sub_process_name"]')?.value || @json($submission->sub_process_name ?? '') || 'this sub-process';
                         Swal.fire({
                             title: 'Sub-process Completed!',
-                            html: `<p>You have completed data for <strong>"${document.querySelector('input[name="sub_process_name"]')?.value || 'this sub-process'}"</strong>.</p>
+                            html: `<p>You have completed data for <strong>"${subProcessName}"</strong>.</p>
                                    <p class="text-muted small">What would you like to do next?</p>`,
                             icon: 'question',
                             showCancelButton: true,

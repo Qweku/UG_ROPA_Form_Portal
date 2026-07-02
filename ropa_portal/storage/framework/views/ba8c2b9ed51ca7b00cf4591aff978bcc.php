@@ -6,12 +6,44 @@
             </div>
             <div>
                 <h5 class="mb-1" style="color: #153d6f;">Joint Controllers & Collaboration</h5>
-                <p class="mb-0 text-muted small">Capture external or shared data control relationships with other organizations.</p>
+                <p class="mb-0 text-muted small">Capture external or shared data control relationships with other organizations, (if applicable).</p>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <div class="row">
+        <?php
+        $jointController = (string) old('joint_controller', $submission->joint_controller);
+        ?>
+        <div class="col-md-6">
+            <div class="form-check mb-3 p-3 border rounded" style="cursor:pointer;">
+                <input class="form-check-input" type="radio" name="joint_controller" value="1" id="joint-controller-yes"
+                    <?php echo e($jointController === '1' ? 'checked' : ''); ?>>
+                <label class="form-check-label d-block" for="joint-controller-yes">
+<i class="fas fa-check-circle fa-lg me-2" style="color: #28a745;"></i>
+                    
+                    <strong>Yes</strong>
+                    <br>
+                    <small class="text-muted">Select if you share data control with other organizations</small>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-check mb-3 p-3 border rounded" style="cursor:pointer;">
+                <input class="form-check-input" type="radio" name="joint_controller" value="0" id="joint-controller-no"
+                    <?php echo e($jointController === '0' ? 'checked' : ''); ?>>
+                <label class="form-check-label d-block" for="joint-controller-no">
+                    <i class="fas fa-exclamation-triangle fa-lg me-2" style="color: #ffc107;"></i>
+                    <strong>No</strong>
+                    <br>
+                    <small class="text-muted">No joint controller exists</small>
+                </label>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card border-0 shadow-sm " id="joint-controllers-section" style="display: <?php echo e($jointController === '1' ? 'block' : 'none'); ?>;">
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center">
@@ -27,106 +59,106 @@
 
             <div id="joint-controllers-container">
                 <?php
-                    $controllers = [];
-                    if ($submission->joint_controllers) {
-                        if (is_array($submission->joint_controllers)) {
-                            $controllers = $submission->joint_controllers;
-                        } elseif (is_string($submission->joint_controllers)) {
-                            $controllers = json_decode($submission->joint_controllers, true) ?? [];
-                        }
-                    }
+                $controllers = [];
+                if ($submission->joint_controllers) {
+                if (is_array($submission->joint_controllers)) {
+                $controllers = $submission->joint_controllers;
+                } elseif (is_string($submission->joint_controllers)) {
+                $controllers = json_decode($submission->joint_controllers, true) ?? [];
+                }
+                }
                 ?>
 
                 <?php $__empty_1 = true; $__currentLoopData = $controllers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $controller): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <div class="joint-controller-card card mb-3 border">
-                        <div class="card-body position-relative">
-                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-controller" aria-label="Remove"></button>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">
-                                        <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
-                                    </label>
-                                    <input type="text" name="joint_controllers[<?php echo e($idx); ?>][name]"
-                                           class="form-control" value="<?php echo e($controller['name'] ?? ''); ?>"
-                                           placeholder="e.g., Research Collaborator, External Partner">
-                                </div>
-                                 <div class="col-md-6 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
-                                     </label>
-                                     <input type="text" name="joint_controllers[<?php echo e($idx); ?>][contact_name]"
-                                            class="form-control" value="<?php echo e($controller['contact_name'] ?? ''); ?>"
-                                            placeholder="Full name">
-                                 </div>
-                                 <div class="col-md-6 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
-                                     </label>
-                                     <input type="email" name="joint_controllers[<?php echo e($idx); ?>][contact_email]"
-                                            class="form-control" value="<?php echo e($controller['contact_email'] ?? ''); ?>"
-                                            placeholder="email@example.com">
-                                 </div>
-                                 <div class="col-md-6 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
-                                     </label>
-                                     <input type="tel" name="joint_controllers[<?php echo e($idx); ?>][contact_phone]"
-                                            class="form-control" value="<?php echo e($controller['contact_phone'] ?? ''); ?>"
-                                            placeholder="+233 20 123 4567">
-                                 </div>
-                                 <div class="col-12 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
-                                     </label>
-                                     <textarea name="joint_controllers[<?php echo e($idx); ?>][contact_address]"
-                                               class="form-control" rows="2"
-                                               placeholder="Physical address"><?php echo e($controller['contact_address'] ?? ''); ?></textarea>
-                                 </div>
+                <div class="joint-controller-card card mb-3 border">
+                    <div class="card-body position-relative">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-controller" aria-label="Remove"></button>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
+                                </label>
+                                <input type="text" name="joint_controllers[<?php echo e($idx); ?>][name]"
+                                    class="form-control" value="<?php echo e($controller['name'] ?? ''); ?>"
+                                    placeholder="e.g., Research Collaborator, External Partner">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                                </label>
+                                <input type="text" name="joint_controllers[<?php echo e($idx); ?>][contact_name]"
+                                    class="form-control" value="<?php echo e($controller['contact_name'] ?? ''); ?>"
+                                    placeholder="Full name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                                </label>
+                                <input type="email" name="joint_controllers[<?php echo e($idx); ?>][contact_email]"
+                                    class="form-control" value="<?php echo e($controller['contact_email'] ?? ''); ?>"
+                                    placeholder="email@example.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                                </label>
+                                <input type="tel" name="joint_controllers[<?php echo e($idx); ?>][contact_phone]"
+                                    class="form-control" value="<?php echo e($controller['contact_phone'] ?? ''); ?>"
+                                    placeholder="+233 20 123 4567">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                                </label>
+                                <textarea name="joint_controllers[<?php echo e($idx); ?>][contact_address]"
+                                    class="form-control" rows="2"
+                                    placeholder="Physical address"><?php echo e($controller['contact_address'] ?? ''); ?></textarea>
                             </div>
                         </div>
                     </div>
+                </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <div class="joint-controller-card card mb-3 border">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">
-                                        <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
-                                    </label>
-                                    <input type="text" name="joint_controllers[0][name]" class="form-control"
-                                           placeholder="e.g., Research Collaborator">
-                                </div>
-                                 <div class="col-md-6 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
-                                     </label>
-                                     <input type="text" name="joint_controllers[0][contact_name]" class="form-control"
-                                            placeholder="Full name">
-                                 </div>
-                                 <div class="col-md-6 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
-                                     </label>
-                                     <input type="email" name="joint_controllers[0][contact_email]" class="form-control"
-                                            placeholder="email@example.com">
-                                 </div> 
-                                 <div class="col-md-6 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
-                                     </label>
-                                     <input type="tel" name="joint_controllers[0][contact_phone]" class="form-control"
-                                            placeholder="+233 20 123 4567">
-                                 </div>
-                                 <div class="col-12 mb-3">
-                                     <label class="form-label fw-bold">
-                                         <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
-                                     </label>
-                                     <textarea name="joint_controllers[0][contact_address]" class="form-control" rows="2"
-                                               placeholder="Physical address"></textarea>
-                                 </div>
+                <div class="joint-controller-card card mb-3 border">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
+                                </label>
+                                <input type="text" name="joint_controllers[0][name]" class="form-control"
+                                    placeholder="e.g., Research Collaborator">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                                </label>
+                                <input type="text" name="joint_controllers[0][contact_name]" class="form-control"
+                                    placeholder="Full name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                                </label>
+                                <input type="email" name="joint_controllers[0][contact_email]" class="form-control"
+                                    placeholder="email@example.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                                </label>
+                                <input type="tel" name="joint_controllers[0][contact_phone]" class="form-control"
+                                    placeholder="+233 20 123 4567">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                                </label>
+                                <textarea name="joint_controllers[0][contact_address]" class="form-control" rows="2"
+                                    placeholder="Physical address"></textarea>
                             </div>
                         </div>
                     </div>
+                </div>
                 <?php endif; ?>
             </div>
 
@@ -142,12 +174,12 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-document.getElementById('add-joint-controller')?.addEventListener('click', function() {
-    const container = document.getElementById('joint-controllers-container');
-    const idx = container.children.length;
-    const newCard = document.createElement('div');
-    newCard.className = 'joint-controller-card card mb-3 border';
-    newCard.innerHTML = `
+    document.getElementById('add-joint-controller')?.addEventListener('click', function() {
+        const container = document.getElementById('joint-controllers-container');
+        const idx = container.children.length;
+        const newCard = document.createElement('div');
+        newCard.className = 'joint-controller-card card mb-3 border';
+        newCard.innerHTML = `
         <div class="card-body position-relative">
             <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-controller" aria-label="Remove"></button>
             <div class="row">
@@ -184,15 +216,24 @@ document.getElementById('add-joint-controller')?.addEventListener('click', funct
             </div>
         </div>
     `;
-    container.appendChild(newCard);
-    newCard.querySelector('.remove-controller').addEventListener('click', () => newCard.remove());
-});
-
-document.querySelectorAll('.remove-controller').forEach(btn => {
-    btn.addEventListener('click', function() {
-        this.closest('.joint-controller-card').remove();
+        container.appendChild(newCard);
+        newCard.querySelector('.remove-controller').addEventListener('click', () => newCard.remove());
     });
-});
+
+    document.querySelectorAll('.remove-controller').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.joint-controller-card').remove();
+        });
+    });
+
+    document.querySelectorAll('input[name="joint_controller"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const section = document.getElementById('joint-controllers-section');
+            if (section) {
+                section.style.display = (this.value === '1') ? 'block' : 'none';
+            }
+        });
+    });
 </script>
 <?php $__env->stopPush(); ?>
 <?php /**PATH C:\Users\Clement Aryee\Documents\UG Projects\UG_ROPA_Form_Portal\ropa_portal\resources\views/ropa/steps/step2.blade.php ENDPATH**/ ?>
