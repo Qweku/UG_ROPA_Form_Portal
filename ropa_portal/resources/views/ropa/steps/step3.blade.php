@@ -108,6 +108,7 @@
                                         ? $submission->personal_data_categories
                                         : (json_decode($submission->personal_data_categories, true) ?? []);
                                 }
+                                $internalSharingCategories = implode(', ', $personalData);
                             @endphp
                             @foreach($personalData as $data)
                             <span class="tag-chip">
@@ -125,6 +126,7 @@
                                autocomplete="off">
                         <div class="suggestions-dropdown" id="personalDataSuggestions"></div>
                         <input type="hidden" name="personal_data_categories" id="personal_data_hidden" value="{{ json_encode($personalData) }}">
+                        <input type="hidden" name="internal_sharing_categories" value="{{ $internalSharingCategories }}">
                     </div>
                 </div>
             </div>
@@ -141,11 +143,9 @@
                         <span class="badge bg-danger ms-2">Sensitive Information</span>
                     </div>
                     @php
-                        $specialCategories = [];
-                        if ($submission->special_category_documents) {
-                            $decoded = json_decode($submission->special_category_documents, true);
-                            $specialCategories = is_array($decoded) ? $decoded : [$submission->special_category_documents];
-                        }
+                        $specialCategories = is_array($submission->special_category_documents)
+                            ? $submission->special_category_documents
+                            : (json_decode($submission->special_category_documents ?? '[]', true) ?: []);
                     @endphp
                     <div class="multi-select-container" id="specialCategoryContainer">
                         <div class="chips-container mb-2">
@@ -222,7 +222,7 @@ function updateSpecialCategories() {
 
     const PREDEFINED = [
         'Medical certificates',
-        'Garde vetting details',
+        'Grade vetting details',
         'Disability data relating to a person',
         'Extenuating circumstances documentation',
         'Health data including but not limited to sick leave records',

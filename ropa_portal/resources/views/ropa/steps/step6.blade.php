@@ -79,8 +79,14 @@
                         <div class="chips-container mb-2">
                             @php
                             $sensitiveBasis = is_array($submission->sensitive_legal_basis)
-                            ? $submission->sensitive_legal_basis
-                            : (json_decode($submission->sensitive_legal_basis ?? '[]', true) ?: []);
+                                ? $submission->sensitive_legal_basis
+                                : (json_decode($submission->sensitive_legal_basis ?? '[]', true) ?: []);
+
+                            if (empty($sensitiveBasis) && $submission->special_category_documents) {
+                                $sensitiveBasis = is_array($submission->special_category_documents)
+                                    ? $submission->special_category_documents
+                                    : (json_decode($submission->special_category_documents ?? '[]', true) ?: []);
+                            }
                             @endphp
                             @foreach($sensitiveBasis as $basis)
                             <span class="tag-chip" style="background: #f5efe6; border-color: #b69964;">

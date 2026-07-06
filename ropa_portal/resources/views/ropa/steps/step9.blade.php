@@ -81,7 +81,7 @@
                             @endforeach
                         </div>
                         <input type="text" class="form-control" id="mechanismInput"
-                               placeholder="Type and press Enter (e.g., Adequacy decision, SCCs, BCRs)">
+                               placeholder="Type and press Enter (e.g., Email, Cloud Storage, API)">
                         <input type="hidden" name="transfer_mechanisms" id="transfer_mechanisms_hidden" value="{{ json_encode($mechanisms) }}">
                     </div>
                 </div>

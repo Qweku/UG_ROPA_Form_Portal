@@ -26,7 +26,7 @@
                         <i class="fas fa-balance-scale me-1" style="color: #b69964;"></i>
                         Data Protection Act 2018 Schedule 1 Condition
                     </label>
-                    <div class="multi-select-container mb-3">
+                    <div class="multi-select-container mb-3" id="dpa-conditions-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             <?php
                                 $dpaConditions = [];
@@ -52,11 +52,40 @@
                     </div>
 
                     <label class="form-label fw-bold">
-                        <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
-                        GDPR Article 6 Lawful Basis
+                        <i class="fas fa-shield-alt me-1" style="color: #b69964;"></i>
+                        Cybersecurity Act 1038
                     </label>
-                    <div class="multi-select-container">
+                    <div class="multi-select-container mb-3" id="cyber-articles-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <?php
+                                $cyberArticles = [];
+                                if ($submission->cybersecurity_articles) {
+                                    $cyberArticles = is_array($submission->cybersecurity_articles)
+                                        ? $submission->cybersecurity_articles
+                                        : (json_decode($submission->cybersecurity_articles, true) ?? []);
+                                }
+                            ?>
+                            <?php $__currentLoopData = $cyberArticles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $art): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <span class="tag-chip">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <span><?php echo e($art); ?></span>
+                                <button type="button" onclick="this.parentElement.remove(); updateCyberArticles();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+</div>
+                         <input type="text" class="form-control" id="cyberArticleInput"
+                                placeholder="Type and press Enter (e.g., Section 3 - Cybersecurity Measures, Section 5 - Data Breach Notification)">
+                         <input type="hidden" name="cybersecurity_articles" id="cybersecurity_articles_hidden" value="<?php echo e(json_encode($cyberArticles)); ?>">
+                     </div>
+
+                     <label class="form-label fw-bold">
+                         <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
+                         GDPR Article 6 Lawful Basis
+                     </label>
+                     <div class="multi-select-container mb-3" id="gdpr-articles-container">
+                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             <?php
                                 $gdprArticles = [];
                                 if ($submission->gdpr_articles) {
@@ -74,10 +103,39 @@
                                 </button>
                             </span>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+</div>
+                         <input type="text" class="form-control" id="gdprArticleInput"
+                                placeholder="Type and press Enter (e.g., Article 6(1)(b) - Contract, Article 6(1)(c) - Legal Obligation)">
+                         <input type="hidden" name="gdpr_articles" id="gdpr_articles_hidden" value="<?php echo e(json_encode($gdprArticles)); ?>">
+                     </div>
+
+                     <label class="form-label fw-bold">
+                         <i class="fas fa-shield-alt me-1" style="color: #b69964;"></i>
+                         Other Legal References
+                     </label>
+                     <div class="multi-select-container mb-3" id="other-articles-container">
+                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <?php
+                                $otherArticles = [];
+                                if ($submission->other_articles) {
+                                    $otherArticles = is_array($submission->other_articles)
+                                        ? $submission->other_articles
+                                        : (json_decode($submission->other_articles, true) ?? []);
+                                }
+                            ?>
+                            <?php $__currentLoopData = $otherArticles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $art): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <span class="tag-chip">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <span><?php echo e($art); ?></span>
+                                <button type="button" onclick="this.parentElement.remove(); updateOtherArticles();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
-                        <input type="text" class="form-control" id="gdprArticleInput"
-                               placeholder="Type and press Enter (e.g., Article 6(1)(b) - Contract, Article 6(1)(c) - Legal Obligation)">
-                        <input type="hidden" name="gdpr_articles" id="gdpr_articles_hidden" value="<?php echo e(json_encode($gdprArticles)); ?>">
+                        <input type="text" class="form-control" id="otherArticleInput"
+                               placeholder="Type and press Enter (e.g., Other relevant legal references)">
+                        <input type="hidden" name="other_articles" id="other_articles_hidden" value="<?php echo e(json_encode($otherArticles)); ?>">
                     </div>
                 </div>
             </div>
@@ -186,59 +244,67 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-function updateDpaConditions() {
-    const chips = document.querySelectorAll('#step14 .multi-select-container:first-child .chips-container .tag-chip span');
+function updateHiddenInput(hiddenId, chipsSelector) {
+    const chips = document.querySelectorAll(chipsSelector);
     const values = Array.from(chips).map(chip => chip.textContent.trim());
-    document.getElementById('dpa_conditions_hidden').value = JSON.stringify(values);
+    document.getElementById(hiddenId).value = JSON.stringify(values);
+}
+
+function updateDpaConditions() {
+    updateHiddenInput('dpa_conditions_hidden', '#dpa-conditions-container .chips-container .tag-chip span');
+}
+
+function updateCyberArticles() {
+    updateHiddenInput('cybersecurity_articles_hidden', '#cyber-articles-container .chips-container .tag-chip span');
 }
 
 function updateGdprArticles() {
-    const chips = document.querySelectorAll('#step14 .multi-select-container:last-child .chips-container .tag-chip span');
-    const values = Array.from(chips).map(chip => chip.textContent.trim());
-    document.getElementById('gdpr_articles_hidden').value = JSON.stringify(values);
+    updateHiddenInput('gdpr_articles_hidden', '#gdpr-articles-container .chips-container .tag-chip span');
 }
 
-document.getElementById('dpaConditionInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const value = this.value.trim();
-        if (value) {
-            const container = document.querySelector('#step14 .multi-select-container:first-child .chips-container');
-            const chip = document.createElement('span');
-            chip.className = 'tag-chip';
-            chip.innerHTML = `<i class="fas fa-check-circle me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updateDpaConditions();"><i class="fas fa-times"></i></button>`;
-            container.appendChild(chip);
-            this.value = '';
-            updateDpaConditions();
-        }
-    }
-});
+function updateOtherArticles() {
+    updateHiddenInput('other_articles_hidden', '#other-articles-container .chips-container .tag-chip span');
+}
 
-document.getElementById('gdprArticleInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const value = this.value.trim();
-        if (value) {
-            const container = document.querySelector('#step14 .multi-select-container:last-child .chips-container');
-            const chip = document.createElement('span');
-            chip.className = 'tag-chip';
-            chip.innerHTML = `<i class="fas fa-check-circle me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updateGdprArticles();"><i class="fas fa-times"></i></button>`;
-            container.appendChild(chip);
-            this.value = '';
-            updateGdprArticles();
+function setupMultiSelect(inputId, containerId, updateFn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = this.value.trim();
+            if (value) {
+                const container = document.querySelector(`#${containerId} .chips-container`);
+                const chip = document.createElement('span');
+                chip.className = 'tag-chip';
+                chip.innerHTML = `<i class="fas fa-check-circle me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); ${updateFn}();"><i class="fas fa-times"></i></button>`;
+                container.appendChild(chip);
+                this.value = '';
+                updateFn();
+            }
         }
-    }
-});
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
+    setupMultiSelect('dpaConditionInput', 'dpa-conditions-container', updateDpaConditions);
+    setupMultiSelect('cyberArticleInput', 'cyber-articles-container', updateCyberArticles);
+    setupMultiSelect('gdprArticleInput', 'gdpr-articles-container', updateGdprArticles);
+    setupMultiSelect('otherArticleInput', 'other-articles-container', updateOtherArticles);
+
+    document.querySelectorAll('.remove-controller').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.joint-controller-card').remove();
+        });
+    });
+
     const retainedPerPolicy = document.getElementById('retained_per_policy');
     const reasonSection = document.getElementById('non-adherence-reason');
 
     function toggleReasonSection() {
-        if (retainedPerPolicy && retainedPerPolicy.value === '0') {
-            reasonSection.style.display = 'block';
-        } else {
-            reasonSection.style.display = 'none';
+        if (retainedPerPolicy && reasonSection) {
+            reasonSection.style.display = retainedPerPolicy.value === '0' ? 'block' : 'none';
         }
     }
 
@@ -247,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleReasonSection();
     }
 
-    // Legal Reference collapse - dynamic text and icon
     const legalCollapse = document.getElementById('legalReference');
     const legalButton = document.querySelector('[data-bs-target="#legalReference"]');
 

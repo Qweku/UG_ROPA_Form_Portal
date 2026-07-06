@@ -8,7 +8,7 @@
     <div class="step-wrapper" data-aos="fade-down">
         <div class="progress-stepper">
             @php
-            $steps = [
+            $adminSteps = [
             1 => 'Basic Info',
             2 => 'Joint Controllers',
             3 => 'Data Categories',
@@ -24,7 +24,22 @@
             13 => 'Breaches',
             14 => 'Compliance'
             ];
-            $stepIcons = [
+            $userSteps = [
+            1 => 'Basic Info',
+            2 => 'Joint Controllers',
+            3 => 'Data Categories',
+            4 => 'Internal Sharing',
+            5 => 'Data Source',
+            6 => 'Legal Basis',
+            7 => 'Security',
+            8 => 'External Sharing',
+            9 => 'Intl. Transfers',
+            10 => 'Auto Decision',
+            11 => 'Consent',
+            12 => 'Compliance'
+            ];
+            $steps = isset($isAdmin) && $isAdmin ? $adminSteps : $userSteps;
+            $adminIcons = [
             1 => 'info-circle',
             2 => 'users',
             3 => 'database',
@@ -40,32 +55,37 @@
             13 => 'exclamation-triangle',
             14 => 'check-circle'
             ];
-            $currentIcon = $stepIcons[$step] ?? 'check-circle';
-            $currentStep = $step;
+            $stepIcons = isset($isAdmin) && $isAdmin ? $adminIcons : array_merge(array_slice($adminIcons, 0, 12, true), [12 => 'check-circle']);
+            $currentIcon = $stepIcons[$displayStep ?? $step] ?? 'check-circle';
+            $currentStep = $displayStep ?? $step;
+            $totalSteps = isset($isAdmin) && $isAdmin ? 14 : 12;
+            $accessibleSteps = isset($isAdmin) && $isAdmin ? range(1, 14) : array_merge(range(1, 11), [14]);
             $submissionStatus = $submission->status ?? 'draft';
             $hasSubProcesses = $parentForm->has_sub_processes ?? 0;
             @endphp
 
-            @foreach($steps as $num => $label)
-            <div class="step-item {{ $currentStep > $num ? 'completed' : '' }} {{ $currentStep == $num ? 'active' : '' }} {{ $currentStep < $num ? 'locked' : '' }}"
-                data-step="{{ $num }}"
-                @if($currentStep>= $num) onclick="navigateToStep({{ $num }})" @endif
-                style="cursor: {{ $currentStep >= $num ? 'pointer' : 'not-allowed' }};">
-                <div class="step-number">
-                    @if($currentStep > $num)
-                    <i class="fas fa-check"></i>
-                    @else
-                    {{ $num }}
-                    @endif
-                </div>
-                <div class="step-label">{{ $label }}</div>
-                @if($currentStep < $num)
-                    <div class="step-lock">
-                    <i class="fas fa-lock"></i>
-            </div>
-            @endif
-        </div>
-        @endforeach
+@foreach($steps as $num => $label)
+             @if(in_array($num, $accessibleSteps))
+             <div class="step-item {{ $currentStep > $num ? 'completed' : '' }} {{ $currentStep == $num ? 'active' : '' }} {{ $currentStep < $num ? 'locked' : '' }}"
+                 data-step="{{ $num }}"
+                 @if(in_array($num, $accessibleSteps) && $currentStep >= $num) onclick="navigateToStep({{ $num }})" @endif
+                 style="cursor: {{ $currentStep >= $num && in_array($num, $accessibleSteps) ? 'pointer' : 'not-allowed' }};">
+                 <div class="step-number">
+                     @if($currentStep > $num)
+                     <i class="fas fa-check"></i>
+                     @else
+                     {{ $num }}
+                     @endif
+                 </div>
+                 <div class="step-label">{{ $label }}</div>
+                 @if($currentStep < $num && in_array($num, $accessibleSteps))
+                     <div class="step-lock">
+                     <i class="fas fa-lock"></i>
+             </div>
+             @endif
+         </div>
+         @endif
+         @endforeach
     </div>
 </div>
 
@@ -81,13 +101,13 @@
             <input type="hidden" name="next_action" id="nextActionInput" value="">
 
             <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-{{ $currentIcon }} fa-fw me-2"></i>
-                            <strong>Step {{ $step }} of 14</strong>
-                            <span class="ms-3 small">{{ $steps[$step] }}</span>
-                        </div>
+<div class="card-header">
+                     <div class="d-flex justify-content-between align-items-center">
+                         <div>
+                             <i class="fas fa-{{ $currentIcon }} fa-fw me-2"></i>
+                             <strong>Step {{ $currentStep }} of {{ $totalSteps }}</strong>
+                             <span class="ms-3 small">{{ $steps[$currentStep] ?? $steps[$step] }}</span>
+                         </div>
                         <div>
                             <span class="badge bg-light text-dark px-3 py-2">
                                 <i class="fas fa-save me-1"></i> Auto-save enabled
@@ -96,44 +116,52 @@
                     </div>
                 </div>
 
-                <div class="card-body p-4">
-                    @if ($errors->any())
-                    <div class="alert alert-danger mb-3 py-2">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Cannot proceed:</strong> {{ $errors->first() }}
-                        @if ($errors->count() > 1)
-                        <span class="small">({{ $errors->count() - 1 }} more)</span>
-                        @endif
-                    </div>
-                    @endif
-                    @include("ropa.steps.step{$step}")
-                </div>
+<div class="card-body p-4">
+                     @if ($errors->any())
+                     <div class="alert alert-danger mb-3 py-2">
+                         <i class="fas fa-exclamation-triangle me-2"></i>
+                         <strong>Cannot proceed:</strong> {{ $errors->first() }}
+                         @if ($errors->count() > 1)
+                         <span class="small">({{ $errors->count() - 1 }} more)</span>
+                         @endif
+                     </div>
+                     @endif
+@if(!isset($isAdmin) || (!$isAdmin && in_array($step, [12, 13])))
+                           <div class="alert alert-info text-center">
+                               <i class="fas fa-info-circle fa-2x mb-3"></i>
+                               <h5>Steps 12 and 13 will be updated by the admin.</h5>
+                               <p class="mb-0">You will be redirected to the next available step.</p>
+                           </div>
+                       @else
+                       @include("ropa.steps.step{$step}")
+                       @endif
+                 </div>
 
-                <div class="card-footer bg-white p-4">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            @if($step > 1)
-                            <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
-                                <i class="fas fa-arrow-left me-2"></i> Previous
-                            </button>
-                            @endif
-                            <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
-                                <i class="fas fa-save me-2"></i> Save Draft
-                            </button>
-                        </div>
-                        <div>
-                            @if($step < 14)
-                                <button type="submit" name="action" value="next" class="btn btn-primary px-5">
-                                Next Step <i class="fas fa-arrow-right ms-2"></i>
-                                </button>
-                                @else
-                                <button type="submit" name="action" value="submit" class="btn btn-accent px-5" id="finalSubmitBtn">
-                                    <i class="fas fa-check-circle me-2"></i> Submit This Sub‑process
-                                </button>
-                                @endif
-                        </div>
-                    </div>
-                </div>
+<div class="card-footer bg-white p-4">
+                     <div class="d-flex justify-content-between">
+                         <div>
+                             @if($currentStep > 1 && in_array($currentStep - 1, $accessibleSteps))
+                             <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
+                                 <i class="fas fa-arrow-left me-2"></i> Previous
+                             </button>
+                             @endif
+                             <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
+                                 <i class="fas fa-save me-2"></i> Save Draft
+                             </button>
+                         </div>
+                         <div>
+                             @if($currentStep < $totalSteps)
+                                 <button type="submit" name="action" value="next" class="btn btn-primary px-5">
+                                 Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                 </button>
+                                 @else
+                                 <button type="submit" name="action" value="submit" class="btn btn-accent px-5" id="finalSubmitBtn">
+                                     <i class="fas fa-check-circle me-2"></i> Submit This Sub‑process
+                                 </button>
+                                 @endif
+                         </div>
+                     </div>
+                 </div>
             </div>
         </form>
     </div>
@@ -326,6 +354,9 @@
         // ============================================
         const form = document.querySelector('#ropaForm');
         const hasSubProcesses = @json($hasSubProcesses);
+        const isAdmin = {{ $isAdmin ? 'true' : 'false' }};
+        const totalSteps = {{ $totalSteps }};
+        const actualStep = {{ $step }};
 
         if (form) {
             form.addEventListener('submit', function(e) {
@@ -334,7 +365,7 @@
 
                 // Validate required fields when clicking "Next Step"
                 if (actionValue === 'next') {
-                    const currentStep = {{ $step }};
+                    const currentStep = {{ $currentStep }};
                     const validation = validateStep(currentStep);
 
                     if (!validation.valid) {
@@ -353,12 +384,12 @@
                     }
                 }
 
-                // Step 14 completion modal
+                // Step final completion modal (step 14 for admin, step 12 for non-admin)
                 if (actionValue === 'submit' && form.dataset.finalSubmitConfirmed !== 'true') {
                     e.preventDefault();
 
-                    // Validate required fields for step 14
-                    const validation = validateStep(14);
+                    // Validate required fields for final step
+                    const validation = validateStep(totalSteps);
                     if (!validation.valid) {
                         document.getElementById('loadingOverlay').style.display = 'none';
                         Swal.fire({
@@ -726,22 +757,36 @@
         });
     }
 
-    // ============================================
-    // STEP NAVIGATION
-    // ============================================
-    function navigateToStep(stepNumber) {
-        const currentStep = {{ $step }};
+// ============================================
+        // STEP NAVIGATION
+        // ============================================
+        function navigateToStep(stepNumber) {
+            const currentStep = {{ $currentStep }};
+            const totalSteps = {{ $totalSteps }};
+            const isAdmin = {{ $isAdmin ? 'true' : 'false' }};
 
-        if (stepNumber > currentStep) {
-            Swal.fire({
-                title: 'Step Locked',
-                text: 'Please complete the current step first before moving forward.',
-                icon: 'info',
-                confirmButtonColor: '#b69964',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
+            // Restrict steps 12 and 13 to admin users
+            if (!isAdmin && (stepNumber === 12 || stepNumber === 13)) {
+                Swal.fire({
+                    title: 'Step Restricted',
+                    text: 'Steps 12 and 13 are reserved for admin users.',
+                    icon: 'info',
+                    confirmButtonColor: '#b69964',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            if (stepNumber > currentStep) {
+                Swal.fire({
+                    title: 'Step Locked',
+                    text: 'Please complete the current step first before moving forward.',
+                    icon: 'info',
+                    confirmButtonColor: '#b69964',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
 
         if (stepNumber === currentStep) {
             return;
@@ -789,7 +834,7 @@
         formData.append('_method', 'PUT');
         formData.append('action', 'navigate');
         formData.append('target_step', stepNumber);
-        formData.append('current_step', {{ $step }});
+        formData.append('current_step', actualStep);
 
         const currentForm = document.getElementById('ropaForm');
         if (currentForm) {

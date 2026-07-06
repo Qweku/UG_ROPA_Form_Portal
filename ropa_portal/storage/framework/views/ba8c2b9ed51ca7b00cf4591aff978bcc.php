@@ -20,8 +20,8 @@
                 <input class="form-check-input" type="radio" name="joint_controller" value="1" id="joint-controller-yes"
                     <?php echo e($jointController === '1' ? 'checked' : ''); ?>>
                 <label class="form-check-label d-block" for="joint-controller-yes">
-<i class="fas fa-check-circle fa-lg me-2" style="color: #28a745;"></i>
-                    
+                    <i class="fas fa-check-circle fa-lg me-2" style="color: #28a745;"></i>
+
                     <strong>Yes</strong>
                     <br>
                     <small class="text-muted">Select if you share data control with other organizations</small>

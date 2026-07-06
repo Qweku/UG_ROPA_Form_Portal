@@ -52,10 +52,10 @@
                     </div>
 
                     <label class="form-label fw-bold">
-                        <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
+                        <i class="fas fa-shield-alt me-1" style="color: #b69964;"></i>
                         Cybersecurity Act 1038
                     </label>
-                    <div class="multi-select-container">
+                    <div class="multi-select-container mb-3" id="cyber-articles-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $cyberArticles = [];
@@ -76,7 +76,7 @@
                             @endforeach
 </div>
                          <input type="text" class="form-control" id="cyberArticleInput"
-                                placeholder="Type and press Enter (e.g., Article 6(1)(b) - Contract, Article 6(1)(c) - Legal Obligation)">
+                                placeholder="Type and press Enter (e.g., Section 3 - Cybersecurity Measures, Section 5 - Data Breach Notification)">
                          <input type="hidden" name="cybersecurity_articles" id="cybersecurity_articles_hidden" value="{{ json_encode($cyberArticles) }}">
                      </div>
 
@@ -84,7 +84,7 @@
                          <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
                          GDPR Article 6 Lawful Basis
                      </label>
-                     <div class="multi-select-container" id="gdpr-articles-container">
+                     <div class="multi-select-container mb-3" id="gdpr-articles-container">
                          <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $gdprArticles = [];
@@ -110,10 +110,10 @@
                      </div>
 
                      <label class="form-label fw-bold">
-                         <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
+                         <i class="fas fa-shield-alt me-1" style="color: #b69964;"></i>
                          Other Legal References
                      </label>
-                     <div class="multi-select-container" id="other-articles-container">
+                     <div class="multi-select-container mb-3" id="other-articles-container">
                          <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $otherArticles = [];
@@ -134,7 +134,7 @@
                             @endforeach
                         </div>
                         <input type="text" class="form-control" id="otherArticleInput"
-                               placeholder="Type and press Enter (e.g., Article 6(1)(b) - Contract, Article 6(1)(c) - Legal Obligation)">
+                               placeholder="Type and press Enter (e.g., Other relevant legal references)">
                         <input type="hidden" name="other_articles" id="other_articles_hidden" value="{{ json_encode($otherArticles) }}">
                     </div>
                 </div>

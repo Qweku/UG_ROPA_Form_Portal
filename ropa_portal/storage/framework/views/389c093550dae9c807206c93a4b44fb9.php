@@ -108,6 +108,7 @@
                                         ? $submission->personal_data_categories
                                         : (json_decode($submission->personal_data_categories, true) ?? []);
                                 }
+                                $internalSharingCategories = implode(', ', $personalData);
                             ?>
                             <?php $__currentLoopData = $personalData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <span class="tag-chip">
@@ -125,6 +126,7 @@
                                autocomplete="off">
                         <div class="suggestions-dropdown" id="personalDataSuggestions"></div>
                         <input type="hidden" name="personal_data_categories" id="personal_data_hidden" value="<?php echo e(json_encode($personalData)); ?>">
+                        <input type="hidden" name="internal_sharing_categories" value="<?php echo e($internalSharingCategories); ?>">
                     </div>
                 </div>
             </div>
@@ -222,7 +224,7 @@ function updateSpecialCategories() {
 
     const PREDEFINED = [
         'Medical certificates',
-        'Garde vetting details',
+        'Grade vetting details',
         'Disability data relating to a person',
         'Extenuating circumstances documentation',
         'Health data including but not limited to sick leave records',

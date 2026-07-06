@@ -124,7 +124,7 @@ class RopaFormController extends Controller
     }
 
     /**
-     * Edit a specific step of the current submission.
+     * Edit a specific step of the submission.
      *
      * This is a GET endpoint and must be side-effect-free with respect to
      * row creation: it should only ever look up existing records. If the
@@ -138,11 +138,25 @@ class RopaFormController extends Controller
     public function edit($step = 1): View|RedirectResponse
     {
         $user = Auth::user();
+        $isAdmin = $user->role === 'admin';
 
         $parentForm = session('ropa_form_id') ? RopaForm::with('college')->find(session('ropa_form_id')) : null;
 
+        // If admin has session form_id but form not found, redirect to dashboard
+        if ($isAdmin && session('ropa_form_id') && ! $parentForm) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Selected form not found.');
+        }
+
+        // If admin has no form context, redirect to dashboard to select one
+        if ($isAdmin && ! session('ropa_form_id')) {
+            return redirect()->route('admin.dashboard')
+                ->with('info', 'Please select a form from the admin dashboard to edit steps 12 and 13.');
+        }
+
         // Session pointer missing/stale — try to recover the user's
         // existing incomplete form before considering creating a new one.
+        // Users can only access their own forms.
         if (! $parentForm || $parentForm->user_id !== $user->id) {
             $parentForm = RopaForm::with('college')
                 ->where('user_id', $user->id)
@@ -151,6 +165,7 @@ class RopaFormController extends Controller
                 ->first();
         }
 
+        // Non-admin users without any form get a new one
         if (! $parentForm) {
             $parentForm = RopaForm::create([
                 'user_id' => $user->id,
@@ -190,10 +205,61 @@ class RopaFormController extends Controller
             $step = 1;
         }
 
+        // Restrict steps 12 and 13 to admin only
+        if (! $isAdmin && in_array($step, [12, 13])) {
+            return redirect()->route('ropa.edit', ['step' => 14])
+                ->with('info', 'Steps 12 and 13 are restricted to admin users.');
+        }
+
         $colleges = College::all();
         $basicInfoLocked = $parentForm->basicInfoLocked();
 
-        return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges', 'basicInfoLocked'));
+        // Compute reindexed step for non-admin users (step 14 becomes step 12)
+        $displayStep = $this->getDisplayStep($step, $isAdmin);
+
+        return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges', 'basicInfoLocked', 'isAdmin', 'displayStep'));
+    }
+
+    /**
+     * Get the display step number for non-admin users.
+     * Steps 12 and 13 are skipped, so step 14 appears as step 12.
+     */
+    private function getDisplayStep(int $step, bool $isAdmin): int
+    {
+        if ($isAdmin || $step < 12) {
+            return $step;
+        }
+
+        // For non-admin, step 14 displays as step 12
+        return 12;
+    }
+
+    /**
+     * Get the next step number, accounting for admin-only steps.
+     */
+    private function getNextStep(int $step, bool $isAdmin): int
+    {
+        $next = $step + 1;
+        if (! $isAdmin && $next === 12 && $step < 14) {
+            // Skip steps 12 and 13 for non-admin, go directly to 14
+            return 14;
+        }
+
+        return min($next, 14);
+    }
+
+    /**
+     * Get the previous step number, accounting for admin-only steps.
+     */
+    private function getPreviousStep(int $step, bool $isAdmin): int
+    {
+        $prev = $step - 1;
+        if (! $isAdmin && $step === 14) {
+            // Non-admin coming from step 14 goes back to step 11 (their step 12)
+            return 11;
+        }
+
+        return max($prev, 1);
     }
 
     /**
@@ -261,20 +327,27 @@ class RopaFormController extends Controller
 
         // --- Steps 2-14 ---
         $this->normalizeRequest($request);
-        $validated = $request->validate($this->getValidationRules($step));
+
+        $isAdmin = Auth::user()->role === 'admin';
+
+        // Non-admin users skip steps 12-13, so validation for step 12 should use step 14 rules
+        $stepForValidation = $isAdmin ? $step : ($step >= 14 ? $step : ($step >= 12 ? 14 : $step));
+        $validated = $request->validate($this->getValidationRules($stepForValidation));
 
         $newStep = $step;
         $action = $request->input('action');
 
         if ($action === 'next') {
-            $newStep = min($step + 1, 14);
+            $newStep = $this->getNextStep($step, $isAdmin);
         } elseif ($action === 'previous') {
-            $newStep = max($step - 1, 1);
+            $newStep = $this->getPreviousStep($step, $isAdmin);
         }
 
         $updateData = array_merge($validated, ['current_step' => $newStep]);
 
-        if ($action === 'submit' && $step === 14) {
+        // For non-admin, step 14 (their step 12) triggers completion
+        $isFinalStep = $step === 14 || (! $isAdmin && $step >= 12);
+        if ($action === 'submit' && $isFinalStep) {
             $updateData['status'] = 'completed';
             $updateData['completed_at'] = now();
         }
@@ -284,7 +357,7 @@ class RopaFormController extends Controller
         });
 
         // Handle post‑submission decisions
-        if ($action === 'submit' && $step === 14) {
+        if ($action === 'submit' && $isFinalStep) {
             $nextAction = $request->input('next_action', 'add_more');
 
             return $this->handleSubProcessCompletion($parentForm, $nextAction);
@@ -528,6 +601,12 @@ class RopaFormController extends Controller
     {
         $targetStep = (int) $request->input('target_step');
         $currentStep = (int) $request->input('current_step', 1);
+        $isAdmin = Auth::user()->role === 'admin';
+
+        // Prevent non-admin users from navigating to steps 12 and 13
+        if (! $isAdmin && in_array($targetStep, [12, 13])) {
+            $targetStep = 14;
+        }
 
         try {
             $this->normalizeRequest($request);
@@ -623,6 +702,7 @@ class RopaFormController extends Controller
                 'data_subjects' => 'nullable|array',
                 'personal_data_categories' => 'nullable|array',
                 'special_category_documents' => 'nullable|string',
+                'internal_sharing_categories' => 'nullable|string',
             ],
             4 => [
                 'internal_sharing_categories' => 'nullable|string',

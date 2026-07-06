@@ -6,7 +6,7 @@
     <div class="step-wrapper" data-aos="fade-down">
         <div class="progress-stepper">
             <?php
-            $steps = [
+            $adminSteps = [
             1 => 'Basic Info',
             2 => 'Joint Controllers',
             3 => 'Data Categories',
@@ -22,7 +22,22 @@
             13 => 'Breaches',
             14 => 'Compliance'
             ];
-            $stepIcons = [
+            $userSteps = [
+            1 => 'Basic Info',
+            2 => 'Joint Controllers',
+            3 => 'Data Categories',
+            4 => 'Internal Sharing',
+            5 => 'Data Source',
+            6 => 'Legal Basis',
+            7 => 'Security',
+            8 => 'External Sharing',
+            9 => 'Intl. Transfers',
+            10 => 'Auto Decision',
+            11 => 'Consent',
+            12 => 'Compliance'
+            ];
+            $steps = isset($isAdmin) && $isAdmin ? $adminSteps : $userSteps;
+            $adminIcons = [
             1 => 'info-circle',
             2 => 'users',
             3 => 'database',
@@ -38,33 +53,38 @@
             13 => 'exclamation-triangle',
             14 => 'check-circle'
             ];
-            $currentIcon = $stepIcons[$step] ?? 'check-circle';
-            $currentStep = $step;
+            $stepIcons = isset($isAdmin) && $isAdmin ? $adminIcons : array_merge(array_slice($adminIcons, 0, 12, true), [12 => 'check-circle']);
+            $currentIcon = $stepIcons[$displayStep ?? $step] ?? 'check-circle';
+            $currentStep = $displayStep ?? $step;
+            $totalSteps = isset($isAdmin) && $isAdmin ? 14 : 12;
+            $accessibleSteps = isset($isAdmin) && $isAdmin ? range(1, 14) : array_merge(range(1, 11), [14]);
             $submissionStatus = $submission->status ?? 'draft';
             $hasSubProcesses = $parentForm->has_sub_processes ?? 0;
             ?>
 
-            <?php $__currentLoopData = $steps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $num => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <div class="step-item <?php echo e($currentStep > $num ? 'completed' : ''); ?> <?php echo e($currentStep == $num ? 'active' : ''); ?> <?php echo e($currentStep < $num ? 'locked' : ''); ?>"
-                data-step="<?php echo e($num); ?>"
-                <?php if($currentStep>= $num): ?> onclick="navigateToStep(<?php echo e($num); ?>)" <?php endif; ?>
-                style="cursor: <?php echo e($currentStep >= $num ? 'pointer' : 'not-allowed'); ?>;">
-                <div class="step-number">
-                    <?php if($currentStep > $num): ?>
-                    <i class="fas fa-check"></i>
-                    <?php else: ?>
-                    <?php echo e($num); ?>
+<?php $__currentLoopData = $steps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $num => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+             <?php if(in_array($num, $accessibleSteps)): ?>
+             <div class="step-item <?php echo e($currentStep > $num ? 'completed' : ''); ?> <?php echo e($currentStep == $num ? 'active' : ''); ?> <?php echo e($currentStep < $num ? 'locked' : ''); ?>"
+                 data-step="<?php echo e($num); ?>"
+                 <?php if(in_array($num, $accessibleSteps) && $currentStep >= $num): ?> onclick="navigateToStep(<?php echo e($num); ?>)" <?php endif; ?>
+                 style="cursor: <?php echo e($currentStep >= $num && in_array($num, $accessibleSteps) ? 'pointer' : 'not-allowed'); ?>;">
+                 <div class="step-number">
+                     <?php if($currentStep > $num): ?>
+                     <i class="fas fa-check"></i>
+                     <?php else: ?>
+                     <?php echo e($num); ?>
 
-                    <?php endif; ?>
-                </div>
-                <div class="step-label"><?php echo e($label); ?></div>
-                <?php if($currentStep < $num): ?>
-                    <div class="step-lock">
-                    <i class="fas fa-lock"></i>
-            </div>
-            <?php endif; ?>
-        </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                     <?php endif; ?>
+                 </div>
+                 <div class="step-label"><?php echo e($label); ?></div>
+                 <?php if($currentStep < $num && in_array($num, $accessibleSteps)): ?>
+                     <div class="step-lock">
+                     <i class="fas fa-lock"></i>
+             </div>
+             <?php endif; ?>
+         </div>
+         <?php endif; ?>
+         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 </div>
 
@@ -80,13 +100,13 @@
             <input type="hidden" name="next_action" id="nextActionInput" value="">
 
             <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-<?php echo e($currentIcon); ?> fa-fw me-2"></i>
-                            <strong>Step <?php echo e($step); ?> of 14</strong>
-                            <span class="ms-3 small"><?php echo e($steps[$step]); ?></span>
-                        </div>
+<div class="card-header">
+                     <div class="d-flex justify-content-between align-items-center">
+                         <div>
+                             <i class="fas fa-<?php echo e($currentIcon); ?> fa-fw me-2"></i>
+                             <strong>Step <?php echo e($currentStep); ?> of <?php echo e($totalSteps); ?></strong>
+                             <span class="ms-3 small"><?php echo e($steps[$currentStep] ?? $steps[$step]); ?></span>
+                         </div>
                         <div>
                             <span class="badge bg-light text-dark px-3 py-2">
                                 <i class="fas fa-save me-1"></i> Auto-save enabled
@@ -95,45 +115,53 @@
                     </div>
                 </div>
 
-                <div class="card-body p-4">
-                    <?php if($errors->any()): ?>
-                    <div class="alert alert-danger mb-3 py-2">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Cannot proceed:</strong> <?php echo e($errors->first()); ?>
+<div class="card-body p-4">
+                     <?php if($errors->any()): ?>
+                     <div class="alert alert-danger mb-3 py-2">
+                         <i class="fas fa-exclamation-triangle me-2"></i>
+                         <strong>Cannot proceed:</strong> <?php echo e($errors->first()); ?>
 
-                        <?php if($errors->count() > 1): ?>
-                        <span class="small">(<?php echo e($errors->count() - 1); ?> more)</span>
-                        <?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-                    <?php echo $__env->make("ropa.steps.step{$step}", array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-                </div>
+                         <?php if($errors->count() > 1): ?>
+                         <span class="small">(<?php echo e($errors->count() - 1); ?> more)</span>
+                         <?php endif; ?>
+                     </div>
+                     <?php endif; ?>
+<?php if(!isset($isAdmin) || (!$isAdmin && in_array($step, [12, 13]))): ?>
+                           <div class="alert alert-info text-center">
+                               <i class="fas fa-info-circle fa-2x mb-3"></i>
+                               <h5>Steps 12 and 13 will be updated by the admin.</h5>
+                               <p class="mb-0">You will be redirected to the next available step.</p>
+                           </div>
+                       <?php else: ?>
+                       <?php echo $__env->make("ropa.steps.step{$step}", array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                       <?php endif; ?>
+                 </div>
 
-                <div class="card-footer bg-white p-4">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <?php if($step > 1): ?>
-                            <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
-                                <i class="fas fa-arrow-left me-2"></i> Previous
-                            </button>
-                            <?php endif; ?>
-                            <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
-                                <i class="fas fa-save me-2"></i> Save Draft
-                            </button>
-                        </div>
-                        <div>
-                            <?php if($step < 14): ?>
-                                <button type="submit" name="action" value="next" class="btn btn-primary px-5">
-                                Next Step <i class="fas fa-arrow-right ms-2"></i>
-                                </button>
-                                <?php else: ?>
-                                <button type="submit" name="action" value="submit" class="btn btn-accent px-5" id="finalSubmitBtn">
-                                    <i class="fas fa-check-circle me-2"></i> Submit This Sub‑process
-                                </button>
-                                <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
+<div class="card-footer bg-white p-4">
+                     <div class="d-flex justify-content-between">
+                         <div>
+                             <?php if($currentStep > 1 && in_array($currentStep - 1, $accessibleSteps)): ?>
+                             <button type="submit" name="action" value="previous" class="btn btn-outline-primary px-4">
+                                 <i class="fas fa-arrow-left me-2"></i> Previous
+                             </button>
+                             <?php endif; ?>
+                             <button type="submit" name="action" value="save" class="btn btn-outline-accent ms-2 px-4">
+                                 <i class="fas fa-save me-2"></i> Save Draft
+                             </button>
+                         </div>
+                         <div>
+                             <?php if($currentStep < $totalSteps): ?>
+                                 <button type="submit" name="action" value="next" class="btn btn-primary px-5">
+                                 Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                 </button>
+                                 <?php else: ?>
+                                 <button type="submit" name="action" value="submit" class="btn btn-accent px-5" id="finalSubmitBtn">
+                                     <i class="fas fa-check-circle me-2"></i> Submit This Sub‑process
+                                 </button>
+                                 <?php endif; ?>
+                         </div>
+                     </div>
+                 </div>
             </div>
         </form>
     </div>
@@ -326,6 +354,9 @@
         // ============================================
         const form = document.querySelector('#ropaForm');
         const hasSubProcesses = <?php echo json_encode($hasSubProcesses, 15, 512) ?>;
+        const isAdmin = <?php echo e($isAdmin ? 'true' : 'false'); ?>;
+        const totalSteps = <?php echo e($totalSteps); ?>;
+        const actualStep = <?php echo e($step); ?>;
 
         if (form) {
             form.addEventListener('submit', function(e) {
@@ -334,7 +365,7 @@
 
                 // Validate required fields when clicking "Next Step"
                 if (actionValue === 'next') {
-                    const currentStep = <?php echo e($step); ?>;
+                    const currentStep = <?php echo e($currentStep); ?>;
                     const validation = validateStep(currentStep);
 
                     if (!validation.valid) {
@@ -353,12 +384,12 @@
                     }
                 }
 
-                // Step 14 completion modal
+                // Step final completion modal (step 14 for admin, step 12 for non-admin)
                 if (actionValue === 'submit' && form.dataset.finalSubmitConfirmed !== 'true') {
                     e.preventDefault();
 
-                    // Validate required fields for step 14
-                    const validation = validateStep(14);
+                    // Validate required fields for final step
+                    const validation = validateStep(totalSteps);
                     if (!validation.valid) {
                         document.getElementById('loadingOverlay').style.display = 'none';
                         Swal.fire({
@@ -726,22 +757,36 @@
         });
     }
 
-    // ============================================
-    // STEP NAVIGATION
-    // ============================================
-    function navigateToStep(stepNumber) {
-        const currentStep = <?php echo e($step); ?>;
+// ============================================
+        // STEP NAVIGATION
+        // ============================================
+        function navigateToStep(stepNumber) {
+            const currentStep = <?php echo e($currentStep); ?>;
+            const totalSteps = <?php echo e($totalSteps); ?>;
+            const isAdmin = <?php echo e($isAdmin ? 'true' : 'false'); ?>;
 
-        if (stepNumber > currentStep) {
-            Swal.fire({
-                title: 'Step Locked',
-                text: 'Please complete the current step first before moving forward.',
-                icon: 'info',
-                confirmButtonColor: '#b69964',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
+            // Restrict steps 12 and 13 to admin users
+            if (!isAdmin && (stepNumber === 12 || stepNumber === 13)) {
+                Swal.fire({
+                    title: 'Step Restricted',
+                    text: 'Steps 12 and 13 are reserved for admin users.',
+                    icon: 'info',
+                    confirmButtonColor: '#b69964',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            if (stepNumber > currentStep) {
+                Swal.fire({
+                    title: 'Step Locked',
+                    text: 'Please complete the current step first before moving forward.',
+                    icon: 'info',
+                    confirmButtonColor: '#b69964',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
 
         if (stepNumber === currentStep) {
             return;
@@ -789,7 +834,7 @@
         formData.append('_method', 'PUT');
         formData.append('action', 'navigate');
         formData.append('target_step', stepNumber);
-        formData.append('current_step', <?php echo e($step); ?>);
+        formData.append('current_step', actualStep);
 
         const currentForm = document.getElementById('ropaForm');
         if (currentForm) {
