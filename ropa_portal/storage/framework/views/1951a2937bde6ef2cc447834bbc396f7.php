@@ -81,7 +81,7 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                         <input type="text" class="form-control" id="mechanismInput"
-                               placeholder="Type and press Enter (e.g., Adequacy decision, SCCs, BCRs)">
+                               placeholder="Type and press Enter (e.g., Email, Cloud Storage, API)">
                         <input type="hidden" name="transfer_mechanisms" id="transfer_mechanisms_hidden" value="<?php echo e(json_encode($mechanisms)); ?>">
                     </div>
                 </div>

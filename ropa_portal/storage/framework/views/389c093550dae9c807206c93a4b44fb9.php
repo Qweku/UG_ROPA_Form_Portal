@@ -143,11 +143,9 @@
                         <span class="badge bg-danger ms-2">Sensitive Information</span>
                     </div>
                     <?php
-                        $specialCategories = [];
-                        if ($submission->special_category_documents) {
-                            $decoded = json_decode($submission->special_category_documents, true);
-                            $specialCategories = is_array($decoded) ? $decoded : [$submission->special_category_documents];
-                        }
+                        $specialCategories = is_array($submission->special_category_documents)
+                            ? $submission->special_category_documents
+                            : (json_decode($submission->special_category_documents ?? '[]', true) ?: []);
                     ?>
                     <div class="multi-select-container" id="specialCategoryContainer">
                         <div class="chips-container mb-2">
