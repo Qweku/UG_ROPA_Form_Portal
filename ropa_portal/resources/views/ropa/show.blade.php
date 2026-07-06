@@ -805,7 +805,9 @@
                             </div>
                             <h4 class="mb-0 text-white" >Data Protection Impact Assessment</h4>
                         </div>
-                        @include('ropa.partials.section-edit-controls')
+                        @if(Auth::user()->role === 'admin')
+                            @include('ropa.partials.section-edit-controls')
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -854,9 +856,11 @@
                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
                                 <i class="fas fa-exclamation-triangle" style="color: #153d6f;"></i>
                             </div>
-                            <h4 class="mb-0 text-white" >Breach History</h4>
+                            <h4 class="mb-0 text-white" >Breach History</h4> 
                         </div>
-                        @include('ropa.partials.section-edit-controls')
+                        @if(Auth::user()->role === 'admin')
+                            @include('ropa.partials.section-edit-controls')
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
