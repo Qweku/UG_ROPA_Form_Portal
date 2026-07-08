@@ -175,6 +175,8 @@
                 $transferMechanisms      = $toArray($submission->transfer_mechanisms);
                 $dpaConditions           = $toArray($submission->dpa_conditions);
                 $gdprArticles            = $toArray($submission->gdpr_articles);
+                $cybersecurityArticles   = $toArray($submission->cybersecurity_articles);
+                $otherArticles           = $toArray($submission->other_articles);
 
                 // special_category_documents is a plain string column (not array-cast),
                 // but some submissions have it stored as a JSON-encoded array string.
@@ -333,11 +335,105 @@
                                 <span class="text-muted">N/A</span>
                             <?php endif; ?>
                         </div>
-                        <textarea name="joint_controllers_raw" rows="6" class="form-control edit-mode d-none" data-json-field="joint_controllers" placeholder='[{"name":"Organisation name","contact_name":"Full name","contact_email":"email@example.com","contact_phone":"0201234567","contact_address":"City, Country"}]'><?php echo e(json_encode($jointControllers, JSON_PRETTY_PRINT)); ?></textarea>
-                        <small class="text-muted edit-mode d-none">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Edit as JSON. Each entry supports: <code>name</code>, <code>contact_name</code>, <code>contact_email</code>, <code>contact_phone</code>, <code>contact_address</code>.
-                        </small>
+                        <div class="edit-mode d-none" id="joint-controllers-edit-wrapper">
+                            <div id="joint-controllers-container">
+                                <?php $__empty_1 = true; $__currentLoopData = $jointControllers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $controller): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $c = is_array($controller) ? $controller : []; ?>
+                                    <div class="joint-controller-card card mb-3 border">
+                                        <div class="card-body position-relative">
+                                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-controller" aria-label="Remove"></button>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
+                                                    </label>
+                                                    <input type="text" name="joint_controllers[<?php echo e($idx); ?>][name]"
+                                                        class="form-control" value="<?php echo e($c['name'] ?? ''); ?>"
+                                                        placeholder="e.g., Research Collaborator, External Partner">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                                                    </label>
+                                                    <input type="text" name="joint_controllers[<?php echo e($idx); ?>][contact_name]"
+                                                        class="form-control" value="<?php echo e($c['contact_name'] ?? ''); ?>"
+                                                        placeholder="Full name">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                                                    </label>
+                                                    <input type="email" name="joint_controllers[<?php echo e($idx); ?>][contact_email]"
+                                                        class="form-control" value="<?php echo e($c['contact_email'] ?? ''); ?>"
+                                                        placeholder="email@example.com">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                                                    </label>
+                                                    <input type="tel" name="joint_controllers[<?php echo e($idx); ?>][contact_phone]"
+                                                        class="form-control" value="<?php echo e($c['contact_phone'] ?? ''); ?>"
+                                                        placeholder="+233 20 123 4567">
+                                                </div>
+                                                <div class="col-12 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                                                    </label>
+                                                    <textarea name="joint_controllers[<?php echo e($idx); ?>][contact_address]"
+                                                        class="form-control" rows="2"
+                                                        placeholder="Physical address"><?php echo e($c['contact_address'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <div class="joint-controller-card card mb-3 border">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
+                                                    </label>
+                                                    <input type="text" name="joint_controllers[0][name]" class="form-control"
+                                                        placeholder="e.g., Research Collaborator, External Partner">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                                                    </label>
+                                                    <input type="text" name="joint_controllers[0][contact_name]" class="form-control"
+                                                        placeholder="Full name">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                                                    </label>
+                                                    <input type="email" name="joint_controllers[0][contact_email]" class="form-control"
+                                                        placeholder="email@example.com">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                                                    </label>
+                                                    <input type="tel" name="joint_controllers[0][contact_phone]" class="form-control"
+                                                        placeholder="+233 20 123 4567">
+                                                </div>
+                                                <div class="col-12 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                                                    </label>
+                                                    <textarea name="joint_controllers[0][contact_address]" class="form-control" rows="2"
+                                                        placeholder="Physical address"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-joint-controller">
+                                <i class="fas fa-plus me-1"></i> Add Another
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -667,8 +763,98 @@
                                 <span class="text-muted">N/A</span>
                             <?php endif; ?>
                         </div>
-                        <textarea name="external_recipients_raw" rows="3" class="form-control edit-mode d-none" data-json-field="external_recipients" placeholder='JSON array, e.g. [{"name":"...","type":"...","contract":"Yes","relationship":"..."}]'><?php echo e(json_encode($externalRecipients, JSON_PRETTY_PRINT)); ?></textarea>
-                        <small class="text-muted edit-mode d-none">Each recipient needs name, type, contract, and relationship — edit as JSON.</small>
+                        <div class="edit-mode d-none" id="external-recipients-edit-wrapper">
+                            <div id="external-recipients-container">
+                                <?php $__empty_1 = true; $__currentLoopData = $externalRecipients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $recipient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <?php $r = is_array($recipient) ? $recipient : []; ?>
+                                    <div class="recipient-card card mb-3 border">
+                                        <div class="card-body position-relative">
+                                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-recipient" aria-label="Remove"></button>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-building me-1" style="color: #b69964;"></i> Recipient Name
+                                                    </label>
+                                                    <input type="text" name="external_recipients[<?php echo e($idx); ?>][name]"
+                                                        class="form-control" value="<?php echo e($r['name'] ?? ''); ?>"
+                                                        placeholder="e.g., IT system supplier, Cloud provider">
+                                                </div>
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-tag me-1" style="color: #b69964;"></i> Type of Recipient
+                                                    </label>
+                                                    <select name="external_recipients[<?php echo e($idx); ?>][type]" class="form-select">
+                                                        <option value="Public authority" <?php echo e(($r['type'] ?? '') == 'Public authority' ? 'selected' : ''); ?>>Public authority</option>
+                                                        <option value="Service provider" <?php echo e(($r['type'] ?? '') == 'Service provider' ? 'selected' : ''); ?>>Service provider</option>
+                                                        <option value="Commercial partner" <?php echo e(($r['type'] ?? '') == 'Commercial partner' ? 'selected' : ''); ?>>Commercial partner</option>
+                                                        <option value="Research collaborator" <?php echo e(($r['type'] ?? '') == 'Research collaborator' ? 'selected' : ''); ?>>Research collaborator</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-handshake me-1" style="color: #b69964;"></i> Relationship Type
+                                                    </label>
+                                                    <select name="external_recipients[<?php echo e($idx); ?>][relationship]" class="form-select">
+                                                        <option value="Data Controller" <?php echo e(($r['relationship'] ?? '') == 'Data Controller' ? 'selected' : ''); ?>>Data Controller</option>
+                                                        <option value="Data Processor" <?php echo e(($r['relationship'] ?? '') == 'Data Processor' ? 'selected' : ''); ?>>Data Processor</option>
+                                                        <option value="Joint Controller" <?php echo e(($r['relationship'] ?? '') == 'Joint Controller' ? 'selected' : ''); ?>>Joint Controller</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2 mb-3">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-file-signature me-1" style="color: #b69964;"></i> Contract in Place?
+                                                    </label>
+                                                    <select name="external_recipients[<?php echo e($idx); ?>][contract]" class="form-select">
+                                                        <option value="yes" <?php echo e(($r['contract'] ?? '') == 'yes' ? 'selected' : ''); ?>>✅ Yes</option>
+                                                        <option value="no" <?php echo e(($r['contract'] ?? '') == 'no' ? 'selected' : ''); ?>>❌ No</option>
+                                                        <option value="na" <?php echo e(($r['contract'] ?? '') == 'na' || ($r['contract'] ?? '') == '' ? 'selected' : ''); ?>>N/A</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <div class="recipient-card card mb-3 border">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label fw-bold">Recipient Name</label>
+                                                    <input type="text" name="external_recipients[0][name]" class="form-control" placeholder="e.g., IT system supplier">
+                                                </div>
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label fw-bold">Type of Recipient</label>
+                                                    <select name="external_recipients[0][type]" class="form-select">
+                                                        <option>Public authority</option>
+                                                        <option>Service provider</option>
+                                                        <option>Commercial partner</option>
+                                                        <option>Research collaborator</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="form-label fw-bold">Relationship Type</label>
+                                                    <select name="external_recipients[0][relationship]" class="form-select">
+                                                        <option>Data Controller</option>
+                                                        <option>Data Processor</option>
+                                                        <option>Joint Controller</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2 mb-3">
+                                                    <label class="form-label fw-bold">Contract in Place?</label>
+                                                    <select name="external_recipients[0][contract]" class="form-select">
+                                                        <option value="yes">✅ Yes</option>
+                                                        <option value="no">❌ No</option>
+                                                        <option value="na" selected>N/A</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-recipient">
+                                <i class="fas fa-plus me-1"></i> Add Recipient
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -807,7 +993,9 @@
                             </div>
                             <h4 class="mb-0 text-white" >Data Protection Impact Assessment</h4>
                         </div>
-                        <?php echo $__env->make('ropa.partials.section-edit-controls', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                        <?php if(Auth::user()->role === 'admin'): ?>
+                            <?php echo $__env->make('ropa.partials.section-edit-controls', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -856,9 +1044,11 @@
                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
                                 <i class="fas fa-exclamation-triangle" style="color: #153d6f;"></i>
                             </div>
-                            <h4 class="mb-0 text-white" >Breach History</h4>
+                            <h4 class="mb-0 text-white" >Breach History</h4> 
                         </div>
-                        <?php echo $__env->make('ropa.partials.section-edit-controls', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                        <?php if(Auth::user()->role === 'admin'): ?>
+                            <?php echo $__env->make('ropa.partials.section-edit-controls', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -925,6 +1115,28 @@
                                     <?php endif; ?>
                                 </p>
                                 <textarea name="gdpr_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="gdpr_articles" placeholder="Comma-separated list"><?php echo e(implode(', ', $gdprArticles)); ?></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Cybersecurity Articles</small>
+                                <p class="mb-0 view-mode">
+                                    <?php $__empty_1 = true; $__currentLoopData = $cybersecurityArticles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <span class="text-muted">N/A</span>
+                                    <?php endif; ?>
+                                </p>
+                                <textarea name="cybersecurity_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="cybersecurity_articles" placeholder="Comma-separated list"><?php echo e(implode(', ', $cybersecurityArticles)); ?></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Other Legal References</small>
+                                <p class="mb-0 view-mode">
+                                    <?php $__empty_1 = true; $__currentLoopData = $otherArticles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <span class="badge bg-secondary me-1 mb-1"><?php echo e($item); ?></span>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <span class="text-muted">N/A</span>
+                                    <?php endif; ?>
+                                </p>
+                                <textarea name="other_articles_raw" rows="2" class="form-control edit-mode d-none" data-array-field="other_articles" placeholder="Comma-separated list"><?php echo e(implode(', ', $otherArticles)); ?></textarea>
                             </div>
                             <div class="col-12">
                                 <small class="text-muted">Retention Policy Link</small>
@@ -1098,6 +1310,20 @@
 
             cancelBtn?.addEventListener('click', function() {
                 form.reset();
+                const originalJointCount = <?php echo max(1, count($jointControllers)); ?>;
+                const jointCards = document.getElementById('joint-controllers-container')?.querySelectorAll('.joint-controller-card');
+                if (jointCards) {
+                    for (let i = jointCards.length - 1; i >= originalJointCount; i--) {
+                        jointCards[i].remove();
+                    }
+                }
+                const originalRecipientCount = <?php echo max(1, count($externalRecipients)); ?>;
+                const recipientCards = document.getElementById('external-recipients-container')?.querySelectorAll('.recipient-card');
+                if (recipientCards) {
+                    for (let i = recipientCards.length - 1; i >= originalRecipientCount; i--) {
+                        recipientCards[i].remove();
+                    }
+                }
                 setEditing(false);
             });
 
@@ -1173,6 +1399,123 @@
                     textarea.disabled = true;
                 });
             });
+        });
+    });
+
+    // Joint Controllers dynamic add/remove
+    document.getElementById('add-joint-controller')?.addEventListener('click', function() {
+        const container = document.getElementById('joint-controllers-container');
+        const idx = container.children.length;
+        const newCard = document.createElement('div');
+        newCard.className = 'joint-controller-card card mb-3 border';
+        newCard.innerHTML = `
+            <div class="card-body position-relative">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-controller" aria-label="Remove"></button>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-signature me-1" style="color: #b69964;"></i> Name of Joint Controller
+                        </label>
+                        <input type="text" name="joint_controllers[${idx}][name]" class="form-control" placeholder="e.g., Research Collaborator, External Partner">
+                    </div>
+                     <div class="col-md-6 mb-3">
+                         <label class="form-label fw-bold">
+                             <i class="fas fa-user me-1" style="color: #b69964;"></i> Contact Name
+                         </label>
+                         <input type="text" name="joint_controllers[${idx}][contact_name]" class="form-control" placeholder="Full name">
+                     </div>
+                     <div class="col-md-6 mb-3">
+                         <label class="form-label fw-bold">
+                             <i class="fas fa-envelope me-1" style="color: #b69964;"></i> Email
+                         </label>
+                         <input type="email" name="joint_controllers[${idx}][contact_email]" class="form-control" placeholder="email@example.com">
+                     </div>
+                     <div class="col-md-6 mb-3">
+                         <label class="form-label fw-bold">
+                             <i class="fas fa-phone me-1" style="color: #b69964;"></i> Phone Number
+                         </label>
+                         <input type="tel" name="joint_controllers[${idx}][contact_phone]" class="form-control" placeholder="+233 20 123 4567">
+                     </div>
+                     <div class="col-12 mb-3">
+                         <label class="form-label fw-bold">
+                             <i class="fas fa-map-marker-alt me-1" style="color: #b69964;"></i> Address
+                         </label>
+                         <textarea name="joint_controllers[${idx}][contact_address]" class="form-control" rows="2" placeholder="Physical address"></textarea>
+                     </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(newCard);
+        newCard.querySelector('.remove-controller').addEventListener('click', function() {
+            newCard.remove();
+        });
+    });
+
+    document.querySelectorAll('.remove-controller').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.joint-controller-card').remove();
+        });
+    });
+
+    // External Recipients dynamic add/remove
+    document.getElementById('add-recipient')?.addEventListener('click', function() {
+        const container = document.getElementById('external-recipients-container');
+        const idx = container.children.length;
+        const card = document.createElement('div');
+        card.className = 'recipient-card card mb-3 border';
+        card.innerHTML = `
+            <div class="card-body position-relative">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-recipient" aria-label="Remove"></button>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-building me-1" style="color: #b69964;"></i> Recipient Name
+                        </label>
+                        <input type="text" name="external_recipients[${idx}][name]" class="form-control" placeholder="e.g., IT system supplier, Cloud provider">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-tag me-1" style="color: #b69964;"></i> Type of Recipient
+                        </label>
+                        <select name="external_recipients[${idx}][type]" class="form-select">
+                            <option>Public authority</option>
+                            <option>Service provider</option>
+                            <option>Commercial partner</option>
+                            <option>Research collaborator</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-handshake me-1" style="color: #b69964;"></i> Relationship Type
+                        </label>
+                        <select name="external_recipients[${idx}][relationship]" class="form-select">
+                            <option>Data Controller</option>
+                            <option>Data Processor</option>
+                            <option>Joint Controller</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-file-signature me-1" style="color: #b69964;"></i> Contract in Place?
+                        </label>
+                        <select name="external_recipients[${idx}][contract]" class="form-select">
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                            <option value="na" selected>N/A</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+        card.querySelector('.remove-recipient').addEventListener('click', function() {
+            card.remove();
+        });
+    });
+
+    document.querySelectorAll('.remove-recipient').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.recipient-card').remove();
         });
     });
 </script>

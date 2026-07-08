@@ -73,7 +73,9 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="statusChart" height="100"></canvas>
+                    <div style="max-width: 450px; margin: 0 auto; height: 300px; position: relative;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
                     <div class="row mt-3 text-center">
                         <div class="col-4">
                             <div class="small text-muted">Total Sub-processes</div>
@@ -283,6 +285,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                aspectRatio: 1.5,
                 plugins: {
                     legend: {
                         position: 'bottom'
