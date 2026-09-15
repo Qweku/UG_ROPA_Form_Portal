@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMail;
 use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
 class OtpVerificationController extends Controller
@@ -159,17 +161,10 @@ class OtpVerificationController extends Controller
 
     private function sendOtpEmail($email, $otp, $name)
     {
-        // You can use Mailtrap, SMTP, or any email service
-        // For now, we'll use log for development
-        // \Log::info("OTP for {$email}: {$otp}");
-
-        // In production, uncomment and configure mail:
-        /*
-        Mail::send('emails.otp', ['otp' => $otp, 'name' => $name], function ($message) use ($email) {
-            $message->to($email)
-                    ->subject('RoPA Portal - Email Verification OTP')
-                    ->from('noreply@ug.edu.gh', 'University of Ghana RoPA');
-        });
-        */
-    }
+        try {
+            Mail::to($email)->send(new OtpMail($otp, $name));
+        } catch (\Exception $e) {
+            Log::error('Failed to send OTP email to '.$email.': '.$e->getMessage());
+        }
+    } 
 }

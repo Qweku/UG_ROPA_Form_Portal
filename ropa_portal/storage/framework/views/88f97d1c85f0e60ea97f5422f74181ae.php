@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('assets/favicon-16x16.png')); ?>">
     <link rel="manifest" href="<?php echo e(asset('assets/site.webmanifest')); ?>">
 
-    
+
     <style>
         * {
             margin: 0;
@@ -150,8 +150,8 @@
         }
 
         .logo-icon {
-            width: 70px;
-            height: 70px;
+            width: 90px;
+            height: 90px;
             background: rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             display: flex;
@@ -436,7 +436,9 @@
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo-icon">
-                    <i class="fas fa-shield-alt"></i>
+                    <img src="<?php echo e(asset('assets/ug_logo.png')); ?>" alt="UG Logo" style="width: 80px; height: 80px; object-fit: contain;">
+
+                    
                 </div>
                 <h2>Welcome to RoPA Portal</h2>
                 <p>University of Ghana - Data Protection Framework</p>
