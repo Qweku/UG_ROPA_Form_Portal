@@ -16,7 +16,7 @@ class AdminMiddleware
 
         // Check if user has admin role
         // You can modify this based on your user structure
-        if (Auth::user()->role !== 'admin' && Auth::user()->email !== 'admin@ug.edu.gh') {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'super_admin' && Auth::user()->email !== 'admin@ug.edu.gh') {
             abort(403, 'Unauthorized access. Admin privileges required.');
         }
 

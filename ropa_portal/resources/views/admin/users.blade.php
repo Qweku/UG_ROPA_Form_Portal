@@ -38,6 +38,7 @@
                         <option value="all" {{ request('role') == 'all' ? 'selected' : '' }}>All Roles</option>
                         <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>User</option>
                         <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                     </select>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
@@ -78,7 +79,7 @@
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->personnel_id ?? 'N/A' }}</td>
                             <td>
-                                <span class="badge bg-{{ $user->role === 'admin' ? 'primary' : 'secondary' }}">
+                                <span class="badge bg-{{ in_array($user->role, ['admin', 'super_admin']) ? 'primary' : 'secondary' }}">
                                     {{ ucfirst($user->role) }}
                                 </span>
                             </td>

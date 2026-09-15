@@ -27,8 +27,8 @@ class AdminController extends Controller
             'total_submissions' => RopaSubmission::count(),
             'completed_submissions' => RopaSubmission::where('status', 'completed')->count(),
             'draft_submissions' => RopaSubmission::where('status', 'draft')->count(),
-            'total_users' => User::where('role', '!=', 'admin')->count(),
-            'active_users' => User::where('role', '!=', 'admin')->where('is_verified', true)->count(),
+            'total_users' => User::whereNotIn('role', ['admin', 'super_admin'])->count(),
+            'active_users' => User::whereNotIn('role', ['admin', 'super_admin'])->where('is_verified', true)->count(),
             'forms_this_month' => RopaForm::whereMonth('created_at', now()->month)->count(),
         ];
 
@@ -37,7 +37,7 @@ class AdminController extends Controller
             ->take(10)
             ->get();
 
-        $recentUsers = User::where('role', '!=', 'admin')
+        $recentUsers = User::whereNotIn('role', ['admin', 'super_admin'])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
@@ -275,7 +275,7 @@ class AdminController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'personnel_id' => 'nullable|string|max:50',
-            'role' => 'required|in:user,admin',
+            'role' => 'required|in:user,admin,super_admin',
         ]);
 
         $user = User::create([
@@ -317,7 +317,7 @@ class AdminController extends Controller
             'surname' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'personnel_id' => 'nullable|string|max:50',
-            'role' => 'required|in:user,admin',
+            'role' => 'required|in:user,admin,super_admin',
             'is_verified' => 'sometimes|boolean',
         ]);
 

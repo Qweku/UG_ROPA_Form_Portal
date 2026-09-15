@@ -150,7 +150,9 @@ class OtpVerificationController extends Controller
             'email_verified_at' => now(),
         ]);
 
-        $redirectRoute = $user->role === 'admin' ? route('admin.dashboard') : route('ropa.index');
+        $redirectRoute = in_array($user->role, ['admin', 'super_admin'])
+            ? route('admin.dashboard')
+            : route('ropa.index');
 
         return response()->json([
             'success' => true,
@@ -166,5 +168,5 @@ class OtpVerificationController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to send OTP email to '.$email.': '.$e->getMessage());
         }
-    } 
+    }
 }

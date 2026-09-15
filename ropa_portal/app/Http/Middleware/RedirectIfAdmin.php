@@ -10,7 +10,7 @@ class RedirectIfAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'admin') {
+        if (Auth::check() && in_array(Auth::user()->role, ['admin', 'super_admin'])) {
             $routeName = $request->route()->getName();
 
             // Allow admin access to form editing and updating (for restricted steps)
