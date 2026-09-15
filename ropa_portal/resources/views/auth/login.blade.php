@@ -13,6 +13,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="{{ asset('assets/css/ropa.css') }}" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('assets/site.webmanifest') }}">
+
 
     <style>
         * {
@@ -144,8 +150,8 @@
         }
 
         .logo-icon {
-            width: 70px;
-            height: 70px;
+            width: 90px;
+            height: 90px;
             background: rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             display: flex;
@@ -430,7 +436,9 @@
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo-icon">
-                    <i class="fas fa-shield-alt"></i>
+                    <img src="{{ asset('assets/ug_logo.png') }}" alt="UG Logo" style="width: 80px; height: 80px; object-fit: contain;">
+
+                    {{-- <i class="fas fa-shield-alt"></i> --}}
                 </div>
                 <h2>Welcome to RoPA Portal</h2>
                 <p>University of Ghana - Data Protection Framework</p>

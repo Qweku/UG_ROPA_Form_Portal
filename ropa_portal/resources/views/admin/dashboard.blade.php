@@ -23,18 +23,7 @@
                         <i class="fas fa-file-alt fa-2x"></i>
                     </div>
                     <h3 class="mb-0">{{ $stats['total_forms'] }}</h3>
-                    <p class="mb-0" style="opacity: 0.9;">Total Forms</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm h-100 text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 20px;">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
-                        <i class="fas fa-clock fa-2x"></i>
-                    </div>
-                    <h3 class="mb-0">{{ $stats['submitted_forms'] }}</h3>
-                    <p class="mb-0" style="opacity: 0.9;">Pending Review</p>
+                    <p class="mb-0" style="opacity: 0.9;">Total RoPA Processes</p>
                 </div>
             </div>
         </div>
@@ -44,8 +33,19 @@
                     <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
                         <i class="fas fa-check-circle fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['approved_forms'] }}</h3>
-                    <p class="mb-0" style="opacity: 0.9;">Approved</p>
+                    <h3 class="mb-0">{{ $stats['completed_forms'] }}</h3>
+                    <p class="mb-0" style="opacity: 0.9;">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100 text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 20px;">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex p-3 mb-3">
+                        <i class="fas fa-spinner fa-2x"></i>
+                    </div>
+                    <h3 class="mb-0">{{ $stats['in_progress_forms'] }}</h3>
+                    <p class="mb-0" style="opacity: 0.9;">In Progress</p>
                 </div>
             </div>
         </div>
@@ -69,27 +69,25 @@
                 <div class="card-header bg-white border-0 pt-4">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-pie me-2" style="color: #b69964;"></i>
-                        Form Status Distribution
+                        Sub-process Status Distribution
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="statusChart" height="100"></canvas>
+                    <div style="max-width: 450px; margin: 0 auto; height: 300px; position: relative;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
                     <div class="row mt-3 text-center">
-                        <div class="col-3">
-                            <div class="small text-muted">Submitted</div>
-                            <strong>{{ $stats['submitted_forms'] }}</strong>
+                        <div class="col-4">
+                            <div class="small text-muted">Total Sub-processes</div>
+                            <strong>{{ $stats['total_submissions'] }}</strong>
                         </div>
-                        <div class="col-3">
-                            <div class="small text-muted">Approved</div>
-                            <strong>{{ $stats['approved_forms'] }}</strong>
+                        <div class="col-4">
+                            <div class="small text-muted">Completed</div>
+                            <strong>{{ $stats['completed_submissions'] }}</strong>
                         </div>
-                        <div class="col-3">
-                            <div class="small text-muted">Rejected</div>
-                            <strong>{{ $stats['rejected_forms'] }}</strong>
-                        </div>
-                        <div class="col-3">
+                        <div class="col-4">
                             <div class="small text-muted">Draft</div>
-                            <strong>{{ $stats['draft_forms'] }}</strong>
+                            <strong>{{ $stats['draft_submissions'] }}</strong>
                         </div>
                     </div>
                 </div>
@@ -105,7 +103,7 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <small class="text-muted">Forms submitted this month</small>
+                        <small class="text-muted">RoPA processes created this month</small>
                         <h3 class="mb-0">{{ $stats['forms_this_month'] }}</h3>
                     </div>
                     <div class="mb-3">
@@ -129,7 +127,7 @@
                 <div class="card-header bg-white border-0 pt-4 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2" style="color: #b69964;"></i>
-                        Recent Submissions
+                        Recent RoPA Processes
                     </h5>
                     <a href="{{ route('admin.submitted-forms') }}" class="btn btn-sm btn-outline-accent">
                         View All <i class="fas fa-arrow-right ms-1"></i>
@@ -142,9 +140,11 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Submitter</th>
+                                    <th>Main Process</th>
                                     <th>Business Function</th>
+                                    <th>Sub-processes</th>
                                     <th>Status</th>
-                                    <th>Submitted At</th>
+                                    <th>Last Updated</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -153,24 +153,20 @@
                                 <tr>
                                     <td>#{{ $form->id }}</td>
                                     <td>
-                                        <strong>{{ $form->firstname }} {{ $form->surname }}</strong><br>
+                                        <strong>{{ $form->user->firstname ?? '' }} {{ $form->user->surname ?? '' }}</strong><br>
                                         <small class="text-muted">{{ $form->user->email ?? 'N/A' }}</small>
                                     </td>
+                                    <td>{{ $form->main_process_name ?: 'N/A' }}</td>
                                     <td>{{ $form->business_function ?? 'N/A' }}</td>
                                     <td>
-                                        @php
-                                        $statusColors = [
-                                        'draft' => 'secondary',
-                                        'submitted' => 'warning',
-                                        'approved' => 'success',
-                                        'rejected' => 'danger'
-                                        ];
-                                        @endphp
-                                        <span class="badge bg-{{ $statusColors[$form->status] }}">
-                                            {{ ucfirst($form->status) }}
+                                        <span class="badge bg-secondary">{{ $form->submissions->count() }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ $form->all_submissions_completed ? 'success' : 'warning' }}">
+                                            {{ $form->all_submissions_completed ? 'Completed' : 'In Progress' }}
                                         </span>
                                     </td>
-                                    <td>{{ $form->submitted_at ? $form->submitted_at->diffForHumans() : 'N/A' }}</td>
+                                    <td>{{ $form->updated_at->diffForHumans() }}</td>
                                     <td>
                                         <a href="{{ route('admin.view-form', $form) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>
@@ -179,7 +175,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">No forms found</td>
+                                    <td colspan="8" class="text-center py-4">No forms found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -191,14 +187,18 @@
     </div>
 
     <!-- Recent Users -->
+    @if(Auth::user()->role === 'super_admin')
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-4">
+                <div class="card-header bg-white border-0 pt-4 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-user-plus me-2" style="color: #b69964;"></i>
                         New Users
                     </h5>
+                    <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-accent">
+                        Manage Users <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -213,13 +213,6 @@
                             </thead>
                             <tbody>
                                 @forelse($recentUsers as $user)
-                                @if($user->role === 'admin' )
-                                @continue
-                                <tr>
-                                    <td colspan="6" class="text-center py-4">No users found</td>
-                                </tr>
-
-                                @endif
                                 <tr>
                                     <td>{{ $user->firstname }} {{ $user->surname }}</td>
                                     <td>{{ $user->email }}</td>
@@ -244,6 +237,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 @push('scripts')
@@ -265,26 +259,8 @@
         }
 
         const stats = {
-            submitted_forms: {
-                {
-                    $stats['submitted_forms'] ?? 0
-                }
-            },
-            approved_forms: {
-                {
-                    $stats['approved_forms'] ?? 0
-                }
-            },
-            rejected_forms: {
-                {
-                    $stats['rejected_forms'] ?? 0
-                }
-            },
-            draft_forms: {
-                {
-                    $stats['draft_forms'] ?? 0
-                }
-            },
+            completed_submissions: {{ $stats['completed_submissions'] ?? 0 }},
+            draft_submissions: {{ $stats['draft_submissions'] ?? 0 }}
         };
 
         const ctx = chartCanvas.getContext('2d');
@@ -293,23 +269,17 @@
             type: 'doughnut',
             data: {
                 labels: [
-                    'Submitted',
-                    'Approved',
-                    'Rejected',
-                    'Draft'
+                    'Completed',
+                    'Draft / In Progress'
                 ],
                 datasets: [{
                     data: [
-                        stats.submitted_forms,
-                        stats.approved_forms,
-                        stats.rejected_forms,
-                        stats.draft_forms
+                        stats.completed_submissions,
+                        stats.draft_submissions
                     ],
                     backgroundColor: [
-                        '#ffc107',
                         '#28a745',
-                        '#dc3545',
-                        '#6c757d'
+                        '#ffc107'
                     ],
                     borderWidth: 0
                 }]
@@ -317,6 +287,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                aspectRatio: 1.5,
                 plugins: {
                     legend: {
                         position: 'bottom'

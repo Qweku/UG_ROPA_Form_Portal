@@ -32,13 +32,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'is_verified' => 'boolean'
+        'is_verified' => 'boolean',
     ];
 
     // Accessor for full name
     public function getFullNameAttribute()
     {
-        return trim($this->firstname . ' ' . $this->surname);
+        return trim($this->firstname.' '.$this->surname);
     }
 
     // Mutator for backwards compatibility if needed

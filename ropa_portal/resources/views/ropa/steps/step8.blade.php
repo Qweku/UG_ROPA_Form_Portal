@@ -27,14 +27,14 @@
 
             <div id="external-recipients-container">
                 @php
-                    $recipients = [];
-                    if ($ropaForm->external_recipients) {
-                        if (is_array($ropaForm->external_recipients)) {
-                            $recipients = $ropaForm->external_recipients;
-                        } elseif (is_string($ropaForm->external_recipients)) {
-                            $recipients = json_decode($ropaForm->external_recipients, true) ?? [];
-                        }
-                    }
+                $recipients = [];
+                if ($submission->external_recipients) {
+                if (is_array($submission->external_recipients)) {
+                $recipients = $submission->external_recipients;
+                } elseif (is_string($submission->external_recipients)) {
+                $recipients = json_decode($submission->external_recipients, true) ?? [];
+                }
+                }
                 @endphp
 
                 @forelse($recipients as $idx => $recipient)
@@ -47,7 +47,7 @@
                                     <i class="fas fa-building me-1" style="color: #b69964;"></i> Recipient Name
                                 </label>
                                 <input type="text" name="external_recipients[{{ $idx }}][name]" class="form-control"
-                                       value="{{ $recipient['name'] ?? '' }}" placeholder="e.g., IT system supplier, Cloud provider">
+                                    value="{{ $recipient['name'] ?? '' }}" placeholder="e.g., IT system supplier, Cloud provider">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label fw-bold">
@@ -65,8 +65,8 @@
                                     <i class="fas fa-handshake me-1" style="color: #b69964;"></i> Relationship Type
                                 </label>
                                 <select name="external_recipients[{{ $idx }}][relationship]" class="form-select">
-                                    <option value="Controller" {{ ($recipient['relationship'] ?? '') == 'Controller' ? 'selected' : '' }}>Controller</option>
-                                    <option value="Processor" {{ ($recipient['relationship'] ?? '') == 'Processor' ? 'selected' : '' }}>Processor</option>
+                                    <option value="Data Controller" {{ ($recipient['relationship'] ?? '') == 'Data Controller' ? 'selected' : '' }}>Data Controller</option>
+                                    <option value="Data Processor" {{ ($recipient['relationship'] ?? '') == 'Data Processor' ? 'selected' : '' }}>Data Processor</option>
                                     <option value="Joint Controller" {{ ($recipient['relationship'] ?? '') == 'Joint Controller' ? 'selected' : '' }}>Joint Controller</option>
                                 </select>
                             </div>
@@ -74,10 +74,11 @@
                                 <label class="form-label fw-bold">
                                     <i class="fas fa-file-signature me-1" style="color: #b69964;"></i> Contract in Place?
                                 </label>
-                                <select name="external_recipients[{{ $idx }}][contract]" class="form-select">
+                                <select name="external_recipients[{{ $idx }}][contract]" class="form-select contract-select">
                                     <option value="yes" {{ ($recipient['contract'] ?? '') == 'yes' ? 'selected' : '' }}>✅ Yes</option>
                                     <option value="no" {{ ($recipient['contract'] ?? '') == 'no' ? 'selected' : '' }}>❌ No</option>
                                     <option value="na" {{ ($recipient['contract'] ?? '') == 'na' ? 'selected' : '' }}>N/A</option>
+
                                 </select>
                             </div>
                         </div>
@@ -103,17 +104,17 @@
                             <div class="col-md-3 mb-3">
                                 <label class="form-label fw-bold">Relationship Type</label>
                                 <select name="external_recipients[0][relationship]" class="form-select">
-                                    <option>Controller</option>
-                                    <option>Processor</option>
+                                    <option>Data Controller</option>
+                                    <option>Data Processor</option>
                                     <option>Joint Controller</option>
                                 </select>
                             </div>
                             <div class="col-md-2 mb-3">
                                 <label class="form-label fw-bold">Contract in Place?</label>
-                                <select name="external_recipients[0][contract]" class="form-select">
-                                    <option>Yes</option>
-                                    <option>No</option>
-                                    <option>N/A</option>
+                                <select name="external_recipients[0][contract]" class="form-select contract-select">
+                                    <option value="yes">✅ Yes</option>
+                                    <option value="no">❌ No</option>
+                                    <option value="na" selected>N/A</option>
                                 </select>
                             </div>
                         </div>
@@ -134,12 +135,55 @@
 
 @push('scripts')
 <script>
-document.getElementById('add-recipient')?.addEventListener('click', function() {
-    const container = document.getElementById('external-recipients-container');
-    const idx = container.children.length;
-    const card = document.createElement('div');
-    card.className = 'recipient-card card mb-3 border';
-    card.innerHTML = `
+    // function updateContractOptions(contractSelect) {
+    //     const card = contractSelect.closest('.recipient-card');
+    //     if (!card) return;
+    //     const relationshipSelect = card.querySelector('select[name$="[relationship]"]');
+    //     if (!relationshipSelect) return;
+
+    //     const currentValue = contractSelect.value;
+    //     const isProcessor = relationshipSelect.value === 'Data Processor';
+
+    //     contractSelect.innerHTML = '';
+
+    //     if (isProcessor) {
+    //         const optYes = document.createElement('option');
+    //         optYes.value = 'yes';
+    //         optYes.textContent = '✅ Yes';
+    //         if (currentValue === 'yes') optYes.selected = true;
+    //         contractSelect.appendChild(optYes);
+
+    //         const optNo = document.createElement('option');
+    //         optNo.value = 'no';
+    //         optNo.textContent = '❌ No';
+    //         if (currentValue === 'no') optNo.selected = true;
+    //         contractSelect.appendChild(optNo);
+    //     } else {
+    //         const optNa = document.createElement('option');
+    //         optNa.value = 'na';
+    //         optNa.textContent = 'N/A';
+    //         if (currentValue === 'na') optNa.selected = true;
+    //         contractSelect.appendChild(optNa);
+    //     }
+    // }
+
+    // function initContractSelect(card) {
+    //     const contractSelect = card.querySelector('.contract-select');
+    //     const relationshipSelect = card.querySelector('select[name$="[relationship]"]');
+    //     if (!contractSelect || !relationshipSelect) return;
+
+    //     updateContractOptions(contractSelect);
+    //     relationshipSelect.addEventListener('change', () => updateContractOptions(contractSelect));
+    // }
+
+    document.querySelectorAll('.recipient-card').forEach(card => initContractSelect(card));
+
+    document.getElementById('add-recipient')?.addEventListener('click', function() {
+        const container = document.getElementById('external-recipients-container');
+        const idx = container.children.length;
+        const card = document.createElement('div');
+        card.className = 'recipient-card card mb-3 border';
+        card.innerHTML = `
         <div class="card-body position-relative">
             <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-recipient"></button>
             <div class="row">
@@ -166,23 +210,24 @@ document.getElementById('add-recipient')?.addEventListener('click', function() {
                 </div>
                 <div class="col-md-2 mb-3">
                     <label class="form-label fw-bold">Contract in Place?</label>
-                    <select name="external_recipients[${idx}][contract]" class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
-                        <option>N/A</option>
+                    <select name="external_recipients[${idx}][contract]" class="form-select contract-select">
+                        <option value="yes">✅ Yes</option>
+                        <option value="no">❌ No</option>
+                        <option value="na" selected>N/A</option>
                     </select>
                 </div>
             </div>
         </div>
     `;
-    container.appendChild(card);
-    card.querySelector('.remove-recipient').onclick = () => card.remove();
-});
+        container.appendChild(card);
+        initContractSelect(card);
+        card.querySelector('.remove-recipient').onclick = () => card.remove();
+    });
 
-document.querySelectorAll('.remove-recipient').forEach(btn => {
-    btn.onclick = function() {
-        this.closest('.recipient-card').remove();
-    };
-});
+    document.querySelectorAll('.remove-recipient').forEach(btn => {
+        btn.onclick = function() {
+            this.closest('.recipient-card').remove();
+        };
+    });
 </script>
 @endpush

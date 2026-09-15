@@ -9,7 +9,7 @@ class EnsureUserIsVerified
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user() || !$request->user()->is_verified) {
+        if (! $request->user() || ! $request->session()->get('otp_verified')) {
             return redirect()->route('verify.otp');
         }
 

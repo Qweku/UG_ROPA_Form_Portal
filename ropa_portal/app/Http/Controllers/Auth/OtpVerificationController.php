@@ -3,23 +3,20 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMail;
 use App\Models\OtpVerification;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
 class OtpVerificationController extends Controller
 {
     public function showVerificationForm()
     {
-        // Check if user is already verified
-        if (Auth::user() && Auth::user()->is_verified) {
-            return redirect()->route('ropa.index');
-        }
-
         // Check if user has a valid OTP
         $user = Auth::user();
         if ($user) {
@@ -28,7 +25,7 @@ class OtpVerificationController extends Controller
                 ->where('expires_at', '>', now())
                 ->first();
 
-            if (!$validOtp) {
+            if (! $validOtp) {
                 // Generate and send new OTP
                 $this->sendOtp($user);
             }
@@ -41,7 +38,7 @@ class OtpVerificationController extends Controller
     {
         $user = $user ?? Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -51,8 +48,8 @@ class OtpVerificationController extends Controller
         // Log to Laravel log file
         Log::info('=========================================');
         Log::info('OTP VERIFICATION - DEMO MODE');
-        Log::info('Email: ' . $user->email);
-        Log::info('OTP Code: ' . $otp);
+        Log::info('Email: '.$user->email);
+        Log::info('OTP Code: '.$otp);
         Log::info('=========================================');
 
         // Also log to a dedicated OTP file for easy access
@@ -72,7 +69,7 @@ class OtpVerificationController extends Controller
             'otp' => Hash::make($otp),
             'email' => $user->email,
             'expires_at' => now()->addMinutes(10),
-            'is_used' => false
+            'is_used' => false,
         ]);
 
         // Store plain OTP in session temporarily (for testing/development)
@@ -88,7 +85,7 @@ class OtpVerificationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'User not authenticated'], 401);
         }
 
@@ -99,7 +96,7 @@ class OtpVerificationController extends Controller
 
         if ($lastOtp) {
             return response()->json([
-                'error' => 'Please wait 1 minute before requesting another OTP'
+                'error' => 'Please wait 1 minute before requesting another OTP',
             ], 429);
         }
 
@@ -107,28 +104,20 @@ class OtpVerificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'A new OTP has been sent to your email'
+            'message' => 'A new OTP has been sent to your email',
         ]);
     }
 
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'otp' => 'required|string|size:6'
+            'otp' => 'required|string|size:6',
         ]);
 
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
-        }
-
-        if ($user->is_verified) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Email already verified.',
-                'redirect' => route('ropa.index')
-            ]);
         }
 
         $otpRecord = OtpVerification::where('user_id', $user->id)
@@ -136,17 +125,17 @@ class OtpVerificationController extends Controller
             ->where('expires_at', '>', now())
             ->first();
 
-        if (!$otpRecord) {
+        if (! $otpRecord) {
             return response()->json([
                 'success' => false,
-                'error' => 'OTP has expired or is invalid. Please request a new one.'
+                'error' => 'OTP has expired or is invalid. Please request a new one.',
             ], 422);
         }
 
-        if (!Hash::check($request->otp, $otpRecord->otp)) {
+        if (! Hash::check($request->otp, $otpRecord->otp)) {
             return response()->json([
                 'success' => false,
-                'error' => 'Invalid OTP. Please try again.'
+                'error' => 'Invalid OTP. Please try again.',
             ], 422);
         }
 
@@ -154,31 +143,30 @@ class OtpVerificationController extends Controller
 
         session()->forget('pending_otp');
 
+        session(['otp_verified' => true]);
+
         $user->update([
             'is_verified' => true,
             'email_verified_at' => now(),
         ]);
 
+        $redirectRoute = in_array($user->role, ['admin', 'super_admin'])
+            ? route('admin.dashboard')
+            : route('ropa.index');
+
         return response()->json([
             'success' => true,
             'message' => 'Email verified successfully! Welcome to RoPA Portal.',
-            'redirect' => route('ropa.index')
+            'redirect' => $redirectRoute,
         ]);
     }
 
     private function sendOtpEmail($email, $otp, $name)
     {
-        // You can use Mailtrap, SMTP, or any email service
-        // For now, we'll use log for development
-        // \Log::info("OTP for {$email}: {$otp}");
-
-        // In production, uncomment and configure mail:
-        /*
-        Mail::send('emails.otp', ['otp' => $otp, 'name' => $name], function ($message) use ($email) {
-            $message->to($email)
-                    ->subject('RoPA Portal - Email Verification OTP')
-                    ->from('noreply@ug.edu.gh', 'University of Ghana RoPA');
-        });
-        */
+        try {
+            Mail::to($email)->send(new OtpMail($otp, $name));
+        } catch (\Exception $e) {
+            Log::error('Failed to send OTP email to '.$email.': '.$e->getMessage());
+        }
     }
 }

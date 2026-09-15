@@ -21,5 +21,18 @@ class AdminUserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        User::updateOrCreate(
+            ['email' => 'superadmin@ug.edu.gh'],
+            [
+                'firstname' => 'Super',
+                'surname' => 'Administrator',
+                'personnel_id' => 'UG-SPA-2026-0001',
+                'password' => Hash::make('UgReddok@2026'),
+                'role' => 'super_admin',
+                'is_verified' => true,
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

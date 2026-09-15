@@ -26,7 +26,7 @@
                         <div class="col-md-6">
                             <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('auto-yes').click(); document.getElementById('profiling-section').classList.remove('d-none')">
                                 <input class="form-check-input" type="radio" name="auto_decision_making" value="1" id="auto-yes"
-                                       {{ $ropaForm->auto_decision_making === true ? 'checked' : '' }}>
+                                       {{ $submission->auto_decision_making === true ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="auto-yes">
                                     <i class="fas fa-check-circle fa-lg me-2" style="color: #28a745;"></i>
                                     <strong>Yes - Automated decision-making is used</strong>
@@ -38,7 +38,7 @@
                         <div class="col-md-6">
                             <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('auto-no').click(); document.getElementById('profiling-section').classList.add('d-none')">
                                 <input class="form-check-input" type="radio" name="auto_decision_making" value="0" id="auto-no"
-                                       {{ $ropaForm->auto_decision_making === false ? 'checked' : '' }}>
+                                       {{ $submission->auto_decision_making === false ? 'checked' : '' }}>
                                 <label class="form-check-label d-block" for="auto-no">
                                     <i class="fas fa-times-circle fa-lg me-2" style="color: #dc3545;"></i>
                                     <strong>No - No automated decision-making</strong>
@@ -49,7 +49,7 @@
                         </div>
                     </div>
 
-                    <div id="profiling-section" class="mt-4 {{ $ropaForm->auto_decision_making ? '' : 'd-none' }}">
+                    <div id="profiling-section" class="mt-4 {{ $submission->auto_decision_making ? '' : 'd-none' }}">
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>GDPR Article 22 Requirement:</strong>
@@ -61,7 +61,7 @@
                             Description of Automated Decision Making / Profiling Logic
                         </label>
                         <textarea name="profiling_description" class="form-control" rows="5"
-                                  placeholder="Example: 'Our recruitment system uses an AI algorithm to screen CVs based on keyword matching. Candidates below a threshold score are automatically rejected without human review. The algorithm considers factors such as years of experience, educational qualifications, and specific technical skills.'">{{ old('profiling_description', $ropaForm->profiling_description) }}</textarea>
+                                  placeholder="Example: 'Our recruitment system uses an AI algorithm to screen CVs based on keyword matching. Candidates below a threshold score are automatically rejected without human review. The algorithm considers factors such as years of experience, educational qualifications, and specific technical skills.'">{{ old('profiling_description', $submission->profiling_description) }}</textarea>
 
                         <div class="alert alert-light mt-3">
                             <i class="fas fa-lightbulb me-2" style="color: #b69964;"></i>

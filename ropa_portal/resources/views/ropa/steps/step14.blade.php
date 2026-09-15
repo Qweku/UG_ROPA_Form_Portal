@@ -26,14 +26,14 @@
                         <i class="fas fa-balance-scale me-1" style="color: #b69964;"></i>
                         Data Protection Act 2018 Schedule 1 Condition
                     </label>
-                    <div class="multi-select-container mb-3">
+                    <div class="multi-select-container mb-3" id="dpa-conditions-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
                                 $dpaConditions = [];
-                                if ($ropaForm->dpa_conditions) {
-                                    $dpaConditions = is_array($ropaForm->dpa_conditions)
-                                        ? $ropaForm->dpa_conditions
-                                        : (json_decode($ropaForm->dpa_conditions, true) ?? []);
+                                if ($submission->dpa_conditions) {
+                                    $dpaConditions = is_array($submission->dpa_conditions)
+                                        ? $submission->dpa_conditions
+                                        : (json_decode($submission->dpa_conditions, true) ?? []);
                                 }
                             @endphp
                             @foreach($dpaConditions as $cond)
@@ -52,17 +52,46 @@
                     </div>
 
                     <label class="form-label fw-bold">
-                        <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
-                        GDPR Article 6 Lawful Basis
+                        <i class="fas fa-shield-alt me-1" style="color: #b69964;"></i>
+                        Cybersecurity Act 1038
                     </label>
-                    <div class="multi-select-container">
+                    <div class="multi-select-container mb-3" id="cyber-articles-container">
                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             @php
+                                $cyberArticles = [];
+                                if ($submission->cybersecurity_articles) {
+                                    $cyberArticles = is_array($submission->cybersecurity_articles)
+                                        ? $submission->cybersecurity_articles
+                                        : (json_decode($submission->cybersecurity_articles, true) ?? []);
+                                }
+                            @endphp
+                            @foreach($cyberArticles as $art)
+                            <span class="tag-chip">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <span>{{ $art }}</span>
+                                <button type="button" onclick="this.parentElement.remove(); updateCyberArticles();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                            @endforeach
+</div>
+                         <input type="text" class="form-control" id="cyberArticleInput"
+                                placeholder="Type and press Enter (e.g., Section 3 - Cybersecurity Measures, Section 5 - Data Breach Notification)">
+                         <input type="hidden" name="cybersecurity_articles" id="cybersecurity_articles_hidden" value="{{ json_encode($cyberArticles) }}">
+                     </div>
+
+                     <label class="form-label fw-bold">
+                         <i class="fab fa-internet-explorer me-1" style="color: #b69964;"></i>
+                         GDPR Article 6 Lawful Basis
+                     </label>
+                     <div class="multi-select-container mb-3" id="gdpr-articles-container">
+                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            @php
                                 $gdprArticles = [];
-                                if ($ropaForm->gdpr_articles) {
-                                    $gdprArticles = is_array($ropaForm->gdpr_articles)
-                                        ? $ropaForm->gdpr_articles
-                                        : (json_decode($ropaForm->gdpr_articles, true) ?? []);
+                                if ($submission->gdpr_articles) {
+                                    $gdprArticles = is_array($submission->gdpr_articles)
+                                        ? $submission->gdpr_articles
+                                        : (json_decode($submission->gdpr_articles, true) ?? []);
                                 }
                             @endphp
                             @foreach($gdprArticles as $art)
@@ -74,10 +103,39 @@
                                 </button>
                             </span>
                             @endforeach
+</div>
+                         <input type="text" class="form-control" id="gdprArticleInput"
+                                placeholder="Type and press Enter (e.g., Article 6(1)(b) - Contract, Article 6(1)(c) - Legal Obligation)">
+                         <input type="hidden" name="gdpr_articles" id="gdpr_articles_hidden" value="{{ json_encode($gdprArticles) }}">
+                     </div>
+
+                     <label class="form-label fw-bold">
+                         <i class="fas fa-shield-alt me-1" style="color: #b69964;"></i>
+                         Other Legal References
+                     </label>
+                     <div class="multi-select-container mb-3" id="other-articles-container">
+                         <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            @php
+                                $otherArticles = [];
+                                if ($submission->other_articles) {
+                                    $otherArticles = is_array($submission->other_articles)
+                                        ? $submission->other_articles
+                                        : (json_decode($submission->other_articles, true) ?? []);
+                                }
+                            @endphp
+                            @foreach($otherArticles as $art)
+                            <span class="tag-chip">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <span>{{ $art }}</span>
+                                <button type="button" onclick="this.parentElement.remove(); updateOtherArticles();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                            @endforeach
                         </div>
-                        <input type="text" class="form-control" id="gdprArticleInput"
-                               placeholder="Type and press Enter (e.g., Article 6(1)(b) - Contract, Article 6(1)(c) - Legal Obligation)">
-                        <input type="hidden" name="gdpr_articles" id="gdpr_articles_hidden" value="{{ json_encode($gdprArticles) }}">
+                        <input type="text" class="form-control" id="otherArticleInput"
+                               placeholder="Type and press Enter (e.g., Other relevant legal references)">
+                        <input type="hidden" name="other_articles" id="other_articles_hidden" value="{{ json_encode($otherArticles) }}">
                     </div>
                 </div>
             </div>
@@ -99,28 +157,28 @@
                             <i class="fas fa-link" style="color: #b69964;"></i>
                         </span>
                         <input type="url" name="retention_policy_link" class="form-control"
-                               value="{{ old('retention_policy_link', $ropaForm->retention_policy_link) }}"
+                               value="{{ old('retention_policy_link', $submission->retention_policy_link) }}"
                                placeholder="URL to policy document">
                     </div>
 
                     <label class="form-label fw-bold">Is Data Retained According to Policy?</label>
                     <select name="retained_per_policy" class="form-select" id="retained_per_policy">
                         <option value="">-- Select --</option>
-                        <option value="1" {{ $ropaForm->retained_per_policy === true ? 'selected' : '' }}>
+                        <option value="1" {{ $submission->retained_per_policy === true ? 'selected' : '' }}>
                             ✅ Yes - Data is retained per established schedule
                         </option>
-                        <option value="0" {{ $ropaForm->retained_per_policy === false ? 'selected' : '' }}>
+                        <option value="0" {{ $submission->retained_per_policy === false ? 'selected' : '' }}>
                             ❌ No - Exceptions exist
                         </option>
                     </select>
 
-                    <div id="non-adherence-reason" class="mt-3 {{ (string) $ropaForm->retained_per_policy !== '0' ? 'd-none' : '' }}">
+                    <div id="non-adherence-reason" class="mt-3 {{ (string) $submission->retained_per_policy !== '0' ? 'd-none' : '' }}">
                         <label class="form-label fw-bold">
                             <i class="fas fa-exclamation-triangle me-1" style="color: #dc3545;"></i>
                             Reasons for Non-Adherence
                         </label>
                         <textarea name="retention_non_adherence_reason" class="form-control" rows="4"
-                                  placeholder="Explain why data is not being retained according to the official policy...">{{ old('retention_non_adherence_reason', $ropaForm->retention_non_adherence_reason) }}</textarea>
+                                  placeholder="Explain why data is not being retained according to the official policy...">{{ old('retention_non_adherence_reason', $submission->retention_non_adherence_reason) }}</textarea>
                     </div>
                 </div>
             </div>
@@ -186,59 +244,67 @@
 
 @push('scripts')
 <script>
-function updateDpaConditions() {
-    const chips = document.querySelectorAll('#step14 .multi-select-container:first-child .chips-container .tag-chip span');
+function updateHiddenInput(hiddenId, chipsSelector) {
+    const chips = document.querySelectorAll(chipsSelector);
     const values = Array.from(chips).map(chip => chip.textContent.trim());
-    document.getElementById('dpa_conditions_hidden').value = JSON.stringify(values);
+    document.getElementById(hiddenId).value = JSON.stringify(values);
+}
+
+function updateDpaConditions() {
+    updateHiddenInput('dpa_conditions_hidden', '#dpa-conditions-container .chips-container .tag-chip span');
+}
+
+function updateCyberArticles() {
+    updateHiddenInput('cybersecurity_articles_hidden', '#cyber-articles-container .chips-container .tag-chip span');
 }
 
 function updateGdprArticles() {
-    const chips = document.querySelectorAll('#step14 .multi-select-container:last-child .chips-container .tag-chip span');
-    const values = Array.from(chips).map(chip => chip.textContent.trim());
-    document.getElementById('gdpr_articles_hidden').value = JSON.stringify(values);
+    updateHiddenInput('gdpr_articles_hidden', '#gdpr-articles-container .chips-container .tag-chip span');
 }
 
-document.getElementById('dpaConditionInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const value = this.value.trim();
-        if (value) {
-            const container = document.querySelector('#step14 .multi-select-container:first-child .chips-container');
-            const chip = document.createElement('span');
-            chip.className = 'tag-chip';
-            chip.innerHTML = `<i class="fas fa-check-circle me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updateDpaConditions();"><i class="fas fa-times"></i></button>`;
-            container.appendChild(chip);
-            this.value = '';
-            updateDpaConditions();
-        }
-    }
-});
+function updateOtherArticles() {
+    updateHiddenInput('other_articles_hidden', '#other-articles-container .chips-container .tag-chip span');
+}
 
-document.getElementById('gdprArticleInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const value = this.value.trim();
-        if (value) {
-            const container = document.querySelector('#step14 .multi-select-container:last-child .chips-container');
-            const chip = document.createElement('span');
-            chip.className = 'tag-chip';
-            chip.innerHTML = `<i class="fas fa-check-circle me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); updateGdprArticles();"><i class="fas fa-times"></i></button>`;
-            container.appendChild(chip);
-            this.value = '';
-            updateGdprArticles();
+function setupMultiSelect(inputId, containerId, updateFn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = this.value.trim();
+            if (value) {
+                const container = document.querySelector(`#${containerId} .chips-container`);
+                const chip = document.createElement('span');
+                chip.className = 'tag-chip';
+                chip.innerHTML = `<i class="fas fa-check-circle me-1"></i><span>${escapeHtml(value)}</span><button type="button" onclick="this.parentElement.remove(); ${updateFn}();"><i class="fas fa-times"></i></button>`;
+                container.appendChild(chip);
+                this.value = '';
+                updateFn();
+            }
         }
-    }
-});
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
+    setupMultiSelect('dpaConditionInput', 'dpa-conditions-container', updateDpaConditions);
+    setupMultiSelect('cyberArticleInput', 'cyber-articles-container', updateCyberArticles);
+    setupMultiSelect('gdprArticleInput', 'gdpr-articles-container', updateGdprArticles);
+    setupMultiSelect('otherArticleInput', 'other-articles-container', updateOtherArticles);
+
+    document.querySelectorAll('.remove-controller').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.joint-controller-card').remove();
+        });
+    });
+
     const retainedPerPolicy = document.getElementById('retained_per_policy');
     const reasonSection = document.getElementById('non-adherence-reason');
 
     function toggleReasonSection() {
-        if (retainedPerPolicy && retainedPerPolicy.value === '0') {
-            reasonSection.style.display = 'block';
-        } else {
-            reasonSection.style.display = 'none';
+        if (retainedPerPolicy && reasonSection) {
+            reasonSection.style.display = retainedPerPolicy.value === '0' ? 'block' : 'none';
         }
     }
 
@@ -247,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleReasonSection();
     }
 
-    // Legal Reference collapse - dynamic text and icon
     const legalCollapse = document.getElementById('legalReference');
     const legalButton = document.querySelector('[data-bs-target="#legalReference"]');
 

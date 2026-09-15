@@ -23,7 +23,7 @@
     <div class="row g-4">
         <!-- Legal Basis Cards -->
         <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
+            <div class="h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
@@ -31,12 +31,12 @@
                         </div>
                         <h5 class="card-title mb-0" style="color: #153d6f;">Legal Basis for Processing</h5>
                     </div>
-                    <div class="multi-select-container">
-                        <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="multi-select-container" id="legalBasisContainer">
+                        <div class="chips-container mb-2">
                             @php
-                            $legalBasis = is_array($ropaForm->legal_basis)
-                            ? $ropaForm->legal_basis
-                            : (json_decode($ropaForm->legal_basis ?? '[]', true) ?: []);
+                            $legalBasis = is_array($submission->legal_basis)
+                            ? $submission->legal_basis
+                            : (json_decode($submission->legal_basis ?? '[]', true) ?: []);
                             @endphp
                             @foreach($legalBasis as $basis)
                             <span class="tag-chip">
@@ -50,11 +50,13 @@
                         </div>
                         <div class="input-group">
                             <input type="text" class="form-control" id="legalBasisInput"
-                                placeholder="Type and press Enter to add (e.g., Consent, Contract, Legal Obligation)">
+                                placeholder="Type and press Enter to add (e.g., Consent, Contract, Legal Obligation)"
+                                autocomplete="off">
                             <button class="btn btn-outline-primary" type="button" onclick="addLegalBasis()">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
+                        <div class="suggestions-dropdown" id="legalBasisSuggestions"></div>
                         <input type="hidden" name="legal_basis" id="legal_basis_hidden" value="{{ json_encode($legalBasis) }}">
                         <small class="text-muted mt-2 d-block">
                             <i class="fas fa-info-circle"></i> Add all applicable legal bases
@@ -73,12 +75,18 @@
                         </div>
                         <h5 class="card-title mb-0" style="color: #153d6f;">Sensitive Personal Data Basis</h5>
                     </div>
-                    <div class="multi-select-container">
-                        <div class="chips-container mb-2" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="multi-select-container" id="sensitiveBasisContainer">
+                        <div class="chips-container mb-2">
                             @php
-                            $sensitiveBasis = is_array($ropaForm->sensitive_legal_basis)
-                            ? $ropaForm->sensitive_legal_basis
-                            : (json_decode($ropaForm->sensitive_legal_basis ?? '[]', true) ?: []);
+                            $sensitiveBasis = is_array($submission->sensitive_legal_basis)
+                                ? $submission->sensitive_legal_basis
+                                : (json_decode($submission->sensitive_legal_basis ?? '[]', true) ?: []);
+
+                            if (empty($sensitiveBasis) && $submission->special_category_documents) {
+                                $sensitiveBasis = is_array($submission->special_category_documents)
+                                    ? $submission->special_category_documents
+                                    : (json_decode($submission->special_category_documents ?? '[]', true) ?: []);
+                            }
                             @endphp
                             @foreach($sensitiveBasis as $basis)
                             <span class="tag-chip" style="background: #f5efe6; border-color: #b69964;">
@@ -120,41 +128,41 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">
-                        LIA Documented?
+                        Is LIA Documented?
                         <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
                             title="Legitimate Interest Assessment"></i>
                     </label>
                     <select name="lia_documented" class="form-select" id="lia_documented">
                         <option value="">-- Select --</option>
-                        <option value="1" {{ $ropaForm->lia_documented === true ? 'selected' : '' }}>
+                        <option value="1" {{ $submission->lia_documented === true ? 'selected' : '' }}>
                             <i class="fas fa-check"></i> Yes
                         </option>
-                        <option value="0" {{ $ropaForm->lia_documented === false ? 'selected' : '' }}>
+                        <option value="0" {{ $submission->lia_documented === false ? 'selected' : '' }}>
                             <i class="fas fa-times"></i> No
                         </option>
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4" id="liaFields" @if(old('lia_documented', $submission->lia_documented) != 1) style="display:none;" @endif>
                     <label class="form-label fw-bold">Document Location</label>
                     <div class="input-group">
                         <span class="input-group-text bg-transparent">
                             <i class="fas fa-link" style="color: #b69964;"></i>
                         </span>
                         <input type="text" name="lia_location" class="form-control"
-                            value="{{ old('lia_location', $ropaForm->lia_location) }}"
+                            value="{{ old('lia_location', $submission->lia_location) }}"
                             placeholder="File path or URL">
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4" id="liaLinkField" @if(old('lia_documented', $submission->lia_documented) != 1) style="display:none;" @endif>
                     <label class="form-label fw-bold">LIA Link</label>
                     <div class="input-group">
                         <span class="input-group-text bg-transparent">
                             <i class="fas fa-globe" style="color: #b69964;"></i>
                         </span>
                         <input type="url" name="lia_link" class="form-control"
-                            value="{{ old('lia_link', $ropaForm->lia_link) }}"
+                            value="{{ old('lia_link', $submission->lia_link) }}"
                             placeholder="https://...">
                     </div>
                 </div>
@@ -162,7 +170,7 @@
                 <div class="col-12">
                     <label class="form-label fw-bold">Legitimate Interests Explanation</label>
                     <textarea name="legitimate_interests" class="form-control" rows="4"
-                        placeholder="Explain the legitimate interests pursued by the controller and why they override the interests of data subjects...">{{ old('legitimate_interests', $ropaForm->legitimate_interests) }}</textarea>
+                        placeholder="Explain the legitimate interests pursued by the controller and why they override the interests of data subjects...">{{ old('legitimate_interests', $submission->legitimate_interests) }}</textarea>
                 </div>
             </div>
         </div>
@@ -190,7 +198,7 @@
                             <i class="fas fa-calendar" style="color: #b69964;"></i>
                         </span>
                         <input type="text" name="retention_period" class="form-control"
-                            value="{{ old('retention_period', $ropaForm->retention_period) }}"
+                            value="{{ old('retention_period', $submission->retention_period) }}"
                             placeholder="e.g., 8 years after account closure, Indefinitely, 30 days">
                     </div>
                 </div>
@@ -199,10 +207,10 @@
                     <label class="form-label fw-bold">Legally Required to Keep Data?</label>
                     <select name="legally_required_retention" class="form-select">
                         <option value="">-- Select --</option>
-                        <option value="1" {{ $ropaForm->legally_required_retention === true ? 'selected' : '' }}>
+                        <option value="1" {{ $submission->legally_required_retention === true ? 'selected' : '' }}>
                             <i class="fas fa-gavel"></i> Yes - Legal/Regulatory requirement
                         </option>
-                        <option value="0" {{ $ropaForm->legally_required_retention === false ? 'selected' : '' }}>
+                        <option value="0" {{ $submission->legally_required_retention === false ? 'selected' : '' }}>
                             <i class="fas fa-user-check"></i> No - Determined by organization
                         </option>
                     </select>
@@ -227,26 +235,26 @@
             <div class="row">
                 @php
                 $rightsIcons = [
-                'Access' => 'fa-eye',
-                'Rectification' => 'fa-pen',
-                'Erasure' => 'fa-trash-alt',
-                'Restriction' => 'fa-pause',
-                'Portability' => 'fa-download',
-                'Object' => 'fa-thumbs-down'
+                'Rights to Access' => 'fa-eye',
+                'Rights to Rectification' => 'fa-pen',
+                'Rights to Erasure' => 'fa-trash-alt',
+                'Rights to Restriction' => 'fa-pause',
+                'Rights to Portability' => 'fa-download',
+                'Rights to Object' => 'fa-thumbs-down'
                 ];
                 $rightsColors = [
-                'Access' => 'primary',
-                'Rectification' => 'info',
-                'Erasure' => 'danger',
-                'Restriction' => 'warning',
-                'Portability' => 'success',
-                'Object' => 'secondary'
+                'Rights to Access' => 'primary',
+                'Rights to Rectification' => 'info',
+                'Rights to Erasure' => 'danger',
+                'Rights to Restriction' => 'warning',
+                'Rights to Portability' => 'success',
+                'Rights to Object' => 'secondary'
                 ];
-                $individualRights = is_array($ropaForm->individual_rights)
-                ? $ropaForm->individual_rights
-                : (json_decode($ropaForm->individual_rights ?? '[]', true) ?: []);
+                $individualRights = is_array($submission->individual_rights)
+                ? $submission->individual_rights
+                : (json_decode($submission->individual_rights ?? '[]', true) ?: []);
                 @endphp
-                @foreach(['Access','Rectification','Erasure','Restriction','Portability','Object'] as $right)
+                @foreach(['Rights to Access','Rights to Rectification','Rights to Erasure','Rights to Restriction','Rights to Portability','Rights to Object'] as $right)
                 <div class="col-md-4 col-lg-3 mb-2">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="individual_rights[]"
@@ -270,58 +278,165 @@
 <script>
     // Legal Basis functions
     function updateLegalBasis() {
-        const chips = document.querySelectorAll('#step6 .multi-select-container:first-child .tag-chip span');
-        const values = Array.from(chips).map(chip => chip.textContent.trim());
+        const container = document.querySelector('#legalBasisContainer .chips-container');
+        if (!container) return;
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
         document.getElementById('legal_basis_hidden').value = JSON.stringify(values);
-        console.log('Legal basis updated:', values);
     }
 
-    function addLegalBasis() {
-        const input = document.getElementById('legalBasisInput');
-        const value = input.value.trim();
-        if (!value) return;
+    function addLegalBasis(value) {
+        const container = document.querySelector('#legalBasisContainer .chips-container');
+        if (!container) return;
+        const trimmed = (value || document.getElementById('legalBasisInput').value).trim();
+        if (!trimmed) return;
+        const current = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        if (current.includes(trimmed)) return;
 
-        const container = document.querySelector('#step6 .multi-select-container:first-child .chips-container');
         const chip = document.createElement('span');
         chip.className = 'tag-chip';
         chip.innerHTML = `
         <i class="fas fa-check-circle me-1" style="color: #28a745;"></i>
-        <span>${escapeHtml(value)}</span>
+        <span>${escapeHtml(trimmed)}</span>
         <button type="button" onclick="this.parentElement.remove(); updateLegalBasis();">
             <i class="fas fa-times"></i>
         </button>
     `;
         container.appendChild(chip);
-        input.value = '';
+        document.getElementById('legalBasisInput').value = '';
         updateLegalBasis();
     }
 
+    (function() {
+        const input = document.getElementById('legalBasisInput');
+        const suggestionsBox = document.getElementById('legalBasisSuggestions');
+        const container = document.querySelector('#legalBasisContainer .chips-container');
+        const hiddenInput = document.getElementById('legal_basis_hidden');
+
+        const PREDEFINED = [
+            'Consent',
+            'Contract',
+            'Legal obligation',
+            'Vital interests',
+            'Public interest',
+            'Legitimate interests'
+        ];
+
+        function getCurrentValues() {
+            if (!container) return [];
+            return Array.from(container.querySelectorAll('.tag-chip span'))
+                .map(span => span.textContent.trim());
+        }
+
+        function updateHidden() {
+            const values = getCurrentValues();
+            hiddenInput.value = JSON.stringify(values);
+        }
+
+        function renderSuggestions(filter = '') {
+            if (!suggestionsBox) return;
+            const current = getCurrentValues();
+            const filtered = PREDEFINED.filter(item =>
+                item.toLowerCase().includes(filter.toLowerCase()) && !current.includes(item)
+            );
+
+            let html = '';
+
+            if (filtered.length === 0 && filter) {
+                html = `<div class="suggestion-item custom" data-value="${escapeHtml(filter)}">Add "${escapeHtml(filter)}"</div>`;
+            } else if (filtered.length > 0) {
+                filtered.forEach(item => {
+                    html += `<div class="suggestion-item" data-value="${escapeHtml(item)}">${escapeHtml(item)}</div>`;
+                });
+            }
+
+            suggestionsBox.innerHTML = html;
+
+            if (html) {
+                suggestionsBox.classList.add('active');
+                suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        addLegalBasis(this.getAttribute('data-value'));
+                        input.value = '';
+                        input.focus();
+                        renderSuggestions('');
+                    });
+                });
+            } else {
+                suggestionsBox.classList.remove('active');
+            }
+        }
+
+        if (input && suggestionsBox) {
+            input.addEventListener('focus', function() {
+                renderSuggestions(this.value.trim());
+            });
+
+            input.addEventListener('input', function() {
+                renderSuggestions(this.value.trim());
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = this.value.trim();
+                    if (value) {
+                        addLegalBasis(value);
+                        this.value = '';
+                        renderSuggestions('');
+                    }
+                } else if (e.key === 'Backspace' && !this.value && getCurrentValues().length > 0) {
+                    const chips = container.querySelectorAll('.tag-chip');
+                    if (chips.length) {
+                        chips[chips.length - 1].remove();
+                        updateHidden();
+                        renderSuggestions('');
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!input || !suggestionsBox) return;
+            if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.classList.remove('active');
+            }
+        });
+    })();
+
     // Sensitive Basis functions
     function updateSensitiveBasis() {
-        const chips = document.querySelectorAll('#step6 .multi-select-container:last-child .tag-chip span');
-        const values = Array.from(chips).map(chip => chip.textContent.trim());
+        const container = document.querySelector('#sensitiveBasisContainer .chips-container');
+        if (!container) return;
+        const values = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
         document.getElementById('sensitive_basis_hidden').value = JSON.stringify(values);
-        console.log('Sensitive basis updated:', values);
     }
 
-    function addSensitiveBasis() {
-        const input = document.getElementById('sensitiveBasisInput');
-        const value = input.value.trim();
-        if (!value) return;
+    function addSensitiveBasis(value) {
+        const container = document.querySelector('#sensitiveBasisContainer .chips-container');
+        if (!container) return;
+        const trimmed = (value || document.getElementById('sensitiveBasisInput').value).trim();
+        if (!trimmed) return;
+        const current = Array.from(container.querySelectorAll('.tag-chip span'))
+            .map(span => span.textContent.trim());
+        if (current.includes(trimmed)) return;
 
-        const container = document.querySelector('#step6 .multi-select-container:last-child .chips-container');
         const chip = document.createElement('span');
         chip.className = 'tag-chip';
         chip.style.cssText = 'background: #f5efe6; border-color: #b69964; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; margin: 2px; display: inline-flex; align-items: center; gap: 6px;';
         chip.innerHTML = `
         <i class="fas fa-exclamation-triangle me-1" style="color: #b69964;"></i>
-        <span>${escapeHtml(value)}</span>
+        <span>${escapeHtml(trimmed)}</span>
         <button type="button" onclick="this.parentElement.remove(); updateSensitiveBasis();">
             <i class="fas fa-times"></i>
         </button>
     `;
         container.appendChild(chip);
-        input.value = '';
+        document.getElementById('sensitiveBasisInput').value = '';
         updateSensitiveBasis();
     }
 
@@ -331,35 +446,29 @@
         return div.innerHTML;
     }
 
-    // Initialize Enter key handlers
+    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
-        // Legal basis input
-        const legalInput = document.getElementById('legalBasisInput');
-        if (legalInput) {
-            legalInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addLegalBasis();
-                }
-            });
-        }
-
-        // Sensitive basis input
-        const sensitiveInput = document.getElementById('sensitiveBasisInput');
-        if (sensitiveInput) {
-            sensitiveInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addSensitiveBasis();
-                }
-            });
-        }
-
-        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+
+        // Toggle LIA fields visibility based on select value
+        const liaSelect = document.getElementById('lia_documented');
+        const liaFields = document.getElementById('liaFields');
+        const liaLinkField = document.getElementById('liaLinkField');
+
+        function toggleLiaFields() {
+            if (!liaSelect || !liaFields || !liaLinkField) return;
+            const isYes = liaSelect.value === '1';
+            liaFields.style.display = isYes ? '' : 'none';
+            liaLinkField.style.display = isYes ? '' : 'none';
+        }
+
+        if (liaSelect) {
+            liaSelect.addEventListener('change', toggleLiaFields);
+            toggleLiaFields();
+        }
 
         // Log initial values for debugging
         console.log('Initial legal basis:', document.getElementById('legal_basis_hidden')?.value);

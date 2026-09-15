@@ -23,10 +23,10 @@ return new class extends Migration
 
         // Add email_verified_at column if not exists
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'email_verified_at')) {
+            if (! Schema::hasColumn('users', 'email_verified_at')) {
                 $table->timestamp('email_verified_at')->nullable();
             }
-            if (!Schema::hasColumn('users', 'is_verified')) {
+            if (! Schema::hasColumn('users', 'is_verified')) {
                 $table->boolean('is_verified')->default(false);
             }
         });
