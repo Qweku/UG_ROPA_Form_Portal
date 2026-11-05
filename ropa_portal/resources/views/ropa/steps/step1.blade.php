@@ -1,6 +1,7 @@
 <div class="form-section">
     <!-- Welcome Header -->
-    <div class="alert alert-info mb-4 shadow-sm" style="background: linear-gradient(135deg, #e8eef5 0%, #ffffff 100%); border-left: 5px solid #b69964; border-radius: 12px;">
+    <div class="alert alert-info mb-4 shadow-sm"
+        style="background: linear-gradient(135deg, #e8eef5 0%, #ffffff 100%); border-left: 5px solid #b69964; border-radius: 12px;">
         <div class="d-flex align-items-start">
             <div class="me-3">
                 <i class="fas fa-info-circle fa-2x" style="color: #153d6f;"></i>
@@ -8,13 +9,22 @@
             <div>
                 <h5 class="mb-1" style="color: #153d6f;">Basic Information</h5>
                 <p class="mb-0 text-muted small">
-                    @if($basicInfoLocked ?? false)
-                        Add the next sub-process under <strong>{{ $parentForm->main_process_name }}</strong>. Fields marked with <span class="text-danger">*</span> are required.
+                    @if ($basicInfoLocked ?? false)
+                        Add the next sub-process under <strong>{{ $parentForm->main_process_name }}</strong>. Fields
+                        marked with <span class="text-danger">*</span> are required.
                     @else
-                        Capture ownership and identification of the processing activity. Fields marked with <span class="text-danger">*</span> are required.
+                        Capture ownership and identification of the processing activity. Fields marked with <span
+                            class="text-danger">*</span> are required.
                     @endif
                 </p>
             </div>
+            @if ($parentForm->ropa_id)
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-hashtag me-2"></i>
+                    <strong>ROPA ID:</strong> {{ $parentForm->ropa_id }}
+                    <span class="ms-3"><strong>Version:</strong> {{ $parentForm->version }}</span>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -33,65 +43,74 @@
                         <h5 class="card-title mb-0" style="color: #153d6f;">Personal Information</h5>
                     </div>
                     <div class="row">
-                        @if($basicInfoLocked ?? false)
+                        @if ($basicInfoLocked ?? false)
                             {{-- Personnel fields are locked after the first sub-process.
                                  Show them read-only; hidden inputs ensure values submit --}}
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Personnel ID</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
-                                    <input type="text" class="form-control" value="{{ $parentForm->personnel_id ?? '' }}" disabled>
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card"
+                                            style="color: #b69964;"></i></span>
+                                    <input type="text" class="form-control"
+                                        value="{{ $parentForm->personnel_id ?? '' }}" disabled>
                                     <input type="hidden" name="personnel_id" value="{{ $parentForm->personnel_id }}">
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Role Responsible</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
-                                    <input type="text" class="form-control" value="{{ $parentForm->role_responsible ?? '' }}" disabled>
-                                    <input type="hidden" name="role_responsible" value="{{ $parentForm->role_responsible }}">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-user-tie"
+                                            style="color: #b69964;"></i></span>
+                                    <input type="text" class="form-control"
+                                        value="{{ $parentForm->role_responsible ?? '' }}" disabled>
+                                    <input type="hidden" name="role_responsible"
+                                        value="{{ $parentForm->role_responsible }}">
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Surname <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" value="{{ $parentForm->surname ?? '' }}" disabled>
+                                <input type="text" class="form-control" value="{{ $parentForm->surname ?? '' }}"
+                                    disabled>
                                 <input type="hidden" name="surname" value="{{ $parentForm->surname }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Firstname <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" value="{{ $parentForm->firstname ?? '' }}" disabled>
+                                <input type="text" class="form-control" value="{{ $parentForm->firstname ?? '' }}"
+                                    disabled>
                                 <input type="hidden" name="firstname" value="{{ $parentForm->firstname }}">
                             </div>
                         @else
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Personnel ID</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card" style="color: #b69964;"></i></span>
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card"
+                                            style="color: #b69964;"></i></span>
                                     <input type="text" name="personnel_id" class="form-control"
-                                           value="{{ old('personnel_id', $parentForm->personnel_id ?? Auth::user()->personnel_id ?? '') }}"
-                                           placeholder="e.g., 99999">
+                                        value="{{ old('personnel_id', $parentForm->personnel_id ?? (Auth::user()->personnel_id ?? '')) }}"
+                                        placeholder="e.g., 99999">
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Role Responsible</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-user-tie" style="color: #b69964;"></i></span>
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-user-tie"
+                                            style="color: #b69964;"></i></span>
                                     <input type="text" name="role_responsible" class="form-control"
-                                           value="{{ old('role_responsible', $parentForm->role_responsible ?? '') }}"
-                                           placeholder="e.g., Senior Admin Registrar">
+                                        value="{{ old('role_responsible', $parentForm->role_responsible ?? '') }}"
+                                        placeholder="e.g., Senior Admin Registrar">
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Surname <span class="text-danger">*</span></label>
                                 <input type="text" name="surname" class="form-control"
-                                       value="{{ old('surname', $parentForm->surname ?? Auth::user()->surname ?? '') }}"
-                                       placeholder="Last name" required>
+                                    value="{{ old('surname', $parentForm->surname ?? (Auth::user()->surname ?? '')) }}"
+                                    placeholder="Last name" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Firstname <span class="text-danger">*</span></label>
                                 <input type="text" name="firstname" class="form-control"
-                                       value="{{ old('firstname', $parentForm->firstname ?? Auth::user()->firstname ?? '') }}"
-                                       placeholder="First name" required>
+                                    value="{{ old('firstname', $parentForm->firstname ?? (Auth::user()->firstname ?? '')) }}"
+                                    placeholder="First name" required>
                             </div>
                         @endif
                     </div>
@@ -99,7 +118,7 @@
             </div>
         </div>
 
-        @if($basicInfoLocked ?? false)
+        @if ($basicInfoLocked ?? false)
             {{-- Basic process info is locked after the first sub-process.
                  Show it read-only; hidden inputs ensure values submit --}}
             <div class="col-12">
@@ -113,24 +132,31 @@
                             <span class="badge bg-secondary ms-auto">Locked</span>
                         </div>
                         <p class="text-muted small mb-3">
-                            College, Business Function, and Main Process Name were set when the first sub-process was created and apply to this whole RoPA.
+                            College, Business Function, and Main Process Name were set when the first sub-process was
+                            created and apply to this whole RoPA.
                         </p>
                         <div class="row">
-                            <input type="hidden" name="has_sub_processes" value="{{ $parentForm->has_sub_processes ? 1 : 0 }}">
+                            <input type="hidden" name="has_sub_processes"
+                                value="{{ $parentForm->has_sub_processes ? 1 : 0 }}">
                             <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">College</label>
-                                <input type="text" class="form-control" value="{{ $parentForm->college->name ?? '' }}" disabled>
+                                <input type="text" class="form-control"
+                                    value="{{ $parentForm->college->name ?? '' }}" disabled>
                                 <input type="hidden" name="college_id" value="{{ $parentForm->college_id }}">
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">Business Function (School/Dept)</label>
-                                <input type="text" class="form-control" value="{{ $parentForm->business_function }}" disabled>
-                                <input type="hidden" name="business_function" value="{{ $parentForm->business_function }}">
+                                <input type="text" class="form-control"
+                                    value="{{ $parentForm->business_function }}" disabled>
+                                <input type="hidden" name="business_function"
+                                    value="{{ $parentForm->business_function }}">
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">Main Process Name</label>
-                                <input type="text" class="form-control" value="{{ $parentForm->main_process_name }}" disabled>
-                                <input type="hidden" name="main_process_name" value="{{ $parentForm->main_process_name }}">
+                                <input type="text" class="form-control"
+                                    value="{{ $parentForm->main_process_name }}" disabled>
+                                <input type="hidden" name="main_process_name"
+                                    value="{{ $parentForm->main_process_name }}">
                             </div>
                         </div>
                     </div>
@@ -148,8 +174,8 @@
                         </div>
                         <label class="form-label fw-bold">Sub-Process Name <span class="text-danger">*</span></label>
                         <input type="text" name="sub_process_name" class="form-control"
-                               value="{{ old('sub_process_name', $submission->sub_process_name ?? '') }}"
-                               placeholder="Enter the current sub-process name" required autofocus>
+                            value="{{ old('sub_process_name', $submission->sub_process_name ?? '') }}"
+                            placeholder="Enter the current sub-process name" required autofocus>
                     </div>
                 </div>
             </div>
@@ -167,8 +193,9 @@
                             <label class="form-label fw-bold">College <span class="text-danger">*</span></label>
                             <select name="college_id" id="collegeSelect" class="form-select" required>
                                 <option value="">Select College</option>
-                                @foreach($colleges as $college)
-                                    <option value="{{ $college->id }}" {{ old('college_id', $parentForm->college_id ?? '') == $college->id ? 'selected' : '' }}>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}"
+                                        {{ old('college_id', $parentForm->college_id ?? '') == $college->id ? 'selected' : '' }}>
                                         {{ $college->name }}
                                     </option>
                                 @endforeach
@@ -178,16 +205,14 @@
                             <label class="form-label fw-bold">
                                 Business Function (School/Dept) <span class="text-danger">*</span>
                                 <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
-                                   title="Select a college first, then type to search or add a new school/department"></i>
+                                    title="Select a college first, then type to search or add a new school/department"></i>
                             </label>
-                            <input type="text"
-                                   name="business_function"
-                                   id="businessFunctionInput"
-                                   class="form-control"
-                                   autocomplete="off"
-                                   value="{{ old('business_function', $parentForm->business_function ?? '') }}"
-                                   placeholder="Select a college first, then type to search or add">
-                            <div id="businessFunctionSuggestions" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 220px; overflow-y: auto;"></div>
+                            <input type="text" name="business_function" id="businessFunctionInput"
+                                class="form-control" autocomplete="off"
+                                value="{{ old('business_function', $parentForm->business_function ?? '') }}"
+                                placeholder="Select a college first, then type to search or add">
+                            <div id="businessFunctionSuggestions" class="list-group position-absolute w-100 shadow-sm"
+                                style="z-index: 1050; display: none; max-height: 220px; overflow-y: auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -203,29 +228,177 @@
                             <h5 class="card-title mb-0" style="color: #153d6f;">Main Process</h5>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Main Process Name <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Main Process Name <span
+                                    class="text-danger">*</span></label>
                             <input type="text" name="main_process_name" class="form-control"
-                                   value="{{ old('main_process_name', $parentForm->main_process_name ?? '') }}"
-                                   placeholder="e.g., Admissions, Payroll, Research" required>
+                                value="{{ old('main_process_name', $parentForm->main_process_name ?? '') }}"
+                                placeholder="e.g., Admissions, Payroll, Research" required>
                         </div>
                         <div class="form-check mb-1">
-                            <input type="checkbox" name="has_sub_processes" id="hasSubProcesses" class="form-check-input" value="1"
-                                   {{ old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'checked' : '' }}>
-                            <label class="form-check-label fw-bold" for="hasSubProcesses">This process has sub-processes</label>
+                            <input type="checkbox" name="has_sub_processes" id="hasSubProcesses"
+                                class="form-check-input" value="1"
+                                {{ old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold" for="hasSubProcesses">This process has
+                                sub-processes</label>
                         </div>
                         <small class="text-muted d-block mb-3">
-                            <i class="fas fa-info-circle"></i> This choice applies to the whole process and cannot be changed after this first sub-process is saved.
+                            <i class="fas fa-info-circle"></i> This choice applies to the whole process and cannot be
+                            changed after this first sub-process is saved.
                         </small>
-                        <div id="subProcessContainer" style="display: {{ old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'block' : 'none' }}">
+                        <div id="subProcessContainer"
+                            style="display: {{ old('has_sub_processes', $submission->sub_process_name ? 1 : 0) ? 'block' : 'none' }}">
                             <label class="form-label fw-bold">Sub-Process Name</label>
                             <input type="text" name="sub_process_name" class="form-control"
-                                   value="{{ old('sub_process_name', $submission->sub_process_name ?? '') }}"
-                                   placeholder="Enter the current sub-process name">
+                                value="{{ old('sub_process_name', $submission->sub_process_name ?? '') }}"
+                                placeholder="Enter the current sub-process name">
                         </div>
                     </div>
                 </div>
             </div>
         @endif
+
+        {{-- Ownership & Governance --}}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                            <i class="fas fa-user-tie" style="color: #153d6f;"></i>
+                        </div>
+                        <h5 class="card-title mb-0" style="color: #153d6f;">Ownership</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Processing Owner (Accountable Role)</label>
+                            <input type="text" name="processing_owner" class="form-control"
+                                value="{{ old('processing_owner', $parentForm->processing_owner ?? '') }}"
+                                placeholder="e.g., Registrar, Dean of Students, HR Director">
+                            <small class="text-muted">The role accountable — not necessarily the person filling the
+                                form.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ROPA Coordinator</label>
+                            <input type="text" name="ropa_coordinator" class="form-control"
+                                value="{{ old('ropa_coordinator', $parentForm->ropa_coordinator ?? '') }}"
+                                placeholder="Person coordinating the completion of this entry">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Legal / Institutional Authority --}}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                            <i class="fas fa-gavel" style="color: #153d6f;"></i>
+                        </div>
+                        <h5 class="card-title mb-0" style="color: #153d6f;">Legal / Institutional Authority</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Legal / Institutional Authority</label>
+                            <input type="text" name="legal_institutional_authority" class="form-control"
+                                value="{{ old('legal_institutional_authority', $parentForm->legal_institutional_authority ?? '') }}"
+                                placeholder="e.g., Act 843 s17, UG Statute 2016, Employment Contract">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Other Applicable Law / Policy</label>
+                            <input type="text" name="other_applicable_law" class="form-control"
+                                value="{{ old('other_applicable_law', $parentForm->other_applicable_law ?? '') }}"
+                                placeholder="Sector laws, university policies, contracts">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Act 843 Legal Justification</label>
+                            <textarea name="act843_legal_justification" class="form-control" rows="3"
+                                placeholder="Why is this processing lawful, reasonable, necessary and proportionate?">{{ old('act843_legal_justification', $parentForm->act843_legal_justification ?? '') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Consent & Transparency --}}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                            <i class="fas fa-file-signature" style="color: #153d6f;"></i>
+                        </div>
+                        <h5 class="card-title mb-0" style="color: #153d6f;">Consent & Transparency</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Consent Used?</label>
+                            <select name="consent_used" class="form-select">
+                                <option value="0"
+                                    {{ old('consent_used', $parentForm->consent_used ?? false) == false ? 'selected' : '' }}>
+                                    No</option>
+                                <option value="1"
+                                    {{ old('consent_used', $parentForm->consent_used ?? false) == true ? 'selected' : '' }}>
+                                    Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Consent Evidence / Reference</label>
+                            <input type="text" name="consent_evidence_reference" class="form-control"
+                                value="{{ old('consent_evidence_reference', $parentForm->consent_evidence_reference ?? '') }}"
+                                placeholder="Reference to consent form, URL, or record location">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Notice / Transparency Mechanism</label>
+                            <textarea name="notice_transparency_mechanism" class="form-control" rows="2"
+                                placeholder="Privacy notice, collection statement, communication channel">{{ old('notice_transparency_mechanism', $parentForm->notice_transparency_mechanism ?? '') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Risk & Governance --}}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                            <i class="fas fa-exclamation-triangle" style="color: #153d6f;"></i>
+                        </div>
+                        <h5 class="card-title mb-0" style="color: #153d6f;">Risk & Governance</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Risk Rating</label>
+                            <select name="risk_rating" class="form-select">
+                                <option value="">Select…</option>
+                                @foreach (['Low', 'Moderate', 'High', 'Critical'] as $rating)
+                                    <option value="{{ $rating }}"
+                                        {{ old('risk_rating', $parentForm->risk_rating ?? '') == $rating ? 'selected' : '' }}>
+                                        {{ $rating }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Remediation Owner</label>
+                            <input type="text" name="remediation_owner" class="form-control"
+                                value="{{ old('remediation_owner', $parentForm->remediation_owner ?? '') }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Remediation Actions</label>
+                            <textarea name="remediation_actions" class="form-control" rows="2"
+                                placeholder="Actions required to close identified risks">{{ old('remediation_actions', $parentForm->remediation_actions ?? '') }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Comments / Exceptions</label>
+                            <textarea name="comments_exceptions" class="form-control" rows="2">{{ old('comments_exceptions', $parentForm->comments_exceptions ?? '') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -239,10 +412,10 @@
                     <label class="form-label fw-bold">
                         Purpose of Processing
                         <i class="fas fa-question-circle text-muted ms-1" data-bs-toggle="tooltip"
-                           title="Describe why the data is being collected or used"></i>
+                            title="Describe why the data is being collected or used"></i>
                     </label>
                     <textarea name="purpose" class="form-control" rows="4"
-                              placeholder="e.g., Recruitment process for new faculty members, Pension administration for retired staff...">{{ old('purpose', $submission->purpose ?? '') }}</textarea>
+                        placeholder="e.g., Recruitment process for new faculty members, Pension administration for retired staff...">{{ old('purpose', $submission->purpose ?? '') }}</textarea>
                 </div>
             </div>
         </div>
@@ -250,207 +423,215 @@
     </div>
 </div>
 
-@unless($basicInfoLocked ?? false)
-@push('scripts')
-<script>
-    var routeSchoolsIndex = '/ropa/api/schools/';
-    var routeSchoolsStore = '/ropa/api/schools';
+@unless ($basicInfoLocked ?? false)
+    @push('scripts')
+        <script>
+            var routeSchoolsIndex = '/ropa/api/schools/';
+            var routeSchoolsStore = '/ropa/api/schools';
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var collegeSelect = document.getElementById('collegeSelect');
-        var bfInput = document.getElementById('businessFunctionInput');
-        var bfSuggestions = document.getElementById('businessFunctionSuggestions');
-        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            document.addEventListener('DOMContentLoaded', function() {
+                var collegeSelect = document.getElementById('collegeSelect');
+                var bfInput = document.getElementById('businessFunctionInput');
+                var bfSuggestions = document.getElementById('businessFunctionSuggestions');
+                var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-        var currentSchools = [];
-        var schoolsLoadedForCollege = null;
-        var fetchTimer = null;
+                var currentSchools = [];
+                var schoolsLoadedForCollege = null;
+                var fetchTimer = null;
 
-        function hideSuggestions() {
-            bfSuggestions.style.display = 'none';
-            bfSuggestions.innerHTML = '';
-        }
-
-        function renderSuggestions(items, query) {
-            bfSuggestions.innerHTML = '';
-
-            var filtered = items.filter(function(name) {
-                return name.toLowerCase().includes((query || '').toLowerCase());
-            });
-
-            if (filtered.length === 0) {
-                hideSuggestions();
-                return;
-            }
-
-            filtered.forEach(function(name) {
-                var item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'list-group-item list-group-item-action';
-                item.textContent = name;
-                item.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    bfInput.value = name;
-                    hideSuggestions();
-                });
-                bfSuggestions.appendChild(item);
-            });
-
-            bfSuggestions.style.display = 'block';
-        }
-
-        function fetchSchools(collegeId, callback) {
-            if (!collegeId) {
-                callback([]);
-                return;
-            }
-            var url = routeSchoolsIndex + collegeId;
-            fetch(url, {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                credentials: 'same-origin'
-            })
-                .then(function(res) {
-                    if (!res.ok) {
-                        console.error('GET ' + url + ' returned ' + res.status);
-                        callback([]);
-                        return null;
-                    }
-                    return res.json();
-                })
-                .then(function(data) {
-                    if (data === null) return;
-                    callback(Array.isArray(data) ? data : []);
-                })
-                .catch(function(err) {
-                    console.error('Failed to load schools for college ' + collegeId + ':', err);
-                    callback([]);
-                });
-        }
-
-        function loadSchoolsForCurrentCollege(then) {
-            var collegeId = collegeSelect ? collegeSelect.value : null;
-            fetchSchools(collegeId, function(schools) {
-                currentSchools = schools;
-                schoolsLoadedForCollege = collegeId;
-                if (then) then();
-            });
-        }
-
-        if (collegeSelect && collegeSelect.value) {
-            loadSchoolsForCurrentCollege();
-        }
-
-        if (collegeSelect) {
-            collegeSelect.addEventListener('change', function() {
-                bfInput.value = '';
-                hideSuggestions();
-                currentSchools = [];
-                schoolsLoadedForCollege = null;
-                loadSchoolsForCurrentCollege();
-            });
-        }
-
-        bfInput.addEventListener('focus', function() {
-            if (!collegeSelect || !collegeSelect.value) {
-                return;
-            }
-            loadSchoolsForCurrentCollege(function() {
-                renderSuggestions(currentSchools, bfInput.value);
-            });
-        });
-
-        bfInput.addEventListener('input', function() {
-            if (!collegeSelect || !collegeSelect.value) {
-                hideSuggestions();
-                return;
-            }
-
-            if (currentSchools.length > 0 || schoolsLoadedForCollege === collegeSelect.value) {
-                renderSuggestions(currentSchools, bfInput.value);
-                return;
-            }
-
-            clearTimeout(fetchTimer);
-            fetchTimer = setTimeout(function() {
-                loadSchoolsForCurrentCollege(function() {
-                    renderSuggestions(currentSchools, bfInput.value);
-                });
-            }, 150);
-        });
-
-        bfInput.addEventListener('blur', function() {
-            setTimeout(function() {
-                var collegeId = collegeSelect ? collegeSelect.value : null;
-                var typed = bfInput.value.trim();
-
-                hideSuggestions();
-
-                if (!typed || !collegeId) {
-                    return;
+                function hideSuggestions() {
+                    bfSuggestions.style.display = 'none';
+                    bfSuggestions.innerHTML = '';
                 }
 
-                var alreadyExists = currentSchools.some(function(name) {
-                    return name.toLowerCase() === typed.toLowerCase();
-                });
+                function renderSuggestions(items, query) {
+                    bfSuggestions.innerHTML = '';
 
-                if (alreadyExists) {
-                    return;
-                }
-
-                fetch(routeSchoolsStore, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    body: new URLSearchParams({ college_id: collegeId, name: typed })
-                })
-                    .then(function(res) {
-                        if (!res.ok) {
-                            return res.text().then(function(body) {
-                                console.error('POST ' + routeSchoolsStore + ' returned ' + res.status + ':', body);
-                                throw new Error('Failed to add school (status ' + res.status + ')');
-                            });
-                        }
-                        return res.json();
-                    })
-                    .then(function() {
-                        currentSchools.push(typed);
-                    })
-                    .catch(function(err) {
-                        console.error(err);
-                        alert('Failed to save school name. Please try again.');
+                    var filtered = items.filter(function(name) {
+                        return name.toLowerCase().includes((query || '').toLowerCase());
                     });
-            }, 150);
-        });
 
-        document.addEventListener('click', function(e) {
-            if (!bfSuggestions.contains(e.target) && e.target !== bfInput) {
-                hideSuggestions();
-            }
-        });
-
-        var hasSubProcesses = document.getElementById('hasSubProcesses');
-        var subProcessContainer = document.getElementById('subProcessContainer');
-        if (hasSubProcesses && subProcessContainer) {
-            hasSubProcesses.addEventListener('change', function() {
-                var subInput = subProcessContainer.querySelector('input');
-                if (this.checked) {
-                    subProcessContainer.style.display = 'block';
-                    if (subInput) subInput.setAttribute('required', true);
-                } else {
-                    subProcessContainer.style.display = 'none';
-                    if (subInput) {
-                        subInput.value = '';
-                        subInput.removeAttribute('required');
+                    if (filtered.length === 0) {
+                        hideSuggestions();
+                        return;
                     }
+
+                    filtered.forEach(function(name) {
+                        var item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action';
+                        item.textContent = name;
+                        item.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            bfInput.value = name;
+                            hideSuggestions();
+                        });
+                        bfSuggestions.appendChild(item);
+                    });
+
+                    bfSuggestions.style.display = 'block';
+                }
+
+                function fetchSchools(collegeId, callback) {
+                    if (!collegeId) {
+                        callback([]);
+                        return;
+                    }
+                    var url = routeSchoolsIndex + collegeId;
+                    fetch(url, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin'
+                        })
+                        .then(function(res) {
+                            if (!res.ok) {
+                                console.error('GET ' + url + ' returned ' + res.status);
+                                callback([]);
+                                return null;
+                            }
+                            return res.json();
+                        })
+                        .then(function(data) {
+                            if (data === null) return;
+                            callback(Array.isArray(data) ? data : []);
+                        })
+                        .catch(function(err) {
+                            console.error('Failed to load schools for college ' + collegeId + ':', err);
+                            callback([]);
+                        });
+                }
+
+                function loadSchoolsForCurrentCollege(then) {
+                    var collegeId = collegeSelect ? collegeSelect.value : null;
+                    fetchSchools(collegeId, function(schools) {
+                        currentSchools = schools;
+                        schoolsLoadedForCollege = collegeId;
+                        if (then) then();
+                    });
+                }
+
+                if (collegeSelect && collegeSelect.value) {
+                    loadSchoolsForCurrentCollege();
+                }
+
+                if (collegeSelect) {
+                    collegeSelect.addEventListener('change', function() {
+                        bfInput.value = '';
+                        hideSuggestions();
+                        currentSchools = [];
+                        schoolsLoadedForCollege = null;
+                        loadSchoolsForCurrentCollege();
+                    });
+                }
+
+                bfInput.addEventListener('focus', function() {
+                    if (!collegeSelect || !collegeSelect.value) {
+                        return;
+                    }
+                    loadSchoolsForCurrentCollege(function() {
+                        renderSuggestions(currentSchools, bfInput.value);
+                    });
+                });
+
+                bfInput.addEventListener('input', function() {
+                    if (!collegeSelect || !collegeSelect.value) {
+                        hideSuggestions();
+                        return;
+                    }
+
+                    if (currentSchools.length > 0 || schoolsLoadedForCollege === collegeSelect.value) {
+                        renderSuggestions(currentSchools, bfInput.value);
+                        return;
+                    }
+
+                    clearTimeout(fetchTimer);
+                    fetchTimer = setTimeout(function() {
+                        loadSchoolsForCurrentCollege(function() {
+                            renderSuggestions(currentSchools, bfInput.value);
+                        });
+                    }, 150);
+                });
+
+                bfInput.addEventListener('blur', function() {
+                    setTimeout(function() {
+                        var collegeId = collegeSelect ? collegeSelect.value : null;
+                        var typed = bfInput.value.trim();
+
+                        hideSuggestions();
+
+                        if (!typed || !collegeId) {
+                            return;
+                        }
+
+                        var alreadyExists = currentSchools.some(function(name) {
+                            return name.toLowerCase() === typed.toLowerCase();
+                        });
+
+                        if (alreadyExists) {
+                            return;
+                        }
+
+                        fetch(routeSchoolsStore, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                credentials: 'same-origin',
+                                body: new URLSearchParams({
+                                    college_id: collegeId,
+                                    name: typed
+                                })
+                            })
+                            .then(function(res) {
+                                if (!res.ok) {
+                                    return res.text().then(function(body) {
+                                        console.error('POST ' + routeSchoolsStore +
+                                            ' returned ' + res.status + ':', body);
+                                        throw new Error('Failed to add school (status ' +
+                                            res.status + ')');
+                                    });
+                                }
+                                return res.json();
+                            })
+                            .then(function() {
+                                currentSchools.push(typed);
+                            })
+                            .catch(function(err) {
+                                console.error(err);
+                                alert('Failed to save school name. Please try again.');
+                            });
+                    }, 150);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!bfSuggestions.contains(e.target) && e.target !== bfInput) {
+                        hideSuggestions();
+                    }
+                });
+
+                var hasSubProcesses = document.getElementById('hasSubProcesses');
+                var subProcessContainer = document.getElementById('subProcessContainer');
+                if (hasSubProcesses && subProcessContainer) {
+                    hasSubProcesses.addEventListener('change', function() {
+                        var subInput = subProcessContainer.querySelector('input');
+                        if (this.checked) {
+                            subProcessContainer.style.display = 'block';
+                            if (subInput) subInput.setAttribute('required', true);
+                        } else {
+                            subProcessContainer.style.display = 'none';
+                            if (subInput) {
+                                subInput.value = '';
+                                subInput.removeAttribute('required');
+                            }
+                        }
+                    });
                 }
             });
-        }
-    });
-</script>
-@endpush
+        </script>
+    @endpush
 @endunless

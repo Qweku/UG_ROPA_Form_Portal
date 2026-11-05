@@ -107,11 +107,11 @@ class RopaFormController extends Controller
             session()->forget('ropa_submission_id');
 
             $processLabel = $parentForm->main_process_name
-                ? ' ("'.$parentForm->main_process_name.'")'
+                ? ' ("' . $parentForm->main_process_name . '")'
                 : '';
 
             return redirect()->route('ropa.add-more', $parentForm)
-                ->with('info', 'You have an unfinished RoPA process'.$processLabel.' — continuing where you left off. Finish or submit it before starting a new one.');
+                ->with('info', 'You have an unfinished RoPA process' . $processLabel . ' — continuing where you left off. Finish or submit it before starting a new one.');
         }
 
         session([
@@ -299,6 +299,19 @@ class RopaFormController extends Controller
                 'firstname' => $basicInfoLocked ? 'sometimes|required|string|max:100' : 'required|string|max:100',
                 'purpose' => 'nullable|string',
                 'role_responsible' => 'nullable|string|max:255',
+                // NEW parent-level fields
+                'processing_owner' => 'nullable|string|max:255',
+                'ropa_coordinator' => 'nullable|string|max:255',
+                'legal_institutional_authority' => 'nullable|string|max:500',
+                'act843_legal_justification' => 'nullable|string',
+                'other_applicable_law' => 'nullable|string',
+                'consent_used' => 'nullable|boolean',
+                'consent_evidence_reference' => 'nullable|string|max:500',
+                'notice_transparency_mechanism' => 'nullable|string',
+                'risk_rating' => 'nullable|string|in:Low,Moderate,High,Critical',
+                'remediation_actions' => 'nullable|string',
+                'remediation_owner' => 'nullable|string|max:255',
+                'comments_exceptions' => 'nullable|string',
             ]);
 
             // Save has_sub_processes and personnel fields on the parent form
@@ -311,13 +324,29 @@ class RopaFormController extends Controller
                 'surname' => $validated['surname'],
                 'personnel_id' => $validated['personnel_id'],
                 'role_responsible' => $validated['role_responsible'],
+                'processing_owner' => $validated['processing_owner'] ?? null,
+                'ropa_coordinator' => $validated['ropa_coordinator'] ?? null,
+                'legal_institutional_authority' => $validated['legal_institutional_authority'] ?? null,
+                'act843_legal_justification' => $validated['act843_legal_justification'] ?? null,
+                'other_applicable_law' => $validated['other_applicable_law'] ?? null,
+                'consent_used' => $validated['consent_used'] ?? false,
+                'consent_evidence_reference' => $validated['consent_evidence_reference'] ?? null,
+                'notice_transparency_mechanism' => $validated['notice_transparency_mechanism'] ?? null,
+                'risk_rating' => $validated['risk_rating'] ?? null,
+                'remediation_actions' => $validated['remediation_actions'] ?? null,
+                'remediation_owner' => $validated['remediation_owner'] ?? null,
+                'comments_exceptions' => $validated['comments_exceptions'] ?? null,
             ];
 
             $parentForm->update($parentFormUpdateData);
 
             $submission->update([
                 'sub_process_name' => ($parentForm->has_sub_processes ?? false) ? $validated['sub_process_name'] : null,
+                'personnel_id' => $validated['personnel_id'],
+                'surname' => $validated['surname'],
+                'firstname' => $validated['firstname'],
                 'purpose' => $validated['purpose'],
+                'role_responsible' => $validated['role_responsible'],
                 'current_step' => 2,
             ]);
 
@@ -364,7 +393,7 @@ class RopaFormController extends Controller
         }
 
         return redirect()->route('ropa.edit', ['step' => $newStep])
-            ->with('success', 'Step '.$newStep.' saved successfully.');
+            ->with('success', 'Step ' . $newStep . ' saved successfully.');
     }
 
     /**
@@ -538,12 +567,12 @@ class RopaFormController extends Controller
         $personnelFields = ['personnel_id', 'firstname', 'surname', 'role_responsible'];
         $formUpdateData = array_filter(
             $validated,
-            fn ($key) => in_array($key, $personnelFields),
+            fn($key) => in_array($key, $personnelFields),
             ARRAY_FILTER_USE_KEY
         );
         $submissionUpdateData = array_filter(
             $validated,
-            fn ($key) => ! in_array($key, $personnelFields),
+            fn($key) => ! in_array($key, $personnelFields),
             ARRAY_FILTER_USE_KEY
         );
 
@@ -617,12 +646,12 @@ class RopaFormController extends Controller
                 return response()->json([
                     'success' => true,
                     'redirect' => route('ropa.edit', ['step' => $targetStep]),
-                    'message' => 'Navigated to step '.$targetStep,
+                    'message' => 'Navigated to step ' . $targetStep,
                 ]);
             }
 
             return redirect()->route('ropa.edit', ['step' => $targetStep])
-                ->with('success', 'Navigated to step '.$targetStep);
+                ->with('success', 'Navigated to step ' . $targetStep);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -636,8 +665,13 @@ class RopaFormController extends Controller
     private function normalizeRequest(Request $request)
     {
         $booleans = [
-            'share_internally', 'lia_documented', 'legally_required_retention',
-            'auto_decision_making', 'dpia_required', 'breach_occurred', 'retained_per_policy',
+            'share_internally',
+            'lia_documented',
+            'legally_required_retention',
+            'auto_decision_making',
+            'dpia_required',
+            'breach_occurred',
+            'retained_per_policy',
         ];
         foreach ($booleans as $field) {
             if ($request->has($field)) {
@@ -646,11 +680,23 @@ class RopaFormController extends Controller
         }
 
         $jsonFields = [
-            'process_names', 'joint_controllers', 'categories_records', 'data_subjects',
-            'personal_data_categories', 'internal_recipients', 'special_category_recipients',
-            'legal_basis', 'sensitive_legal_basis', 'individual_rights', 'external_recipients',
-            'international_transfers', 'transfer_mechanisms', 'dpa_conditions', 'gdpr_articles',
-            'cybersecurity_articles', 'other_articles',
+            'process_names',
+            'joint_controllers',
+            'categories_records',
+            'data_subjects',
+            'personal_data_categories',
+            'internal_recipients',
+            'special_category_recipients',
+            'legal_basis',
+            'sensitive_legal_basis',
+            'individual_rights',
+            'external_recipients',
+            'international_transfers',
+            'transfer_mechanisms',
+            'dpa_conditions',
+            'gdpr_articles',
+            'cybersecurity_articles',
+            'other_articles',
         ];
         foreach ($jsonFields as $field) {
             if ($request->has($field)) {
@@ -671,9 +717,14 @@ class RopaFormController extends Controller
         }
 
         $checkboxFields = [
-            'categories_records', 'individual_rights', 'dpa_conditions',
-            'gdpr_articles', 'cybersecurity_articles', 'other_articles',
-            'legal_basis', 'sensitive_legal_basis',
+            'categories_records',
+            'individual_rights',
+            'dpa_conditions',
+            'gdpr_articles',
+            'cybersecurity_articles',
+            'other_articles',
+            'legal_basis',
+            'sensitive_legal_basis',
         ];
         foreach ($checkboxFields as $field) {
             if (! $request->has($field) || $request->input($field) === null) {
@@ -703,6 +754,8 @@ class RopaFormController extends Controller
                 'personal_data_categories' => 'nullable|array',
                 'special_category_documents' => 'nullable|string',
                 'internal_sharing_categories' => 'nullable|string',
+                'detailed_processing_description' => 'nullable|string',   // NEW
+                'data_quality_controls' => 'nullable|string',             // NEW
             ],
             4 => [
                 'internal_sharing_categories' => 'nullable|string',
@@ -714,6 +767,9 @@ class RopaFormController extends Controller
             5 => [
                 'data_source' => 'required|string|in:individual,third_party',
                 'data_update_method' => 'nullable|string',
+                'collection_method' => 'nullable|string',       // NEW
+                'systems_applications' => 'nullable|string',    // NEW
+                'data_flow_movement' => 'nullable|string',      // NEW
             ],
             6 => [
                 'legal_basis' => 'nullable|array',
@@ -726,16 +782,26 @@ class RopaFormController extends Controller
                 'legitimate_interests' => 'nullable|string',
                 'lia_link' => 'nullable|url|max:500',
                 'individual_rights' => 'nullable|array',
+                'retention_trigger' => 'nullable|string|max:255',            // NEW
+                'retention_authority_evidence' => 'nullable|string',         // NEW
+                'disposal_method' => 'nullable|string|max:255',              // NEW
+                'rights_request_process' => 'nullable|string',               // NEW
             ],
             7 => [
                 'security_measures' => 'nullable|string',
+                'access_control_user_roles' => 'nullable|string',            // NEW
             ],
             8 => [
                 'external_recipients' => 'required|array|min:1',
+                'processing_role' => 'nullable|string|in:Data Controller,Data Processor,Joint Controller', // NEW
+                'processor_contract_in_place' => 'nullable|boolean',         // NEW
             ],
             9 => [
                 'international_transfers' => 'nullable|array',
                 'transfer_mechanisms' => 'nullable|array',
+                'international_transfer_yn' => 'nullable|boolean',           // NEW
+                'transfer_destination_org' => 'nullable|string|max:255',     // NEW
+                'transfer_safeguards' => 'nullable|string',                  // NEW
             ],
             10 => [
                 'auto_decision_making' => 'nullable|boolean',
@@ -749,6 +815,8 @@ class RopaFormController extends Controller
                 'dpia_required' => 'nullable|boolean',
                 'dpia_progress' => 'nullable|string|in:not_started,in_progress,completed',
                 'dpia_link' => 'nullable|url|max:500',
+                'dpia_screening_required' => 'nullable|boolean',             // NEW
+                'dpia_screening_notes' => 'nullable|string',                 // NEW
             ],
             13 => [
                 'breach_occurred' => 'nullable|boolean',
@@ -766,5 +834,34 @@ class RopaFormController extends Controller
         ];
 
         return array_merge($baseRules, $stepRules[$step] ?? []);
+    }
+
+    public function signOffProcessingOwner(RopaForm $parentForm): RedirectResponse
+    {
+        if ($parentForm->user_id !== Auth::id()) abort(403);
+
+        $parentForm->update(['processing_owner_signed_at' => now()]);
+
+        return back()->with('success', 'Processing Owner sign-off recorded.');
+    }
+
+    public function validatePrivacyOffice(RopaForm $parentForm): RedirectResponse
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin') abort(403);
+
+        $parentForm->update(['privacy_office_validated_at' => now()]);
+
+        return back()->with('success', 'Privacy Office validation recorded.');
+    }
+
+    public function approveForm(RopaForm $parentForm): RedirectResponse
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin') abort(403);
+
+        $parentForm->update(['approved_at' => now()]);
+
+        return back()->with('success', 'Form approved.');
     }
 }

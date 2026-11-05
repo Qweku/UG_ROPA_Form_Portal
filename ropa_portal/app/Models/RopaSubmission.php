@@ -7,22 +7,71 @@ use Illuminate\Database\Eloquent\Model;
 class RopaSubmission extends Model
 {
     protected $fillable = [
-        'ropa_form_id', 'sub_process_name',
+        'ropa_form_id',
+        'sub_process_name',
         'purpose',
-        'joint_controllers', 'categories_records', 'data_subjects', 'personal_data_categories',
-        'special_category_documents', 'internal_sharing_categories', 'share_internally',
-        'internal_recipients', 'special_category_recipients', 'sharing_reasons',
-        'data_source', 'data_update_method', 'legal_basis', 'lia_documented',
-        'lia_location', 'sensitive_legal_basis', 'retention_period',
-        'legally_required_retention', 'special_category_condition', 'legitimate_interests',
-        'lia_link', 'individual_rights', 'security_measures', 'external_recipients',
-        'international_transfers', 'transfer_mechanisms', 'auto_decision_making',
-        'profiling_description', 'consent_link', 'data_location', 'dpia_required',
-        'dpia_progress', 'dpia_link', 'breach_occurred', 'breach_link',
-        'dpa_conditions', 'gdpr_articles', 'cybersecurity_articles', 'other_articles',
+        'joint_controllers',
+        'categories_records',
+        'data_subjects',
+        'personal_data_categories',
+        'special_category_documents',
+        'internal_sharing_categories',
+        'share_internally',
+        'internal_recipients',
+        'special_category_recipients',
+        'sharing_reasons',
+        'data_source',
+        'data_update_method',
+        'legal_basis',
+        'lia_documented',
+        'lia_location',
+        'sensitive_legal_basis',
+        'retention_period',
+        'legally_required_retention',
+        'special_category_condition',
+        'legitimate_interests',
+        'lia_link',
+        'individual_rights',
+        'security_measures',
+        'external_recipients',
+        'international_transfers',
+        'transfer_mechanisms',
+        'auto_decision_making',
+        'profiling_description',
+        'consent_link',
+        'data_location',
+        'dpia_required',
+        'dpia_progress',
+        'dpia_link',
+        'breach_occurred',
+        'breach_link',
+        'dpa_conditions',
+        'gdpr_articles',
+        'cybersecurity_articles',
+        'other_articles',
         'retention_policy_link',
-        'retained_per_policy', 'retention_non_adherence_reason',
-        'current_step', 'status', 'completed_at',
+        'retained_per_policy',
+        'retention_non_adherence_reason',
+        'current_step',
+        'status',
+        'completed_at',
+        'detailed_processing_description',
+        'collection_method',
+        'systems_applications',
+        'data_flow_movement',
+        'data_quality_controls',
+        'access_control_user_roles',
+        'retention_trigger',
+        'retention_authority_evidence',
+        'disposal_method',
+        'processing_role',
+        'processor_contract_in_place',
+        'rights_request_process',
+        'international_transfer_yn',
+        'transfer_destination_org',
+        'transfer_safeguards',
+        'dpia_screening_required',
+        'dpia_screening_notes',
     ];
 
     protected $casts = [
@@ -50,6 +99,9 @@ class RopaSubmission extends Model
         'breach_occurred' => 'boolean',
         'retained_per_policy' => 'boolean',
         'completed_at' => 'datetime',
+        'processor_contract_in_place' => 'boolean',
+        'international_transfer_yn' => 'boolean',
+        'dpia_screening_required' => 'boolean',
     ];
 
     public function ropaForm()
@@ -148,9 +200,9 @@ class RopaSubmission extends Model
         ];
 
         // Drop empty values within each group, then drop empty groups.
-        $groups = array_map(fn ($fields) => array_filter($fields, fn ($v) => ! is_null($v) && $v !== ''), $groups);
+        $groups = array_map(fn($fields) => array_filter($fields, fn($v) => ! is_null($v) && $v !== ''), $groups);
 
-        return array_filter($groups, fn ($fields) => count($fields) > 0);
+        return array_filter($groups, fn($fields) => count($fields) > 0);
     }
 
     private function formatArray($value): ?string

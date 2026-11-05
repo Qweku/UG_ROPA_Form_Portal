@@ -78,9 +78,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/submission/{submission}', [RopaFormController::class, 'destroySubmission'])->name('destroy-submission');
         Route::get('/api/schools/{college}', [SchoolController::class, 'index'])->name('schools.index');
         Route::post('/api/schools', [SchoolController::class, 'store'])->name('schools.store');
+        Route::post('/{ropaForm}/sign-off', [RopaFormController::class, 'signOffProcessingOwner'])->name('sign-off');
+        Route::post('/{ropaForm}/privacy-validate', [RopaFormController::class, 'validatePrivacyOffice'])->name('privacy-validate');
+        Route::post('/{ropaForm}/approve', [RopaFormController::class, 'approveForm'])->name('approve');
     });
 });
 
-Route::get('/test-404', fn () => abort(404));
-Route::get('/test-403', fn () => abort(403));
-Route::get('/test-500', fn () => abort(500));
+Route::get('/test-404', fn() => abort(404));
+Route::get('/test-403', fn() => abort(403));
+Route::get('/test-500', fn() => abort(500));

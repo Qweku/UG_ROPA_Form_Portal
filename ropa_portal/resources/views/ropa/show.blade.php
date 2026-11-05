@@ -104,6 +104,9 @@
                             <a href="#external-recipients" class="list-group-item list-group-item-action py-2 px-2 border-0">
                                 <i class="fas fa-paper-plane me-2" style="color: #b69964;"></i> External Recipients
                             </a>
+                            <a href="#processing-role" class="list-group-item list-group-item-action py-2 px-2 border-0">
+                                <i class="fas fa-user-tag me-2" style="color: #b69964;"></i> Processing Role
+                            </a>
                             <a href="#transfers" class="list-group-item list-group-item-action py-2 px-2 border-0">
                                 <i class="fas fa-globe me-2" style="color: #b69964;"></i> International Transfers
                             </a>
@@ -267,9 +270,14 @@
                                 <textarea name="purpose" rows="3" class="form-control edit-mode d-none">{{ $submission->purpose }}</textarea>
                             </div>
                             <div class="col-12">
-                                <small class="text-muted">Role Responsible</small>
+                                <small class="text-muted">Role Responsible (Parent Form)</small>
                                 <p class="mb-0 fw-bold view-mode">{{ $parentForm->role_responsible ?? 'N/A' }}</p>
                                 <input type="text" name="role_responsible" class="form-control edit-mode d-none" maxlength="255" value="{{ $parentForm->role_responsible }}">
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted">Role Responsible (This Submission)</small>
+                                <p class="mb-0 fw-bold view-mode">{{ $submission->role_responsible ?? 'N/A' }}</p>
+                                <input type="text" name="role_responsible_sub" class="form-control edit-mode d-none" maxlength="255" value="{{ $submission->role_responsible }}">
                             </div>
                         </div>
                     </div>
@@ -340,7 +348,7 @@
                                     @php $c = is_array($controller) ? $controller : []; @endphp
                                     <div class="joint-controller-card card mb-3 border">
                                         <div class="card-body position-relative">
-                                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-controller" aria-label="Remove"></button>
+                                            <button type="button" class="btn-close position-absolute top-0 inset-e-0 m-2 remove-controller" aria-label="Remove"></button>
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
                                                     <label class="form-label fw-bold">
@@ -697,6 +705,11 @@
                                 </p>
                                 <textarea name="individual_rights_raw" rows="2" class="form-control edit-mode d-none" data-array-field="individual_rights" placeholder="Comma-separated list">{{ implode(', ', $individualRights) }}</textarea>
                             </div>
+                            <div class="col-12">
+                                <small class="text-muted">Rights Request Process</small>
+                                <p class="mb-0 view-mode">{{ $submission->rights_request_process ?? 'N/A' }}</p>
+                                <textarea name="rights_request_process" rows="2" class="form-control edit-mode d-none">{{ $submission->rights_request_process }}</textarea>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -767,7 +780,7 @@
                                     @php $r = is_array($recipient) ? $recipient : []; @endphp
                                     <div class="recipient-card card mb-3 border">
                                         <div class="card-body position-relative">
-                                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-recipient" aria-label="Remove"></button>
+                                            <button type="button" class="btn-close position-absolute top-0 inset-e-0 m-2 remove-recipient" aria-label="Remove"></button>
                                             <div class="row">
                                                 <div class="col-md-4 mb-3">
                                                     <label class="form-label fw-bold">
@@ -858,6 +871,48 @@
             </div>
 
             {{-- ============================================================ --}}
+            {{-- SECTION: Processing Role (New)                               --}}
+            {{-- ============================================================ --}}
+            <div id="processing-role" class="card border-0 shadow-sm mb-4 editable-section">
+                <form method="POST" action="{{ route('ropa.update-submission', $submission) }}" class="section-form">
+                    @csrf
+                    @method('PATCH')
+                    <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
+                                <i class="fas fa-user-tag" style="color: #153d6f;"></i>
+                            </div>
+                            <h4 class="mb-0 text-white">Processing Role</h4>
+                        </div>
+                        @include('ropa.partials.section-edit-controls')
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <small class="text-muted">Processing Role</small>
+                                <p class="mb-0 fw-bold view-mode">{{ $submission->processing_role ?? 'N/A' }}</p>
+                                <select name="processing_role" class="form-select edit-mode d-none">
+                                    <option value="" @selected($submission->processing_role === '')>Select Role</option>
+                                    <option value="Data Controller" @selected($submission->processing_role === 'Data Controller')>Data Controller</option>
+                                    <option value="Data Processor" @selected($submission->processing_role === 'Data Processor')>Data Processor</option>
+                                    <option value="Joint Controller" @selected($submission->processing_role === 'Joint Controller')>Joint Controller</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Processor Contract in Place?</small>
+                                <p class="mb-0 fw-bold view-mode">{{ $submission->processor_contract_in_place ? 'Yes' : ($submission->processor_contract_in_place === false ? 'No' : 'N/A') }}</p>
+                                <select name="processor_contract_in_place" class="form-select edit-mode d-none">
+                                    <option value="" @selected($submission->processor_contract_in_place === null)>N/A</option>
+                                    <option value="1" @selected($submission->processor_contract_in_place === true)>Yes</option>
+                                    <option value="0" @selected($submission->processor_contract_in_place === false)>No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {{-- ============================================================ --}}
             {{-- SECTION: International Transfers (Step 9)                   --}}
             {{-- ============================================================ --}}
             <div id="transfers" class="card border-0 shadow-sm mb-4 editable-section">
@@ -875,6 +930,24 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
+                            <div class="col-md-6">
+                                <small class="text-muted">International Transfer?</small>
+                                <p class="mb-0 fw-bold view-mode">{{ $submission->international_transfer_yn ? 'Yes' : 'No' }}</p>
+                                <select name="international_transfer_yn" class="form-select edit-mode d-none">
+                                    <option value="1" @selected($submission->international_transfer_yn)>Yes</option>
+                                    <option value="0" @selected(!$submission->international_transfer_yn)>No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Transfer Destination Organisation</small>
+                                <p class="mb-0 view-mode">{{ $submission->transfer_destination_org ?? 'N/A' }}</p>
+                                <input type="text" name="transfer_destination_org" class="form-control edit-mode d-none" maxlength="255" value="{{ $submission->transfer_destination_org }}">
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted">Transfer Safeguards</small>
+                                <p class="mb-0 view-mode">{{ $submission->transfer_safeguards ?? 'N/A' }}</p>
+                                <textarea name="transfer_safeguards" rows="2" class="form-control edit-mode d-none">{{ $submission->transfer_safeguards }}</textarea>
+                            </div>
                             <div class="col-12">
                                 <small class="text-muted">International Transfers</small>
                                 <p class="mb-0 view-mode">
@@ -1025,6 +1098,19 @@
                                 </p>
                                 <input type="url" name="dpia_link" class="form-control edit-mode d-none" maxlength="500" value="{{ $submission->dpia_link }}">
                             </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">DPIA Screening Required?</small>
+                                <p class="mb-0 fw-bold view-mode">{{ $submission->dpia_screening_required ? 'Yes' : 'No' }}</p>
+                                <select name="dpia_screening_required" class="form-select edit-mode d-none">
+                                    <option value="1" @selected($submission->dpia_screening_required)>Yes</option>
+                                    <option value="0" @selected(!$submission->dpia_screening_required)>No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">DPIA Screening Notes</small>
+                                <p class="mb-0 view-mode">{{ $submission->dpia_screening_notes ?? 'N/A' }}</p>
+                                <textarea name="dpia_screening_notes" rows="2" class="form-control edit-mode d-none">{{ $submission->dpia_screening_notes }}</textarea>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -1042,7 +1128,7 @@
                             <div class="rounded-circle p-2 me-2" style="background: #e8eef5;">
                                 <i class="fas fa-exclamation-triangle" style="color: #153d6f;"></i>
                             </div>
-                            <h4 class="mb-0 text-white" >Breach History</h4> 
+                            <h4 class="mb-0 text-white" >Breach History</h4>
                         </div>
                         @if(Auth::user()->role === 'admin')
                             @include('ropa.partials.section-edit-controls')
