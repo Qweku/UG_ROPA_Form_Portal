@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\RateLimiter;
 
 class OtpVerificationController extends Controller
 {
@@ -42,28 +42,12 @@ class OtpVerificationController extends Controller
             return redirect()->route('login');
         }
 
-        // Generate 6-digit OTP
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otp = (string) random_int(100000, 999999);
 
-        // Log to Laravel log file
-        Log::info('=========================================');
-        Log::info('OTP VERIFICATION - DEMO MODE');
-        Log::info('Email: '.$user->email);
-        Log::info('OTP Code: '.$otp);
-        Log::info('=========================================');
-
-        // Also log to a dedicated OTP file for easy access
-        Log::channel('single')->info("OTP for {$user->email}: {$otp}");
-
-        // Store in session
-        Session::put('demo_otp', $otp);
-
-        // Delete old unused OTPs
         OtpVerification::where('user_id', $user->id)
             ->where('is_used', false)
             ->delete();
 
-        // Create new OTP
         OtpVerification::create([
             'user_id' => $user->id,
             'otp' => Hash::make($otp),
@@ -72,11 +56,7 @@ class OtpVerificationController extends Controller
             'is_used' => false,
         ]);
 
-        // Store plain OTP in session temporarily (for testing/development)
-        session(['pending_otp' => $otp]);
-
-        // Send OTP via email
-        $this->sendOtpEmail($user->email, $otp, $user->firstname ?? $user->name);
+        $this->sendOtpEmail($user->email, $otp, $user->firstname ?? $user->name ?? $user->email);
 
         return true;
     }
@@ -111,7 +91,7 @@ class OtpVerificationController extends Controller
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'otp' => 'required|string|size:6',
+            'otp' => 'required|digits:6',
         ]);
 
         $user = Auth::user();
@@ -120,12 +100,23 @@ class OtpVerificationController extends Controller
             return redirect()->route('login');
         }
 
+        $throttleKey = 'verify-otp:'.$user->id.'|'.$request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Too many verification attempts. Please try again later.',
+            ], 429);
+        }
+
         $otpRecord = OtpVerification::where('user_id', $user->id)
             ->where('is_used', false)
             ->where('expires_at', '>', now())
+            ->latest()
             ->first();
 
         if (! $otpRecord) {
+            RateLimiter::hit($throttleKey, 600);
+
             return response()->json([
                 'success' => false,
                 'error' => 'OTP has expired or is invalid. Please request a new one.',
@@ -133,16 +124,17 @@ class OtpVerificationController extends Controller
         }
 
         if (! Hash::check($request->otp, $otpRecord->otp)) {
+            RateLimiter::hit($throttleKey, 600);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Invalid OTP. Please try again.',
             ], 422);
         }
 
+        RateLimiter::clear($throttleKey);
         $otpRecord->update(['is_used' => true]);
-
-        session()->forget('pending_otp');
-
+        $request->session()->regenerate();
         session(['otp_verified' => true]);
 
         $user->update([
@@ -150,7 +142,7 @@ class OtpVerificationController extends Controller
             'email_verified_at' => now(),
         ]);
 
-        $redirectRoute = in_array($user->role, ['admin', 'super_admin'])
+        $redirectRoute = $user->isAdmin()
             ? route('admin.dashboard')
             : route('ropa.index');
 

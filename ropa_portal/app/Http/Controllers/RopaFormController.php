@@ -10,25 +10,63 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class RopaFormController extends Controller
 {
-    /**
-     * True if the current user owns the given RopaForm, or is an admin.
-     * Centralizes the "owner or admin" check used across every method
-     * that guards access to a specific RopaForm/RopaSubmission.
-     */
     private function canAccess(RopaForm $parentForm): bool
     {
         $user = Auth::user();
 
-        return $user && ($parentForm->user_id === $user->id || $user->role === 'admin');
+        return $user && ($parentForm->user_id === $user->id || $user->isAdmin());
     }
 
-    /**
-     * Display all forms for authenticated user (with accordion of submissions)
-     */
+    private function isAdminUser(): bool
+    {
+        $user = Auth::user();
+
+        return $user && $user->isAdmin();
+    }
+
+    private function resolveAuthorizedForm(?RopaForm $parentForm = null): ?RopaForm
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
+
+        $candidate = $parentForm ?: (session('ropa_form_id') ? RopaForm::with('college')->find(session('ropa_form_id')) : null);
+
+        if ($candidate && $this->canAccess($candidate)) {
+            return $candidate;
+        }
+
+        if ($user->isAdmin()) {
+            return $candidate;
+        }
+
+        return RopaForm::with('college')
+            ->where('user_id', $user->id)
+            ->where('all_submissions_completed', false)
+            ->latest('updated_at')
+            ->first();
+    }
+
+    private function resolveAuthorizedSubmission(RopaForm $parentForm, ?RopaSubmission $submission = null): ?RopaSubmission
+    {
+        $candidate = $submission ?: (session('ropa_submission_id') ? RopaSubmission::find(session('ropa_submission_id')) : null);
+
+        if ($candidate && $candidate->ropa_form_id === $parentForm->id) {
+            return $candidate;
+        }
+
+        return $parentForm->submissions()
+            ->where('status', 'draft')
+            ->latest('updated_at')
+            ->first();
+    }
+
     public function index(): View
     {
         $forms = RopaForm::with(['college', 'submissions'])
@@ -39,16 +77,6 @@ class RopaFormController extends Controller
         return view('ropa.index', compact('forms'));
     }
 
-    /**
-     * Entry point for "Create New RoPA Process".
-     *
-     * A user may only have ONE incomplete RoPA form at a time. If they
-     * already have one (whether or not it's pointed to by the current
-     * session — e.g. a previous tab, an expired session, or a stale
-     * "Create" click), we resume that one instead of creating a new row.
-     * A brand new RopaForm is only ever created from here when the user
-     * genuinely has none in progress.
-     */
     public function create(): RedirectResponse
     {
         $user = Auth::user();
@@ -85,13 +113,6 @@ class RopaFormController extends Controller
         return redirect()->route('ropa.edit', ['step' => 1]);
     }
 
-    /**
-     * Point the session at an existing incomplete form and land the user
-     * on the right step (its current draft submission, or "add more" if
-     * the most recent submission is already completed). Flashes a message
-     * so the user understands they were routed back into existing work
-     * rather than given a fresh blank form.
-     */
     private function resumeForm(RopaForm $parentForm): RedirectResponse
     {
         $draftSubmission = $parentForm->submissions()
@@ -100,18 +121,15 @@ class RopaFormController extends Controller
             ->first();
 
         if (! $draftSubmission) {
-            // No open draft — most recent submission was completed.
-            // Let the add-more screen decide what happens next; do not
-            // create a new submission row here.
             session(['ropa_form_id' => $parentForm->id]);
             session()->forget('ropa_submission_id');
 
             $processLabel = $parentForm->main_process_name
-                ? ' ("' . $parentForm->main_process_name . '")'
+                ? ' ("'.$parentForm->main_process_name.'")'
                 : '';
 
             return redirect()->route('ropa.add-more', $parentForm)
-                ->with('info', 'You have an unfinished RoPA process' . $processLabel . ' — continuing where you left off. Finish or submit it before starting a new one.');
+                ->with('info', 'You have an unfinished RoPA process'.$processLabel.' — continuing where you left off. Finish or submit it before starting a new one.');
         }
 
         session([
@@ -123,41 +141,24 @@ class RopaFormController extends Controller
             ->with('info', 'You have an unfinished RoPA process in progress — continuing where you left off. Finish or submit it before starting a new one.');
     }
 
-    /**
-     * Edit a specific step of the submission.
-     *
-     * This is a GET endpoint and must be side-effect-free with respect to
-     * row creation: it should only ever look up existing records. If the
-     * session pointers are missing or stale (new tab, expired session,
-     * direct navigation), it re-attaches to the user's existing incomplete
-     * form rather than silently inserting a new RopaForm/RopaSubmission.
-     * A new pair is only created as a last resort, when the user truly
-     * has no incomplete form at all (e.g. they navigated here directly
-     * without ever going through "Create").
-     */
     public function edit($step = 1): View|RedirectResponse
     {
         $user = Auth::user();
-        $isAdmin = $user->role === 'admin';
+        $isAdmin = $this->isAdminUser();
 
         $parentForm = session('ropa_form_id') ? RopaForm::with('college')->find(session('ropa_form_id')) : null;
 
-        // If admin has session form_id but form not found, redirect to dashboard
         if ($isAdmin && session('ropa_form_id') && ! $parentForm) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'Selected form not found.');
         }
 
-        // If admin has no form context, redirect to dashboard to select one
         if ($isAdmin && ! session('ropa_form_id')) {
             return redirect()->route('admin.dashboard')
                 ->with('info', 'Please select a form from the admin dashboard to edit steps 12 and 13.');
         }
 
-        // Session pointer missing/stale — try to recover the user's
-        // existing incomplete form before considering creating a new one.
-        // Users can only access their own forms.
-        if (! $parentForm || $parentForm->user_id !== $user->id) {
+        if (! $parentForm || ! $this->canAccess($parentForm)) {
             $parentForm = RopaForm::with('college')
                 ->where('user_id', $user->id)
                 ->where('all_submissions_completed', false)
@@ -165,7 +166,6 @@ class RopaFormController extends Controller
                 ->first();
         }
 
-        // Non-admin users without any form get a new one
         if (! $parentForm) {
             $parentForm = RopaForm::create([
                 'user_id' => $user->id,
@@ -178,10 +178,7 @@ class RopaFormController extends Controller
 
         $submission = session('ropa_submission_id') ? RopaSubmission::find(session('ropa_submission_id')) : null;
 
-        // Session pointer missing/stale, or pointing at a submission that
-        // doesn't belong to the resolved parent form — recover the
-        // parent's current draft instead of creating a new one.
-        if (! $submission || $submission->ropaForm->id !== $parentForm->id) {
+        if (! $submission || $submission->ropa_form_id !== $parentForm->id) {
             $submission = $parentForm->submissions()
                 ->where('status', 'draft')
                 ->latest('updated_at')
@@ -205,86 +202,72 @@ class RopaFormController extends Controller
             $step = 1;
         }
 
-        // Restrict steps 12 and 13 to admin only
-        if (! $isAdmin && in_array($step, [12, 13])) {
+        if (! $isAdmin && in_array($step, [12, 13], true)) {
             return redirect()->route('ropa.edit', ['step' => 14])
                 ->with('info', 'Steps 12 and 13 are restricted to admin users.');
         }
 
         $colleges = College::all();
         $basicInfoLocked = $parentForm->basicInfoLocked();
-
-        // Compute reindexed step for non-admin users (step 14 becomes step 12)
         $displayStep = $this->getDisplayStep($step, $isAdmin);
 
         return view('ropa.form', compact('parentForm', 'submission', 'step', 'colleges', 'basicInfoLocked', 'isAdmin', 'displayStep'));
     }
 
-    /**
-     * Get the display step number for non-admin users.
-     * Steps 12 and 13 are skipped, so step 14 appears as step 12.
-     */
     private function getDisplayStep(int $step, bool $isAdmin): int
     {
         if ($isAdmin || $step < 12) {
             return $step;
         }
 
-        // For non-admin, step 14 displays as step 12
         return 12;
     }
 
-    /**
-     * Get the next step number, accounting for admin-only steps.
-     */
     private function getNextStep(int $step, bool $isAdmin): int
     {
         $next = $step + 1;
         if (! $isAdmin && $next === 12 && $step < 14) {
-            // Skip steps 12 and 13 for non-admin, go directly to 14
             return 14;
         }
 
         return min($next, 14);
     }
 
-    /**
-     * Get the previous step number, accounting for admin-only steps.
-     */
     private function getPreviousStep(int $step, bool $isAdmin): int
     {
         $prev = $step - 1;
         if (! $isAdmin && $step === 14) {
-            // Non-admin coming from step 14 goes back to step 11 (their step 12)
             return 11;
         }
 
         return max($prev, 1);
     }
 
-    /**
-     * Update the current step of the submission.
-     * Handles saving, navigation, and completion.
-     */
     public function update(Request $request): RedirectResponse|JsonResponse
     {
         $step = (int) $request->input('current_step', 1);
 
-        $parentForm = session('ropa_form_id') ? RopaForm::find(session('ropa_form_id')) : null;
-        if (! $parentForm) {
+        $parentForm = $this->resolveAuthorizedForm();
+        if (! $parentForm || ! $this->canAccess($parentForm)) {
             return redirect()->route('ropa.create')->withErrors('Session expired. Please start again.');
         }
+        session(['ropa_form_id' => $parentForm->id]);
 
-        $submission = session('ropa_submission_id') ? RopaSubmission::find(session('ropa_submission_id')) : null;
+        $submission = $this->resolveAuthorizedSubmission($parentForm);
         if (! $submission) {
             return redirect()->route('ropa.edit', ['step' => 1])->withErrors('Submission not found.');
         }
+        session(['ropa_submission_id' => $submission->id]);
 
         if ($request->input('action') === 'navigate') {
             return $this->handleNavigation($request, $parentForm, $submission);
         }
 
-        // --- Step 1 specific handling ---
+        $isAdmin = $this->isAdminUser();
+        if (! $isAdmin && in_array($step, [12, 13], true)) {
+            abort(403);
+        }
+
         if ($step === 1) {
             $basicInfoLocked = $parentForm->basicInfoLocked();
 
@@ -299,7 +282,6 @@ class RopaFormController extends Controller
                 'firstname' => $basicInfoLocked ? 'sometimes|required|string|max:100' : 'required|string|max:100',
                 'purpose' => 'nullable|string',
                 'role_responsible' => 'nullable|string|max:255',
-                // NEW parent-level fields
                 'processing_owner' => 'nullable|string|max:255',
                 'ropa_coordinator' => 'nullable|string|max:255',
                 'legal_institutional_authority' => 'nullable|string|max:500',
@@ -314,7 +296,6 @@ class RopaFormController extends Controller
                 'comments_exceptions' => 'nullable|string',
             ]);
 
-            // Save has_sub_processes and personnel fields on the parent form
             $parentFormUpdateData = [
                 'college_id' => $validated['college_id'],
                 'business_function' => $validated['business_function'],
@@ -342,11 +323,7 @@ class RopaFormController extends Controller
 
             $submission->update([
                 'sub_process_name' => ($parentForm->has_sub_processes ?? false) ? $validated['sub_process_name'] : null,
-                'personnel_id' => $validated['personnel_id'],
-                'surname' => $validated['surname'],
-                'firstname' => $validated['firstname'],
                 'purpose' => $validated['purpose'],
-                'role_responsible' => $validated['role_responsible'],
                 'current_step' => 2,
             ]);
 
@@ -354,12 +331,8 @@ class RopaFormController extends Controller
                 ->with('success', 'Step 1 saved. Proceed to step 2.');
         }
 
-        // --- Steps 2-14 ---
         $this->normalizeRequest($request);
 
-        $isAdmin = Auth::user()->role === 'admin';
-
-        // Non-admin users skip steps 12-13, so validation for step 12 should use step 14 rules
         $stepForValidation = $isAdmin ? $step : ($step >= 14 ? $step : ($step >= 12 ? 14 : $step));
         $validated = $request->validate($this->getValidationRules($stepForValidation));
 
@@ -373,8 +346,6 @@ class RopaFormController extends Controller
         }
 
         $updateData = array_merge($validated, ['current_step' => $newStep]);
-
-        // For non-admin, step 14 (their step 12) triggers completion
         $isFinalStep = $step === 14 || (! $isAdmin && $step >= 12);
         if ($action === 'submit' && $isFinalStep) {
             $updateData['status'] = 'completed';
@@ -385,7 +356,6 @@ class RopaFormController extends Controller
             $submission->update($updateData);
         });
 
-        // Handle post‑submission decisions
         if ($action === 'submit' && $isFinalStep) {
             $nextAction = $request->input('next_action', 'add_more');
 
@@ -393,25 +363,18 @@ class RopaFormController extends Controller
         }
 
         return redirect()->route('ropa.edit', ['step' => $newStep])
-            ->with('success', 'Step ' . $newStep . ' saved successfully.');
+            ->with('success', 'Step '.$newStep.' saved successfully.');
     }
 
-    /**
-     * Handle what happens after a sub-process is completed.
-     */
     private function handleSubProcessCompletion(RopaForm $parentForm, string $nextAction): RedirectResponse
     {
         if ($nextAction === 'add_more') {
             return $this->handleAddAnotherSubProcess($parentForm);
         }
 
-        // Default: finalize
         return $this->handleFinalize($parentForm);
     }
 
-    /**
-     * Add another sub-process.
-     */
     private function handleAddAnotherSubProcess(RopaForm $parentForm): RedirectResponse
     {
         session()->forget('ropa_submission_id');
@@ -426,51 +389,34 @@ class RopaFormController extends Controller
             ->with('info', 'Now fill in details for the next sub-process.');
     }
 
-    /**
-     * Finalize the entire form (all sub-processes completed).
-     */
     private function handleFinalize(RopaForm $parentForm): RedirectResponse
     {
         $parentForm->update(['all_submissions_completed' => true]);
-
         session()->forget(['ropa_form_id', 'ropa_submission_id']);
 
         return redirect()->route('ropa.index')
             ->with('success', 'All sub-processes submitted successfully! Your RoPA form is now complete.');
     }
 
-    /**
-     * Public route versions of the private helpers (for the accordion buttons).
-     */
     public function addSubProcess(RopaForm $parentForm): RedirectResponse
     {
-        if (! $this->canAccess($parentForm)) {
-            abort(403);
-        }
+        abort_unless($this->canAccess($parentForm), 403);
 
         return $this->handleAddAnotherSubProcess($parentForm);
     }
 
     public function finalize(RopaForm $parentForm): RedirectResponse
     {
-        if (! $this->canAccess($parentForm)) {
-            abort(403);
-        }
+        abort_unless($this->canAccess($parentForm), 403);
 
         return $this->handleFinalize($parentForm);
     }
 
-    /**
-     * Show the "add more" view after a sub-process is completed.
-     */
     public function addMore(RopaForm $parentForm): View|RedirectResponse
     {
-        if (! $this->canAccess($parentForm)) {
-            abort(403);
-        }
+        abort_unless($this->canAccess($parentForm), 403);
 
         $parentForm->load('college');
-
         $completedSubmissions = $parentForm->submissions()->where('status', 'completed')->get();
         if ($completedSubmissions->isEmpty()) {
             return redirect()->route('ropa.edit', ['step' => 1]);
@@ -481,9 +427,6 @@ class RopaFormController extends Controller
         return view('ropa.add-more', compact('parentForm', 'currentSubmission', 'completedSubmissions'));
     }
 
-    /**
-     * View a single submission (full details, with inline edit + delete).
-     */
     public function viewSubmission(RopaSubmission $submission): View
     {
         $parentForm = $submission->load('ropaForm.college')->ropaForm;
@@ -492,28 +435,11 @@ class RopaFormController extends Controller
             abort(404, 'This submission is no longer linked to a RoPA process and cannot be viewed.');
         }
 
-        if (! $this->canAccess($parentForm)) {
-            abort(403);
-        }
+        abort_unless($this->canAccess($parentForm), 403);
 
         return view('ropa.show', compact('submission', 'parentForm'));
     }
 
-    /**
-     * Inline update of a single field (or set of fields) on an already
-     * completed submission, from the show page. This is intentionally
-     * separate from update() above, which drives the step-by-step wizard
-     * via session state — this one operates directly on a known
-     * RopaSubmission with no session/step bookkeeping involved.
-     */
-    /**
-     * Update the process identity fields shown at the top of the show page:
-     * - main_process_name lives on the parent RopaForm and is shared across
-     *   every sub-process under it, so saving this updates all siblings too.
-     * - sub_process_name lives on this RopaSubmission only.
-     * Both are optional in the request so the two fields can be edited
-     * (and saved) independently from one shared card.
-     */
     public function updateProcessIdentity(Request $request, RopaSubmission $submission): RedirectResponse
     {
         $parentForm = $submission->load('ropaForm.college')->ropaForm;
@@ -547,50 +473,46 @@ class RopaFormController extends Controller
             abort(403);
         }
 
-        // Merge the validation rules for every step into one rule set,
-        // since inline editing can touch fields from any section.
+        $isAdmin = $this->isAdminUser();
         $rules = [];
         for ($step = 1; $step <= 14; $step++) {
             $rules = array_merge($rules, $this->getValidationRules($step));
         }
-        // current_step/action aren't real submission fields here; drop them.
         unset($rules['current_step'], $rules['action']);
 
-        // Only validate the fields actually present in this request, so a
-        // single-section save doesn't fail on required fields from other
-        // sections it didn't touch.
         $relevantRules = array_intersect_key($rules, $request->all());
+        if (! $isAdmin) {
+            foreach (array_keys($this->adminOnlySubmissionFields()) as $field) {
+                unset($relevantRules[$field]);
+            }
+        }
 
         $validated = $request->validate($relevantRules);
 
-        // Personnel fields now belong to the parent form, not the submission
         $personnelFields = ['personnel_id', 'firstname', 'surname', 'role_responsible'];
-        $formUpdateData = array_filter(
-            $validated,
-            fn($key) => in_array($key, $personnelFields),
-            ARRAY_FILTER_USE_KEY
-        );
-        $submissionUpdateData = array_filter(
-            $validated,
-            fn($key) => ! in_array($key, $personnelFields),
-            ARRAY_FILTER_USE_KEY
-        );
+        $formUpdateData = array_intersect_key($validated, array_flip($personnelFields));
+        $submissionUpdateData = array_diff_key($validated, array_flip($personnelFields));
 
         if (! empty($formUpdateData)) {
             $parentForm->update($formUpdateData);
         }
 
-        $submission->update($submissionUpdateData);
+        if (! empty($submissionUpdateData)) {
+            $submission->update($submissionUpdateData);
+        }
 
         return redirect()->route('ropa.view-submission', $submission)
             ->with('success', 'Submission updated successfully.');
     }
 
-    /**
-     * Delete either a single sub-process (RopaSubmission) or the entire
-     * parent RopaForm and all of its submissions, depending on what the
-     * user confirmed in the delete modal.
-     */
+    private function adminOnlySubmissionFields(): array
+    {
+        return array_fill_keys([
+            'dpia_required', 'dpia_progress', 'dpia_link', 'dpia_screening_required', 'dpia_screening_notes',
+            'breach_occurred', 'breach_link',
+        ], true);
+    }
+
     public function destroySubmission(Request $request, RopaSubmission $submission): RedirectResponse
     {
         $parentForm = $submission->ropaForm;
@@ -599,7 +521,7 @@ class RopaFormController extends Controller
             abort(403);
         }
 
-        $scope = $request->input('scope', 'submission');
+        $scope = $request->validate(['scope' => 'nullable|in:submission,form'])['scope'] ?? 'submission';
 
         if ($scope === 'form') {
             DB::transaction(function () use ($parentForm) {
@@ -625,16 +547,37 @@ class RopaFormController extends Controller
             ->with('success', 'The sub-process was deleted.');
     }
 
-    // --- Navigation Handler ---
+    public function destroy(RopaForm $ropaForm): RedirectResponse
+    {
+        abort_unless($this->canAccess($ropaForm), 403);
+
+        DB::transaction(function () use ($ropaForm) {
+            $ropaForm->submissions()->delete();
+            $ropaForm->delete();
+        });
+
+        if ((int) session('ropa_form_id') === $ropaForm->id) {
+            session()->forget(['ropa_form_id', 'ropa_submission_id']);
+        }
+
+        return redirect()->route('ropa.index')
+            ->with('success', 'The RoPA process and all its sub-processes were deleted.');
+    }
+
     private function handleNavigation(Request $request, RopaForm $parentForm, RopaSubmission $submission)
     {
+        abort_unless($this->canAccess($parentForm), 403);
+        abort_unless($submission->ropa_form_id === $parentForm->id, 403);
+
         $targetStep = (int) $request->input('target_step');
         $currentStep = (int) $request->input('current_step', 1);
-        $isAdmin = Auth::user()->role === 'admin';
+        $isAdmin = $this->isAdminUser();
 
-        // Prevent non-admin users from navigating to steps 12 and 13
-        if (! $isAdmin && in_array($targetStep, [12, 13])) {
+        if (! $isAdmin && in_array($targetStep, [12, 13], true)) {
             $targetStep = 14;
+        }
+        if (! $isAdmin && in_array($currentStep, [12, 13], true)) {
+            abort(403);
         }
 
         try {
@@ -646,32 +589,32 @@ class RopaFormController extends Controller
                 return response()->json([
                     'success' => true,
                     'redirect' => route('ropa.edit', ['step' => $targetStep]),
-                    'message' => 'Navigated to step ' . $targetStep,
+                    'message' => 'Navigated to step '.$targetStep,
                 ]);
             }
 
             return redirect()->route('ropa.edit', ['step' => $targetStep])
-                ->with('success', 'Navigated to step ' . $targetStep);
-        } catch (\Exception $e) {
+                ->with('success', 'Navigated to step '.$targetStep);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            report($e);
+            $message = 'Unable to navigate to the selected step. Please check your entries and try again.';
+
             if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+                return response()->json(['success' => false, 'message' => $message], 422);
             }
 
-            return back()->withErrors($e->getMessage());
+            return back()->withErrors($message);
         }
     }
 
-    // --- Normalization ---
-    private function normalizeRequest(Request $request)
+    private function normalizeRequest(Request $request): void
     {
         $booleans = [
-            'share_internally',
-            'lia_documented',
-            'legally_required_retention',
-            'auto_decision_making',
-            'dpia_required',
-            'breach_occurred',
-            'retained_per_policy',
+            'share_internally', 'lia_documented', 'legally_required_retention', 'auto_decision_making',
+            'dpia_required', 'breach_occurred', 'retained_per_policy', 'processor_contract_in_place',
+            'international_transfer_yn', 'dpia_screening_required', 'consent_used',
         ];
         foreach ($booleans as $field) {
             if ($request->has($field)) {
@@ -680,60 +623,52 @@ class RopaFormController extends Controller
         }
 
         $jsonFields = [
-            'process_names',
-            'joint_controllers',
-            'categories_records',
-            'data_subjects',
-            'personal_data_categories',
-            'internal_recipients',
-            'special_category_recipients',
-            'legal_basis',
-            'sensitive_legal_basis',
-            'individual_rights',
-            'external_recipients',
-            'international_transfers',
-            'transfer_mechanisms',
-            'dpa_conditions',
-            'gdpr_articles',
-            'cybersecurity_articles',
-            'other_articles',
+            'process_names', 'joint_controllers', 'categories_records', 'data_subjects', 'personal_data_categories',
+            'internal_recipients', 'special_category_recipients', 'legal_basis', 'sensitive_legal_basis',
+            'individual_rights', 'external_recipients', 'international_transfers', 'transfer_mechanisms',
+            'dpa_conditions', 'gdpr_articles', 'cybersecurity_articles', 'other_articles',
         ];
         foreach ($jsonFields as $field) {
             if ($request->has($field)) {
                 $value = $request->input($field);
                 if (is_string($value)) {
-                    if (str_starts_with(trim($value), '[') || str_starts_with(trim($value), '{')) {
-                        $decoded = json_decode($value, true);
-                        if (json_last_error() === JSON_ERROR_NONE) {
-                            $request->merge([$field => $decoded]);
-                        } else {
-                            $request->merge([$field => ! empty($value) ? [$value] : []]);
-                        }
+                    $trimmed = trim($value);
+                    if (str_starts_with($trimmed, '[') || str_starts_with($trimmed, '{')) {
+                        $decoded = json_decode($trimmed, true);
+                        $request->merge([$field => json_last_error() === JSON_ERROR_NONE ? $decoded : ($value !== '' ? [$value] : [])]);
                     } else {
-                        $request->merge([$field => ! empty($value) ? [$value] : []]);
+                        $request->merge([$field => $value !== '' ? [$value] : []]);
                     }
                 }
             }
         }
 
-        $checkboxFields = [
-            'categories_records',
-            'individual_rights',
-            'dpa_conditions',
-            'gdpr_articles',
-            'cybersecurity_articles',
-            'other_articles',
-            'legal_basis',
-            'sensitive_legal_basis',
-        ];
-        foreach ($checkboxFields as $field) {
+        foreach (['categories_records', 'individual_rights', 'dpa_conditions', 'gdpr_articles', 'cybersecurity_articles', 'other_articles', 'legal_basis', 'sensitive_legal_basis'] as $field) {
             if (! $request->has($field) || $request->input($field) === null) {
                 $request->merge([$field => []]);
             }
         }
     }
 
-    // --- Validation Rules ---
+    private function safeUrlRule(bool $required = false): array
+    {
+        $rules = [$required ? 'required' : 'nullable', 'string', 'max:500'];
+
+        $rules[] = function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $validated = filter_var($value, FILTER_VALIDATE_URL);
+            $scheme = strtolower((string) parse_url((string) $value, PHP_URL_SCHEME));
+            if ($validated === false || ! in_array($scheme, ['http', 'https'], true)) {
+                $fail('The '.$attribute.' must be a valid http or https URL.');
+            }
+        };
+
+        return $rules;
+    }
+
     private function getValidationRules(int $step): array
     {
         $baseRules = [
@@ -742,20 +677,16 @@ class RopaFormController extends Controller
         ];
 
         $stepRules = [
-            1 => [
-                'purpose' => 'nullable|string',
-            ],
-            2 => [
-                'joint_controllers' => 'required|array|min:1',
-            ],
+            1 => ['purpose' => 'nullable|string'],
+            2 => ['joint_controllers' => 'required|array|min:1'],
             3 => [
                 'categories_records' => 'required|array|min:1',
                 'data_subjects' => 'nullable|array',
                 'personal_data_categories' => 'nullable|array',
                 'special_category_documents' => 'nullable|string',
                 'internal_sharing_categories' => 'nullable|string',
-                'detailed_processing_description' => 'nullable|string',   // NEW
-                'data_quality_controls' => 'nullable|string',             // NEW
+                'detailed_processing_description' => 'nullable|string',
+                'data_quality_controls' => 'nullable|string',
             ],
             4 => [
                 'internal_sharing_categories' => 'nullable|string',
@@ -767,9 +698,9 @@ class RopaFormController extends Controller
             5 => [
                 'data_source' => 'required|string|in:individual,third_party',
                 'data_update_method' => 'nullable|string',
-                'collection_method' => 'nullable|string',       // NEW
-                'systems_applications' => 'nullable|string',    // NEW
-                'data_flow_movement' => 'nullable|string',      // NEW
+                'collection_method' => 'nullable|string',
+                'systems_applications' => 'nullable|string',
+                'data_flow_movement' => 'nullable|string',
             ],
             6 => [
                 'legal_basis' => 'nullable|array',
@@ -780,54 +711,54 @@ class RopaFormController extends Controller
                 'legally_required_retention' => 'nullable|boolean',
                 'special_category_condition' => 'nullable|string',
                 'legitimate_interests' => 'nullable|string',
-                'lia_link' => 'nullable|url|max:500',
+                'lia_link' => $this->safeUrlRule(),
                 'individual_rights' => 'nullable|array',
-                'retention_trigger' => 'nullable|string|max:255',            // NEW
-                'retention_authority_evidence' => 'nullable|string',         // NEW
-                'disposal_method' => 'nullable|string|max:255',              // NEW
-                'rights_request_process' => 'nullable|string',               // NEW
+                'retention_trigger' => 'nullable|string|max:255',
+                'retention_authority_evidence' => 'nullable|string',
+                'disposal_method' => 'nullable|string|max:255',
+                'rights_request_process' => 'nullable|string',
             ],
             7 => [
                 'security_measures' => 'nullable|string',
-                'access_control_user_roles' => 'nullable|string',            // NEW
+                'access_control_user_roles' => 'nullable|string',
             ],
             8 => [
                 'external_recipients' => 'required|array|min:1',
-                'processing_role' => 'nullable|string|in:Data Controller,Data Processor,Joint Controller', // NEW
-                'processor_contract_in_place' => 'nullable|boolean',         // NEW
+                'processing_role' => 'nullable|string|in:Data Controller,Data Processor,Joint Controller',
+                'processor_contract_in_place' => 'nullable|boolean',
             ],
             9 => [
                 'international_transfers' => 'nullable|array',
                 'transfer_mechanisms' => 'nullable|array',
-                'international_transfer_yn' => 'nullable|boolean',           // NEW
-                'transfer_destination_org' => 'nullable|string|max:255',     // NEW
-                'transfer_safeguards' => 'nullable|string',                  // NEW
+                'international_transfer_yn' => 'nullable|boolean',
+                'transfer_destination_org' => 'nullable|string|max:255',
+                'transfer_safeguards' => 'nullable|string',
             ],
             10 => [
                 'auto_decision_making' => 'nullable|boolean',
                 'profiling_description' => 'nullable|string|required_if:auto_decision_making,true',
             ],
             11 => [
-                'consent_link' => 'nullable|url|max:500',
+                'consent_link' => $this->safeUrlRule(),
                 'data_location' => 'nullable|string',
             ],
             12 => [
                 'dpia_required' => 'nullable|boolean',
                 'dpia_progress' => 'nullable|string|in:not_started,in_progress,completed',
-                'dpia_link' => 'nullable|url|max:500',
-                'dpia_screening_required' => 'nullable|boolean',             // NEW
-                'dpia_screening_notes' => 'nullable|string',                 // NEW
+                'dpia_link' => $this->safeUrlRule(),
+                'dpia_screening_required' => 'nullable|boolean',
+                'dpia_screening_notes' => 'nullable|string',
             ],
             13 => [
                 'breach_occurred' => 'nullable|boolean',
-                'breach_link' => 'nullable|url|max:500|required_if:breach_occurred,true',
+                'breach_link' => array_merge($this->safeUrlRule(), ['required_if:breach_occurred,true']),
             ],
             14 => [
                 'dpa_conditions' => 'required|array|min:1',
                 'gdpr_articles' => 'required|array|min:1',
                 'cybersecurity_articles' => 'nullable|array',
                 'other_articles' => 'nullable|array',
-                'retention_policy_link' => 'required|url|max:500',
+                'retention_policy_link' => $this->safeUrlRule(true),
                 'retained_per_policy' => 'required|boolean',
                 'retention_non_adherence_reason' => 'nullable|string|required_if:retained_per_policy,false',
             ],
@@ -838,8 +769,7 @@ class RopaFormController extends Controller
 
     public function signOffProcessingOwner(RopaForm $parentForm): RedirectResponse
     {
-        if ($parentForm->user_id !== Auth::id()) abort(403);
-
+        abort_unless($this->canAccess($parentForm), 403);
         $parentForm->update(['processing_owner_signed_at' => now()]);
 
         return back()->with('success', 'Processing Owner sign-off recorded.');
@@ -847,9 +777,7 @@ class RopaFormController extends Controller
 
     public function validatePrivacyOffice(RopaForm $parentForm): RedirectResponse
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin') abort(403);
-
+        abort_unless($this->isAdminUser(), 403);
         $parentForm->update(['privacy_office_validated_at' => now()]);
 
         return back()->with('success', 'Privacy Office validation recorded.');
@@ -857,9 +785,7 @@ class RopaFormController extends Controller
 
     public function approveForm(RopaForm $parentForm): RedirectResponse
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin') abort(403);
-
+        abort_unless($this->isAdminUser(), 403);
         $parentForm->update(['approved_at' => now()]);
 
         return back()->with('success', 'Form approved.');

@@ -307,6 +307,15 @@
                 <div class="info-text">
                     <i class="fas fa-info-circle"></i> Didn't receive the code? Check your spam folder or click resend.
                 </div>
+
+                <div class="text-center mt-3">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="resend-btn">
+                            <i class="fas fa-arrow-left me-1"></i> Back to login / use a different account
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

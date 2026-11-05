@@ -21,8 +21,18 @@ class User extends Authenticatable
     ];
 
     protected $attributes = [
-        'role' => 'user', // Default role
+        'role' => 'user',
     ];
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin'], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
 
     protected $hidden = [
         'password',

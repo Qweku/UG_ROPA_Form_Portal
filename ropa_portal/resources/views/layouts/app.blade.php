@@ -157,7 +157,7 @@
             </p>
             <p class="mb-0 small">
                 &copy; {{ date('Y') }} Record of Processing Activities (RoPA) |
-                <i class="fas fa-lock me-1"></i> Compliant with Data Protection Act 2018
+                <i class="fas fa-lock me-1"></i> Compliant with Data Protection Act 2012, (Act 843) and GDPR
             </p>
         </div>
     </footer>

@@ -55,7 +55,6 @@ class AdminController extends Controller
     {
         $query = RopaForm::with(['user', 'college', 'submissions']);
 
-        // Search filter — search the form, its owner, and its personnel fields.
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -75,8 +74,6 @@ class AdminController extends Controller
             });
         }
 
-        // Completion-state filter, replacing the old submitted/approved/
-        // rejected status filter.
         if ($request->filled('status') && $request->status !== 'all') {
             if ($request->status === 'completed') {
                 $query->where('all_submissions_completed', true);
@@ -85,8 +82,6 @@ class AdminController extends Controller
             }
         }
 
-        // Date filter — filter by when the form was created, since there's
-        // no single "submitted_at" moment in a multi-submission form.
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -275,7 +270,7 @@ class AdminController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'personnel_id' => 'nullable|string|max:50',
-            'role' => 'required|in:user,admin,super_admin',
+            'role' => ['required', Rule::in($this->assignableRoles($request->user()))],
         ]);
 
         $user = User::create([
@@ -288,9 +283,6 @@ class AdminController extends Controller
             'is_verified' => false,
         ]);
 
-        // Send the same OTP verification email a self-registered user gets.
-        // The admin's own session is untouched — we never call Auth::login()
-        // here, unlike the public registration flow.
         (new OtpVerificationController)->sendOtp($user);
 
         return redirect()->route('admin.users')
@@ -317,16 +309,37 @@ class AdminController extends Controller
             'surname' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'personnel_id' => 'nullable|string|max:50',
-            'role' => 'required|in:user,admin,super_admin',
+            'role' => ['required', Rule::in($this->assignableRoles($request->user(), $user))],
             'is_verified' => 'sometimes|boolean',
         ]);
 
-        $validated['is_verified'] = $request->boolean('is_verified');
+        if (in_array($user->role, ['admin', 'super_admin'], true) && $validated['role'] === 'user' && $this->privilegedUserCount() <= 1) {
+            return back()->with('error', 'Cannot remove the last privileged account.');
+        }
 
+        $validated['is_verified'] = $request->boolean('is_verified');
         $user->update($validated);
 
         return redirect()->route('admin.users')
             ->with('success', "User {$user->firstname} {$user->surname} was updated successfully.");
+    }
+
+    private function assignableRoles(?User $actor, ?User $target = null): array
+    {
+        if ($actor && $actor->isSuperAdmin()) {
+            return ['user', 'admin', 'super_admin'];
+        }
+
+        if ($target && $target->isSuperAdmin()) {
+            return ['super_admin'];
+        }
+
+        return ['user', 'admin'];
+    }
+
+    private function privilegedUserCount(): int
+    {
+        return User::whereIn('role', ['admin', 'super_admin'])->count();
     }
 
     /**
@@ -353,9 +366,19 @@ class AdminController extends Controller
      */
     public function destroyUser(Request $request, User $user): RedirectResponse
     {
-        if ($user->id === auth()->id()) {
+        if ($user->id === $request->user()->id) {
             return redirect()->route('admin.users')
                 ->with('error', 'You cannot delete your own account while logged in as it.');
+        }
+
+        if ($user->isSuperAdmin() && ! $request->user()->isSuperAdmin()) {
+            return redirect()->route('admin.users')
+                ->with('error', 'Only a super admin can delete a super admin account.');
+        }
+
+        if (in_array($user->role, ['admin', 'super_admin'], true) && $this->privilegedUserCount() <= 1) {
+            return redirect()->route('admin.users')
+                ->with('error', 'Cannot delete the last privileged account.');
         }
 
         DB::transaction(function () use ($user) {

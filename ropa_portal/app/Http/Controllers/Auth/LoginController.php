@@ -34,11 +34,11 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        session()->forget('otp_verified');
+        $request->session()->forget('otp_verified');
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect()->route('login');
     }
 }

@@ -10,11 +10,10 @@ class RedirectIfAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['admin', 'super_admin'])) {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             $routeName = $request->route()->getName();
 
-            // Allow admin access to form editing and updating (for restricted steps)
-            if (! in_array($routeName, ['ropa.edit', 'ropa.update', 'ropa.add-more'])) {
+            if (! in_array($routeName, ['ropa.edit', 'ropa.update', 'ropa.add-more'], true)) {
                 return redirect()->route('admin.dashboard');
             }
         }

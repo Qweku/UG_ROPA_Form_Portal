@@ -686,8 +686,9 @@
                             <div class="col-12">
                                 <small class="text-muted">LIA Link</small>
                                 <p class="mb-0 view-mode">
-                                    @if($submission->lia_link)
-                                        <a href="{{ $submission->lia_link }}" target="_blank" rel="noopener">{{ $submission->lia_link }}</a>
+                                    @php($safeLiaLink = \App\Support\Security::safeExternalUrl($submission->lia_link))
+                                    @if($safeLiaLink)
+                                        <a href="{{ $safeLiaLink }}" target="_blank" rel="noopener noreferrer">{{ $safeLiaLink }}</a>
                                     @else
                                         N/A
                                     @endif
@@ -1032,8 +1033,9 @@
                             <div class="col-md-6">
                                 <small class="text-muted">Consent Link</small>
                                 <p class="mb-0 view-mode">
-                                    @if($submission->consent_link)
-                                        <a href="{{ $submission->consent_link }}" target="_blank" rel="noopener">{{ $submission->consent_link }}</a>
+                                    @php($safeConsentLink = \App\Support\Security::safeExternalUrl($submission->consent_link))
+                                    @if($safeConsentLink)
+                                        <a href="{{ $safeConsentLink }}" target="_blank" rel="noopener noreferrer">{{ $safeConsentLink }}</a>
                                     @else
                                         N/A
                                     @endif
@@ -1064,7 +1066,7 @@
                             </div>
                             <h4 class="mb-0 text-white" >Data Protection Impact Assessment</h4>
                         </div>
-                        @if(Auth::user()->role === 'admin')
+                        @if(Auth::user()?->isAdmin())
                             @include('ropa.partials.section-edit-controls')
                         @endif
                     </div>
@@ -1090,8 +1092,9 @@
                             <div class="col-md-4">
                                 <small class="text-muted">DPIA Link</small>
                                 <p class="mb-0 view-mode">
-                                    @if($submission->dpia_link)
-                                        <a href="{{ $submission->dpia_link }}" target="_blank" rel="noopener">View</a>
+                                    @php($safeDpiaLink = \App\Support\Security::safeExternalUrl($submission->dpia_link))
+                                    @if($safeDpiaLink)
+                                        <a href="{{ $safeDpiaLink }}" target="_blank" rel="noopener noreferrer">View</a>
                                     @else
                                         N/A
                                     @endif
@@ -1130,7 +1133,7 @@
                             </div>
                             <h4 class="mb-0 text-white" >Breach History</h4>
                         </div>
-                        @if(Auth::user()->role === 'admin')
+                        @if(Auth::user()?->isAdmin())
                             @include('ropa.partials.section-edit-controls')
                         @endif
                     </div>
@@ -1147,8 +1150,9 @@
                             <div class="col-md-6">
                                 <small class="text-muted">Breach Link</small>
                                 <p class="mb-0 view-mode">
-                                    @if($submission->breach_link)
-                                        <a href="{{ $submission->breach_link }}" target="_blank" rel="noopener">View</a>
+                                    @php($safeBreachLink = \App\Support\Security::safeExternalUrl($submission->breach_link))
+                                    @if($safeBreachLink)
+                                        <a href="{{ $safeBreachLink }}" target="_blank" rel="noopener noreferrer">View</a>
                                     @else
                                         N/A
                                     @endif
@@ -1225,8 +1229,9 @@
                             <div class="col-12">
                                 <small class="text-muted">Retention Policy Link</small>
                                 <p class="mb-0 view-mode">
-                                    @if($submission->retention_policy_link)
-                                        <a href="{{ $submission->retention_policy_link }}" target="_blank" rel="noopener">{{ $submission->retention_policy_link }}</a>
+                                    @php($safeRetentionPolicyLink = \App\Support\Security::safeExternalUrl($submission->retention_policy_link))
+                                    @if($safeRetentionPolicyLink)
+                                        <a href="{{ $safeRetentionPolicyLink }}" target="_blank" rel="noopener noreferrer">{{ $safeRetentionPolicyLink }}</a>
                                     @else
                                         N/A
                                     @endif

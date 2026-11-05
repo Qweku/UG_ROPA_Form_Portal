@@ -6,8 +6,8 @@ use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RopaFormController;
 use App\Http\Controllers\SchoolController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 
 // Root redirect
@@ -40,24 +40,23 @@ Route::middleware(['guest'])->group(function () {
         return view('auth.login');
     })->name('login');
 
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:10,1');
     Route::get('/register', function () {
         return view('auth.login');
     })->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:10,1');
 });
 
 // OTP Verification routes (authenticated but not verified)
 Route::middleware(['auth'])->group(function () {
     Route::get('/verify-otp', [OtpVerificationController::class, 'showVerificationForm'])->name('verify.otp');
-    Route::post('/verify-otp', [OtpVerificationController::class, 'verifyOtp'])->name('verify.otp');
-    Route::post('/resend-otp', [OtpVerificationController::class, 'resendOtp'])->name('resend.otp');
+    Route::post('/verify-otp', [OtpVerificationController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('verify.otp');
+    Route::post('/resend-otp', [OtpVerificationController::class, 'resendOtp'])->middleware('throttle:5,1')->name('resend.otp');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
 
 // Authenticated and verified routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
     // User-facing RoPA form management routes
     Route::middleware(['user.only'])->prefix('ropa')->name('ropa.')->group(function () {
         Route::get('/', [RopaFormController::class, 'index'])->name('index');
@@ -84,6 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-Route::get('/test-404', fn() => abort(404));
-Route::get('/test-403', fn() => abort(403));
-Route::get('/test-500', fn() => abort(500));
+if (app()->environment('local')) {
+    Route::get('/test-404', fn () => abort(404));
+    Route::get('/test-403', fn () => abort(403));
+    Route::get('/test-500', fn () => abort(500));
+}

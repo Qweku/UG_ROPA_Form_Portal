@@ -762,9 +762,6 @@
                 this.parentElement.style.transform = 'translateX(0)';
             });
         });
-
-        // Demo credentials hint (remove in production)
-        console.log('Demo credentials: admin@ug.edu.gh / password');
     </script>
 </body>
 
